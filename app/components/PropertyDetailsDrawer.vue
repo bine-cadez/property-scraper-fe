@@ -229,6 +229,15 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
   background: white;
 }
 
+.details.embedded {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  flex: 1;
+  border-left: 0;
+}
+
 .details-header {
   display: flex;
   min-height: 52px;
@@ -440,7 +449,7 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
 }
 
 @media (max-width: 1100px) {
-  .details {
+  .details:not(.embedded) {
     width: 390px;
     min-width: 360px;
   }

@@ -296,10 +296,11 @@ function addDataLayers() {
     source: 'market-points',
     filter: ['has', 'point_count'],
     paint: {
-      'circle-color': '#17211f',
-      'circle-radius': ['step', ['get', 'point_count'], 17, 10, 21, 30, 25],
+      'circle-color': '#34364a',
+      'circle-radius': ['step', ['get', 'point_count'], 19, 10, 23, 30, 27],
       'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 2,
+      'circle-stroke-width': 3,
+      'circle-opacity': 0.94,
     },
   })
   map.addLayer({
@@ -324,10 +325,11 @@ function addDataLayers() {
       ['==', ['get', 'kind'], 'transaction'],
     ],
     paint: {
-      'circle-color': '#b55d18',
-      'circle-radius': 8,
+      'circle-color': '#5b52e8',
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 18, 16, 27],
       'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 2,
+      'circle-stroke-width': 3,
+      'circle-opacity': 0.92,
     },
   })
   map.addLayer({
@@ -340,28 +342,38 @@ function addDataLayers() {
       ['==', ['get', 'kind'], 'listing'],
     ],
     paint: {
-      'circle-color': '#7b55a3',
-      'circle-radius': 8,
+      'circle-color': '#0e9fba',
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 18, 16, 27],
       'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 2,
+      'circle-stroke-width': 3,
+      'circle-opacity': 0.92,
     },
   })
   const labelLayout: SymbolLayerSpecification['layout'] = {
     'text-field': [
       'concat',
-      ['number-format', ['get', 'pricePerM2'], { locale: 'sl-SI' }],
-      ' €/m²',
+      '€',
+      [
+        'number-format',
+        ['/', ['get', 'pricePerM2'], 1000],
+        {
+          locale: 'sl-SI',
+          'min-fraction-digits': 1,
+          'max-fraction-digits': 1,
+        },
+      ],
+      'k',
     ],
-    'text-size': 11,
-    'text-font': ['Open Sans Semibold'],
-    'text-offset': [0, 1.55],
-    'text-anchor': 'top',
-    'text-allow-overlap': false,
+    'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 16, 12],
+    'text-font': ['Open Sans Bold'],
+    'text-anchor': 'center',
+    'text-allow-overlap': true,
+    'text-ignore-placement': true,
   }
   const labelPaint: SymbolLayerSpecification['paint'] = {
-    'text-color': '#17211f',
-    'text-halo-color': '#ffffff',
-    'text-halo-width': 2,
+    'text-color': '#ffffff',
+    'text-halo-color': 'rgba(35, 31, 111, 0.25)',
+    'text-halo-width': 1,
   }
   map.addLayer({
     id: 'transaction-labels',
@@ -484,8 +496,12 @@ onMounted(async () => {
     )
     map.on('load', () => {
       container.dataset.mapState = 'ready'
+      map?.resize()
       addDataLayers()
-      fetchViewport()
+      requestAnimationFrame(() => {
+        map?.resize()
+        fetchViewport()
+      })
     })
     map.on('moveend', () => {
       if (!map) return

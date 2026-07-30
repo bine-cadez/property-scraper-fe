@@ -21,7 +21,7 @@ export default defineNuxtConfig({
     },
   },
   routeRules: {
-    '/': { prerender: true },
+    '/': { redirect: '/zemljevid' },
     '/metodologija': { prerender: true },
     '/viri-podatkov': { prerender: true },
     '/o-projektu': { prerender: true },

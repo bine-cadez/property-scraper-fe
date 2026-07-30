@@ -1,8 +1,8 @@
 import type { MapLayerId, MapState, Position } from '../types/property'
 
 export const DEFAULT_MAP_STATE: MapState = {
-  center: [14.5058, 46.0569],
-  zoom: 15.2,
+  center: [14.5038, 46.0568],
+  zoom: 14.9,
   layers: ['parcels', 'buildings', 'transactions', 'listings', 'priceM2'],
 }
 
