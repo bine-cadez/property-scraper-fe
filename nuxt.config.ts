@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-07-30',
   devtools: { enabled: true },
   css: ['~/assets/css/main.css', 'maplibre-gl/dist/maplibre-gl.css'],
-  modules: ['@nuxt/eslint'],
+  modules: ['@nuxt/eslint', 'nitro-cloudflare-dev'],
   vite: {
     plugins: [tailwindcss()],
   },
@@ -43,6 +43,4 @@ export default defineNuxtConfig({
       nodeCompat: true,
     },
   },
-
-  modules: ['nitro-cloudflare-dev'],
 });
