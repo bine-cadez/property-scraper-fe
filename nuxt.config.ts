@@ -15,9 +15,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     mapProviderToken: '',
     public: {
-      mapStyleUrl: '',
-      mapAttribution:
-        'Kartografski prikaz © Prostor na dlani · vzorčni podatki',
+      mapStyleUrl: 'https://tiles.openfreemap.org/styles/liberty',
+      mapAttribution: 'Vzorčni nepremičninski podatki © Prostor na dlani',
       siteUrl: 'http://localhost:3000',
     },
   },
