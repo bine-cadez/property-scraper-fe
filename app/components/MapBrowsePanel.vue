@@ -499,6 +499,21 @@ function marketIsActive(activeLayers: MapLayerId[]) {
     border-radius: 14px 14px 0 0;
   }
 
+  .browse-panel.embedded.is-expanded {
+    border: 1px solid rgb(218 221 237 / 82%);
+    border-radius: 15px;
+    box-shadow: 0 12px 36px rgb(38 43 77 / 18%);
+  }
+
+  .browse-panel.embedded.is-expanded .panel-brand {
+    border-radius: 14px;
+  }
+
+  .browse-panel.is-expanded .search-region,
+  .browse-panel.is-expanded .quick-filter-row {
+    display: none;
+  }
+
   .panel-brand {
     min-height: 58px;
     padding: 0 12px;
@@ -543,6 +558,46 @@ function marketIsActive(activeLayers: MapLayerId[]) {
 
 @media (max-width: 420px) {
   .panel-home > span:last-child {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) and (max-width: 1024px) {
+  .browse-panel,
+  .browse-panel.embedded {
+    position: static;
+    width: 100%;
+    border: 1px solid rgb(218 221 237 / 82%);
+    border-radius: 15px;
+    box-shadow: 0 14px 40px rgb(38 43 77 / 20%);
+    transform: none;
+  }
+
+  .panel-brand,
+  .panel-extras,
+  .search-region p,
+  .panel-nav,
+  .panel-footer {
+    display: none;
+  }
+
+  .search-region {
+    padding: 10px 10px 8px;
+  }
+
+  .quick-filter-row {
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 9px 9px;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .quick-filter-row > button {
+    min-height: 32px;
+    flex: 0 0 auto;
+  }
+
+  .browse-panel.is-expanded {
     display: none;
   }
 }

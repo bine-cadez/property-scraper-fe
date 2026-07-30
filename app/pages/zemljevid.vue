@@ -661,8 +661,14 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 720px) {
+  .map-page {
+    min-height: 0;
+  }
+
   .map-workspace {
     --sidebar-width: 0px;
+    --mobile-toolbar-top: 205px;
+    --mobile-content-top: 261px;
   }
 
   .map-sidebar {
@@ -700,6 +706,15 @@ onBeforeUnmount(() => {
     transform: none;
   }
 
+  .map-workspace.has-selection .map-tool-rail,
+  .map-workspace.has-selection .map-legend,
+  .map-workspace.has-selection .map-status,
+  .map-workspace.has-selection :deep(.maplibregl-ctrl-bottom-right) {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
   .mobile-sheet {
     display: block;
   }
@@ -716,13 +731,37 @@ onBeforeUnmount(() => {
   }
 
   .map-tool-rail {
-    top: 219px;
+    top: var(--mobile-toolbar-top);
     right: 10px;
-    width: 118px;
+    left: 10px;
+    display: grid;
+    width: auto;
+    grid-template-columns: minmax(96px, 1fr) minmax(82px, 0.85fr) 42px 42px;
+    align-items: start;
+    gap: 6px;
+  }
+
+  .map-tool-rail :deep(.layer-control) {
+    width: 100%;
+  }
+
+  .map-tool-rail :deep(.filter-shell) {
+    width: 100%;
+  }
+
+  .map-tool-rail :deep(.filter-trigger) {
+    width: 100%;
+    min-width: 0;
+    padding: 0 10px;
+  }
+
+  .map-tool-rail .rail-button {
+    width: 42px;
+    height: 48px;
   }
 
   .map-status {
-    top: 219px;
+    top: var(--mobile-content-top);
     left: 10px;
   }
 
@@ -766,27 +805,149 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 520px) {
-  .map-tool-rail :deep(.layer-control) {
-    width: 118px;
-  }
-
   .map-tool-rail :deep(.layer-control.expanded) {
-    width: min(246px, calc(100vw - 24px));
-    transform: translateX(calc(118px - min(246px, calc(100vw - 24px))));
+    position: fixed;
+    z-index: 45;
+    top: var(--mobile-toolbar-top);
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100dvh - var(--mobile-toolbar-top) - 10px);
+    overflow-y: auto;
+    transform: none;
   }
 
   .map-tool-rail :deep(.filter-panel) {
     position: fixed;
     z-index: 45;
-    top: 219px;
+    top: var(--mobile-content-top);
     right: 10px;
     left: 10px;
     width: auto;
-    max-height: calc(100dvh - 233px);
+    max-height: calc(100dvh - var(--mobile-content-top) - 10px);
   }
 
   .map-legend span {
     font-size: 9px;
+  }
+}
+
+@media (max-height: 560px) and (max-width: 1024px) {
+  .map-page {
+    min-height: 0;
+  }
+
+  .map-workspace {
+    --sidebar-width: 0px;
+    --mobile-toolbar-top: 146px;
+    --mobile-content-top: 202px;
+  }
+
+  .map-sidebar {
+    position: absolute;
+    top: 10px;
+    right: auto;
+    left: 10px;
+    width: min(520px, calc(100vw - 20px));
+    min-width: 0;
+    height: auto;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  .map-sidebar::before,
+  .sidebar-body {
+    display: none;
+  }
+
+  .map-sidebar :deep(.browse-panel) {
+    pointer-events: auto;
+  }
+
+  .map-workspace.has-selection .map-stage {
+    clip-path: inset(0);
+  }
+
+  .map-workspace.has-selection .map-tool-rail,
+  .map-workspace.has-selection .map-legend,
+  .map-workspace.has-selection .map-status,
+  .map-workspace.has-selection :deep(.maplibregl-ctrl-bottom-right) {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .mobile-sheet {
+    display: block;
+  }
+
+  .map-tool-rail {
+    top: var(--mobile-toolbar-top);
+    right: 10px;
+    left: auto;
+    display: grid;
+    width: min(360px, calc(100vw - 20px));
+    grid-template-columns: minmax(96px, 1fr) minmax(82px, 0.85fr) 42px 42px;
+    align-items: start;
+    gap: 6px;
+  }
+
+  .map-tool-rail :deep(.layer-control),
+  .map-tool-rail :deep(.filter-shell) {
+    width: 100%;
+  }
+
+  .map-tool-rail :deep(.filter-trigger) {
+    width: 100%;
+    min-width: 0;
+    padding: 0 10px;
+  }
+
+  .map-tool-rail .rail-button {
+    width: 42px;
+    height: 48px;
+  }
+
+  .map-tool-rail :deep(.layer-control.expanded) {
+    position: fixed;
+    z-index: 45;
+    top: var(--mobile-toolbar-top);
+    right: 10px;
+    left: auto;
+    width: min(360px, calc(100vw - 20px));
+    max-height: calc(100dvh - var(--mobile-toolbar-top) - 10px);
+    overflow-y: auto;
+  }
+
+  .map-tool-rail :deep(.filter-panel) {
+    position: fixed;
+    z-index: 45;
+    top: var(--mobile-content-top);
+    right: 10px;
+    left: auto;
+    width: min(360px, calc(100vw - 20px));
+    max-height: calc(100dvh - var(--mobile-content-top) - 10px);
+  }
+
+  .map-status {
+    top: var(--mobile-content-top);
+    left: 10px;
+  }
+
+  .map-legend {
+    right: auto;
+    bottom: 12px;
+    left: 12px;
+    width: max-content;
+    max-width: calc(100vw - 82px);
+    overflow: hidden;
+  }
+
+  .map-legend small {
+    display: none;
   }
 }
 

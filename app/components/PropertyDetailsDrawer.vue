@@ -125,6 +125,11 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
         class="panel-content"
       >
         <PropertySummary :property="property" />
+        <PropertyPreview3D
+          v-if="property.building"
+          :key="property.id"
+          :property="property"
+        />
         <div class="overview-divider" />
         <ValuationSummary :property="property" />
         <NuxtLink

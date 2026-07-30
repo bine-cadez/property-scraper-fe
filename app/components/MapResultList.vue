@@ -134,7 +134,7 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 560px) and (max-width: 1024px) {
   .result-list {
     display: none;
   }

@@ -51,6 +51,7 @@ See `.env.example`.
 | Variable                      | Scope        | Purpose                              |
 | ----------------------------- | ------------ | ------------------------------------ |
 | `NUXT_PUBLIC_MAP_STYLE_URL`   | browser-safe | MapLibre-compatible style URL        |
+| `NUXT_PUBLIC_MAP3D_STYLE_URL` | browser-safe | MapLibre-compatible 3D preview style |
 | `NUXT_PUBLIC_MAP_ATTRIBUTION` | browser-safe | required map/data attribution        |
 | `NUXT_PUBLIC_SITE_URL`        | browser-safe | canonical and sitemap base URL       |
 | `NUXT_MAP_PROVIDER_TOKEN`     | server-only  | optional private provider credential |

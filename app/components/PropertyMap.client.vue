@@ -59,6 +59,15 @@ function emptyCollection() {
   return { type: 'FeatureCollection' as const, features: [] }
 }
 
+function flattenBasemap() {
+  if (!map?.isStyleLoaded()) return
+  for (const layer of map.getStyle().layers ?? []) {
+    if (layer.type === 'fill-extrusion') {
+      map.setLayoutProperty(layer.id, 'visibility', 'none')
+    }
+  }
+}
+
 function setSelectionFilters() {
   if (!map?.isStyleLoaded()) return
   const id = props.selectedId ?? '__none__'
@@ -480,6 +489,10 @@ onMounted(async () => {
       attributionControl: false,
       minZoom: 6,
       maxZoom: 20,
+      pitch: 0,
+      bearing: 0,
+      dragRotate: false,
+      touchPitch: false,
     })
     map.addControl(
       new maplibregl.AttributionControl({
@@ -487,6 +500,12 @@ onMounted(async () => {
         customAttribution: config.public.mapAttribution,
       }),
     )
+    if (matchMedia('(max-width: 720px), (max-height: 560px)').matches) {
+      const attribution = container.querySelector<HTMLDetailsElement>(
+        '.maplibregl-ctrl-attrib',
+      )
+      if (attribution) attribution.open = false
+    }
     map.addControl(
       new maplibregl.NavigationControl({
         showCompass: false,
@@ -497,6 +516,7 @@ onMounted(async () => {
     map.on('load', () => {
       container.dataset.mapState = 'ready'
       map?.resize()
+      flattenBasemap()
       addDataLayers()
       requestAnimationFrame(() => {
         map?.resize()
@@ -648,9 +668,9 @@ defineExpose({
   font-size: 9px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 560px) and (max-width: 1024px) {
   .property-map :deep(.maplibregl-ctrl-bottom-right) {
-    bottom: 84px;
+    bottom: 68px;
   }
 }
 </style>

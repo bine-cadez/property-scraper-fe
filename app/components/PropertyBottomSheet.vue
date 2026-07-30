@@ -58,11 +58,16 @@ defineEmits<{
 .bottom-sheet :deep(.details) {
   width: 100%;
   min-width: 0;
+  height: 100%;
   border-left: 0;
 }
 
 .bottom-sheet :deep(.details-header) {
   padding-top: 7px;
+}
+
+.bottom-sheet :deep(.details-scroll) {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 @keyframes sheet-in {
