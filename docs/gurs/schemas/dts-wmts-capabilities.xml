@@ -1,0 +1,1461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
+  <ows:ServiceIdentification>
+    <ows:Title>GeoWebCache</ows:Title>
+    <ows:Abstract>GeoWebCache is an advanced tile cache for WMS servers. It supports a large variety of protocols and
+      formats, including WMS-C, WMTS, KML, Google Maps and Virtual Earth.</ows:Abstract>
+    <ows:Keywords>
+      <ows:Keyword>WFS</ows:Keyword>
+      <ows:Keyword>WFS</ows:Keyword>
+      <ows:Keyword>WMS</ows:Keyword>
+      <ows:Keyword>WMTS</ows:Keyword>
+      <ows:Keyword>GEOWEBCACHE</ows:Keyword>
+    </ows:Keywords>
+    <ows:ServiceType>OGC WMTS</ows:ServiceType>
+    <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
+    <ows:Fees>NONE</ows:Fees>
+    <ows:AccessConstraints>NONE</ows:AccessConstraints>
+  </ows:ServiceIdentification>
+  <ows:ServiceProvider>
+    <ows:ProviderName>Geodetska uprava Republike Slovenije</ows:ProviderName>
+    <ows:ProviderSite xlink:href="http://e-prostor.gov.si/"/>
+    <ows:ServiceContact>
+      <ows:IndividualName>Nedolocen</ows:IndividualName>
+      <ows:PositionName>Geospatial Expert</ows:PositionName>
+      <ows:ContactInfo>
+        <ows:Phone>
+          <ows:Voice>+386 1 478 48 00</ows:Voice>
+          <ows:Facsimile/>
+        </ows:Phone>
+        <ows:Address>
+          <ows:DeliveryPoint>Zemljemerska ulica 12</ows:DeliveryPoint>
+          <ows:City>Ljubljana</ows:City>
+          <ows:AdministrativeArea/>
+          <ows:PostalCode>1000</ows:PostalCode>
+          <ows:Country>Ljubljana</ows:Country>
+          <ows:ElectronicMailAddress>gurs@assist.si</ows:ElectronicMailAddress>
+        </ows:Address>
+      </ows:ContactInfo>
+    </ows:ServiceContact>
+  </ows:ServiceProvider>
+  <ows:OperationsMetadata>
+    <ows:Operation name="GetCapabilities">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="https://ipi.eprostor.gov.si/gwc-si-gurs-dts/service/wmts?">
+            <ows:Constraint name="GetEncoding">
+              <ows:AllowedValues>
+                <ows:Value>KVP</ows:Value>
+              </ows:AllowedValues>
+            </ows:Constraint>
+          </ows:Get>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="GetTile">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="https://ipi.eprostor.gov.si/gwc-si-gurs-dts/service/wmts?">
+            <ows:Constraint name="GetEncoding">
+              <ows:AllowedValues>
+                <ows:Value>KVP</ows:Value>
+              </ows:AllowedValues>
+            </ows:Constraint>
+          </ows:Get>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="GetFeatureInfo">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="https://ipi.eprostor.gov.si/gwc-si-gurs-dts/service/wmts?">
+            <ows:Constraint name="GetEncoding">
+              <ows:AllowedValues>
+                <ows:Value>KVP</ows:Value>
+              </ows:AllowedValues>
+            </ows:Constraint>
+          </ows:Get>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+  </ows:OperationsMetadata>
+  <Contents>
+    <Layer>
+      <ows:Title>SI.GURS.DK:DPK2500</ows:Title>
+      <ows:Identifier>SI.GURS.DK:DPK2500</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_SI_GURS_DK_DPK2500</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.DK:DPK1000</ows:Title>
+      <ows:Identifier>SI.GURS.DK:DPK1000</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_SI_GURS_DK_DPK1000</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.DK:DPK750</ows:Title>
+      <ows:Identifier>SI.GURS.DK:DPK750</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_SI_GURS_DK_DPK750</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.DK:DPK500</ows:Title>
+      <ows:Identifier>SI.GURS.DK:DPK500</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_SI_GURS_DK_DPK500</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.DK:DPK250</ows:Title>
+      <ows:Identifier>SI.GURS.DK:DPK250</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_SI_GURS_DK_DPK250</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.DK:DTK50</ows:Title>
+      <ows:Identifier>SI.GURS.DK:DTK50</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_SI_GURS_DK_DTK50</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.ZPDZ:DOF050</ows:Title>
+      <ows:Identifier>SI.GURS.ZPDZ:DOF050</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_BDOF5</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.ZPDZ:DOF025</ows:Title>
+      <ows:WGS84BoundingBox>
+        <ows:LowerCorner>13.3400608 44.96413091302938</ows:LowerCorner>
+        <ows:UpperCorner>17.203535173941244 46.8958681</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <ows:Identifier>SI.GURS.ZPDZ:DOF025</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <Format>image/jpeg</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:4326_BDOF5</TileMatrixSet>
+      </TileMatrixSetLink>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_BDOF5</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.ZPDZ:PREGLEDNI_DOF</ows:Title>
+      <ows:Identifier>SI.GURS.ZPDZ:PREGLEDNI_DOF</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <Format>image/jpeg</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_BDOF5</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.ZPDZ:LIDAR</ows:Title>
+      <ows:Identifier>SI.GURS.ZPDZ:LIDAR</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_BDOF5</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.ZPDZ:DOF050_Z</ows:Title>
+      <ows:Identifier>SI.GURS.ZPDZ:DOF050_Z</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <Dimension><ows:Identifier>time</ows:Identifier><Default>1990-01-01</Default><Value>1990-01-01</Value><Value>1993-01-01</Value><Value>1994-01-01</Value><Value>1995-01-01</Value><Value>1996-01-01</Value><Value>1997-01-01</Value><Value>1998-01-01</Value><Value>1999-01-01</Value><Value>2000-01-01</Value><Value>2001-01-01</Value><Value>2002-01-01</Value><Value>2003-01-01</Value><Value>2004-01-01</Value><Value>2005-01-01</Value><Value>2006-01-01</Value><Value>2009-01-01</Value><Value>2010-01-01</Value><Value>2011-01-01</Value><Value>2012-01-01</Value><Value>2013-01-01</Value><Value>2014-01-01</Value><Value>2015-01-01</Value><Value>2016-01-01</Value><Value>2017-01-01</Value><Value>2018-01-01</Value><Value>2019-01-01</Value><Value>2020-01-01</Value><Value>2021-01-01</Value><Value>2022-01-01</Value><Value>2023-01-01</Value><Value>2024-01-01</Value>
+      </Dimension>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_BDOF5</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.DK:OSK</ows:Title>
+      <ows:Identifier>SI.GURS.DK:OSK</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_ATL_OSK</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.DK:OSK_MS</ows:Title>
+      <ows:Identifier>SI.GURS.DK:OSK_MS</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_ATL_OSK</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.DTM:DTM5</ows:Title>
+      <ows:Identifier>SI.GURS.DTM:DTM5</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_DTM5</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.ZPDZ:PLS</ows:Title>
+      <ows:Identifier>SI.GURS.ZPDZ:PLS</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_PLS</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <Layer>
+      <ows:Title>SI.GURS.ZPDZ:LIDAR_PAS</ows:Title>
+      <ows:Identifier>SI.GURS.ZPDZ:LIDAR_PAS</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier/>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3794_BDOF5</TileMatrixSet>
+      </TileMatrixSetLink>
+    </Layer>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_ATL_OSK</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:0</ows:Identifier>
+        <ScaleDenominator>2500000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:1</ows:Identifier>
+        <ScaleDenominator>1500000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>4</MatrixWidth>
+        <MatrixHeight>3</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:2</ows:Identifier>
+        <ScaleDenominator>1000000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>6</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:3</ows:Identifier>
+        <ScaleDenominator>750000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>8</MatrixWidth>
+        <MatrixHeight>6</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:4</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>11</MatrixWidth>
+        <MatrixHeight>8</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:5</ows:Identifier>
+        <ScaleDenominator>350000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>16</MatrixWidth>
+        <MatrixHeight>11</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:6</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>22</MatrixWidth>
+        <MatrixHeight>16</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:7</ows:Identifier>
+        <ScaleDenominator>175000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>32</MatrixWidth>
+        <MatrixHeight>22</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:8</ows:Identifier>
+        <ScaleDenominator>100000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>55</MatrixWidth>
+        <MatrixHeight>38</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:9</ows:Identifier>
+        <ScaleDenominator>50000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>109</MatrixWidth>
+        <MatrixHeight>76</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:10</ows:Identifier>
+        <ScaleDenominator>40000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>136</MatrixWidth>
+        <MatrixHeight>95</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:11</ows:Identifier>
+        <ScaleDenominator>25000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>218</MatrixWidth>
+        <MatrixHeight>152</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:12</ows:Identifier>
+        <ScaleDenominator>10000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>544</MatrixWidth>
+        <MatrixHeight>378</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:13</ows:Identifier>
+        <ScaleDenominator>5000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>1087</MatrixWidth>
+        <MatrixHeight>756</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:14</ows:Identifier>
+        <ScaleDenominator>2500.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>2174</MatrixWidth>
+        <MatrixHeight>1512</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_ATL_OSK:15</ows:Identifier>
+        <ScaleDenominator>1000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249475.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>5434</MatrixWidth>
+        <MatrixHeight>3779</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_BDOF5</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:0</ows:Identifier>
+        <ScaleDenominator>1500000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:1</ows:Identifier>
+        <ScaleDenominator>1000000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>4</MatrixWidth>
+        <MatrixHeight>3</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:2</ows:Identifier>
+        <ScaleDenominator>750000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>5</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:3</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>8</MatrixWidth>
+        <MatrixHeight>5</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:4</ows:Identifier>
+        <ScaleDenominator>350000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>11</MatrixWidth>
+        <MatrixHeight>7</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:5</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>15</MatrixWidth>
+        <MatrixHeight>10</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:6</ows:Identifier>
+        <ScaleDenominator>175000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>21</MatrixWidth>
+        <MatrixHeight>14</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:7</ows:Identifier>
+        <ScaleDenominator>100000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>36</MatrixWidth>
+        <MatrixHeight>24</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:8</ows:Identifier>
+        <ScaleDenominator>50000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>72</MatrixWidth>
+        <MatrixHeight>48</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:9</ows:Identifier>
+        <ScaleDenominator>40000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>90</MatrixWidth>
+        <MatrixHeight>59</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:10</ows:Identifier>
+        <ScaleDenominator>25000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>144</MatrixWidth>
+        <MatrixHeight>95</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:11</ows:Identifier>
+        <ScaleDenominator>10000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>359</MatrixWidth>
+        <MatrixHeight>236</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:12</ows:Identifier>
+        <ScaleDenominator>5000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>718</MatrixWidth>
+        <MatrixHeight>471</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:13</ows:Identifier>
+        <ScaleDenominator>2500.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>1435</MatrixWidth>
+        <MatrixHeight>941</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:14</ows:Identifier>
+        <ScaleDenominator>1000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3586</MatrixWidth>
+        <MatrixHeight>2351</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:15</ows:Identifier>
+        <ScaleDenominator>500.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>7171</MatrixWidth>
+        <MatrixHeight>4702</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_BDOF5:16</ows:Identifier>
+        <ScaleDenominator>250.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>14342</MatrixWidth>
+        <MatrixHeight>9403</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_DTM5</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_DTM5:0</ows:Identifier>
+        <ScaleDenominator>10000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>359</MatrixWidth>
+        <MatrixHeight>236</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_DTM5:1</ows:Identifier>
+        <ScaleDenominator>5000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>718</MatrixWidth>
+        <MatrixHeight>471</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_DTM5:2</ows:Identifier>
+        <ScaleDenominator>2500.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>1435</MatrixWidth>
+        <MatrixHeight>941</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_DTM5:3</ows:Identifier>
+        <ScaleDenominator>1000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3586</MatrixWidth>
+        <MatrixHeight>2351</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_PLS</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:0</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>8</MatrixWidth>
+        <MatrixHeight>5</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:1</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>15</MatrixWidth>
+        <MatrixHeight>10</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:2</ows:Identifier>
+        <ScaleDenominator>175000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>21</MatrixWidth>
+        <MatrixHeight>14</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:3</ows:Identifier>
+        <ScaleDenominator>100000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>36</MatrixWidth>
+        <MatrixHeight>24</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:4</ows:Identifier>
+        <ScaleDenominator>50000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>72</MatrixWidth>
+        <MatrixHeight>48</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:5</ows:Identifier>
+        <ScaleDenominator>25000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>144</MatrixWidth>
+        <MatrixHeight>95</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:6</ows:Identifier>
+        <ScaleDenominator>10000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>359</MatrixWidth>
+        <MatrixHeight>236</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:7</ows:Identifier>
+        <ScaleDenominator>5000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>718</MatrixWidth>
+        <MatrixHeight>471</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:8</ows:Identifier>
+        <ScaleDenominator>2500.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>1435</MatrixWidth>
+        <MatrixHeight>941</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:9</ows:Identifier>
+        <ScaleDenominator>1000.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3586</MatrixWidth>
+        <MatrixHeight>2351</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:10</ows:Identifier>
+        <ScaleDenominator>500.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>7171</MatrixWidth>
+        <MatrixHeight>4702</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:11</ows:Identifier>
+        <ScaleDenominator>250.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>14342</MatrixWidth>
+        <MatrixHeight>9403</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:12</ows:Identifier>
+        <ScaleDenominator>100.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>35854</MatrixWidth>
+        <MatrixHeight>23508</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_PLS:13</ows:Identifier>
+        <ScaleDenominator>50.0</ScaleDenominator>
+        <TopLeftCorner>370000.0 196500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>71708</MatrixWidth>
+        <MatrixHeight>47015</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000:0</ows:Identifier>
+        <ScaleDenominator>1500000.0</ScaleDenominator>
+        <TopLeftCorner>340935.0 217080.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000:1</ows:Identifier>
+        <ScaleDenominator>1000000.0</ScaleDenominator>
+        <TopLeftCorner>340935.0 217080.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>5</MatrixWidth>
+        <MatrixHeight>3</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000:2</ows:Identifier>
+        <ScaleDenominator>750000.0</ScaleDenominator>
+        <TopLeftCorner>340935.0 217080.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>6</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000:3</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>340935.0 217080.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>9</MatrixWidth>
+        <MatrixHeight>6</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000:4</ows:Identifier>
+        <ScaleDenominator>350000.0</ScaleDenominator>
+        <TopLeftCorner>340935.0 217080.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>12</MatrixWidth>
+        <MatrixHeight>9</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000:5</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>340935.0 217080.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>17</MatrixWidth>
+        <MatrixHeight>12</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000:6</ows:Identifier>
+        <ScaleDenominator>175000.0</ScaleDenominator>
+        <TopLeftCorner>340935.0 217080.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>24</MatrixWidth>
+        <MatrixHeight>17</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK1000:7</ows:Identifier>
+        <ScaleDenominator>100000.0</ScaleDenominator>
+        <TopLeftCorner>340935.0 217080.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>42</MatrixWidth>
+        <MatrixHeight>30</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:0</ows:Identifier>
+        <ScaleDenominator>1500000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:1</ows:Identifier>
+        <ScaleDenominator>1000000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>4</MatrixWidth>
+        <MatrixHeight>3</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:2</ows:Identifier>
+        <ScaleDenominator>750000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>6</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:3</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>8</MatrixWidth>
+        <MatrixHeight>6</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:4</ows:Identifier>
+        <ScaleDenominator>350000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>12</MatrixWidth>
+        <MatrixHeight>8</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:5</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>16</MatrixWidth>
+        <MatrixHeight>12</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:6</ows:Identifier>
+        <ScaleDenominator>175000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>23</MatrixWidth>
+        <MatrixHeight>16</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:7</ows:Identifier>
+        <ScaleDenominator>100000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>40</MatrixWidth>
+        <MatrixHeight>28</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:8</ows:Identifier>
+        <ScaleDenominator>50000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>80</MatrixWidth>
+        <MatrixHeight>56</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:9</ows:Identifier>
+        <ScaleDenominator>40000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>100</MatrixWidth>
+        <MatrixHeight>70</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK250:10</ows:Identifier>
+        <ScaleDenominator>25000.0</ScaleDenominator>
+        <TopLeftCorner>346823.0 211680.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>160</MatrixWidth>
+        <MatrixHeight>112</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK2500</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK2500:0</ows:Identifier>
+        <ScaleDenominator>2500000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK2500:1</ows:Identifier>
+        <ScaleDenominator>1500000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>4</MatrixWidth>
+        <MatrixHeight>3</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK2500:2</ows:Identifier>
+        <ScaleDenominator>1000000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>6</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK2500:3</ows:Identifier>
+        <ScaleDenominator>750000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>8</MatrixWidth>
+        <MatrixHeight>5</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK2500:4</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>11</MatrixWidth>
+        <MatrixHeight>7</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK2500:5</ows:Identifier>
+        <ScaleDenominator>350000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>16</MatrixWidth>
+        <MatrixHeight>10</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK2500:6</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>293225.0 249500.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>22</MatrixWidth>
+        <MatrixHeight>13</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:0</ows:Identifier>
+        <ScaleDenominator>1500000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:1</ows:Identifier>
+        <ScaleDenominator>1000000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>5</MatrixWidth>
+        <MatrixHeight>3</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:2</ows:Identifier>
+        <ScaleDenominator>750000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>6</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:3</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>9</MatrixWidth>
+        <MatrixHeight>6</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:4</ows:Identifier>
+        <ScaleDenominator>350000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>12</MatrixWidth>
+        <MatrixHeight>9</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:5</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>17</MatrixWidth>
+        <MatrixHeight>12</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:6</ows:Identifier>
+        <ScaleDenominator>175000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>24</MatrixWidth>
+        <MatrixHeight>17</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:7</ows:Identifier>
+        <ScaleDenominator>100000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>42</MatrixWidth>
+        <MatrixHeight>30</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK500:8</ows:Identifier>
+        <ScaleDenominator>50000.0</ScaleDenominator>
+        <TopLeftCorner>341220.0 216820.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>84</MatrixWidth>
+        <MatrixHeight>59</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750:0</ows:Identifier>
+        <ScaleDenominator>1500000.0</ScaleDenominator>
+        <TopLeftCorner>332060.0 223303.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3</MatrixWidth>
+        <MatrixHeight>3</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750:1</ows:Identifier>
+        <ScaleDenominator>1000000.0</ScaleDenominator>
+        <TopLeftCorner>332060.0 223303.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>5</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750:2</ows:Identifier>
+        <ScaleDenominator>750000.0</ScaleDenominator>
+        <TopLeftCorner>332060.0 223303.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>6</MatrixWidth>
+        <MatrixHeight>5</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750:3</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>332060.0 223303.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>9</MatrixWidth>
+        <MatrixHeight>7</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750:4</ows:Identifier>
+        <ScaleDenominator>350000.0</ScaleDenominator>
+        <TopLeftCorner>332060.0 223303.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>13</MatrixWidth>
+        <MatrixHeight>9</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750:5</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>332060.0 223303.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>18</MatrixWidth>
+        <MatrixHeight>13</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750:6</ows:Identifier>
+        <ScaleDenominator>175000.0</ScaleDenominator>
+        <TopLeftCorner>332060.0 223303.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>26</MatrixWidth>
+        <MatrixHeight>18</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DPK750:7</ows:Identifier>
+        <ScaleDenominator>100000.0</ScaleDenominator>
+        <TopLeftCorner>332060.0 223303.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>45</MatrixWidth>
+        <MatrixHeight>32</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3794</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:0</ows:Identifier>
+        <ScaleDenominator>1500000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:1</ows:Identifier>
+        <ScaleDenominator>1000000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>4</MatrixWidth>
+        <MatrixHeight>3</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:2</ows:Identifier>
+        <ScaleDenominator>750000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>5</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:3</ows:Identifier>
+        <ScaleDenominator>500000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>8</MatrixWidth>
+        <MatrixHeight>5</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:4</ows:Identifier>
+        <ScaleDenominator>350000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>11</MatrixWidth>
+        <MatrixHeight>8</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:5</ows:Identifier>
+        <ScaleDenominator>250000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>15</MatrixWidth>
+        <MatrixHeight>10</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:6</ows:Identifier>
+        <ScaleDenominator>175000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>21</MatrixWidth>
+        <MatrixHeight>15</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:7</ows:Identifier>
+        <ScaleDenominator>100000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>37</MatrixWidth>
+        <MatrixHeight>25</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:8</ows:Identifier>
+        <ScaleDenominator>50000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>73</MatrixWidth>
+        <MatrixHeight>50</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:9</ows:Identifier>
+        <ScaleDenominator>40000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>91</MatrixWidth>
+        <MatrixHeight>63</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:10</ows:Identifier>
+        <ScaleDenominator>25000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>146</MatrixWidth>
+        <MatrixHeight>100</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:11</ows:Identifier>
+        <ScaleDenominator>10000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>364</MatrixWidth>
+        <MatrixHeight>251</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:12</ows:Identifier>
+        <ScaleDenominator>5000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>727</MatrixWidth>
+        <MatrixHeight>501</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:13</ows:Identifier>
+        <ScaleDenominator>2500.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>1453</MatrixWidth>
+        <MatrixHeight>1001</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3794_SI_GURS_DK_DTK50:14</ows:Identifier>
+        <ScaleDenominator>1000.0</ScaleDenominator>
+        <TopLeftCorner>369500.0 208083.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>3632</MatrixWidth>
+        <MatrixHeight>2501</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:4326_BDOF5</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::4326</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:0</ows:Identifier>
+        <ScaleDenominator>3000000.0000000056</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>2</MatrixWidth>
+        <MatrixHeight>1</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:1</ows:Identifier>
+        <ScaleDenominator>1500000.0000000028</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>4</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:2</ows:Identifier>
+        <ScaleDenominator>750000.0000000014</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>8</MatrixWidth>
+        <MatrixHeight>4</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:3</ows:Identifier>
+        <ScaleDenominator>375000.0000000007</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>16</MatrixWidth>
+        <MatrixHeight>8</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:4</ows:Identifier>
+        <ScaleDenominator>187500.00000000035</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>32</MatrixWidth>
+        <MatrixHeight>16</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:5</ows:Identifier>
+        <ScaleDenominator>93750.00000000017</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>64</MatrixWidth>
+        <MatrixHeight>32</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:6</ows:Identifier>
+        <ScaleDenominator>46875.00000000009</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>128</MatrixWidth>
+        <MatrixHeight>64</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:7</ows:Identifier>
+        <ScaleDenominator>23437.500000000044</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>256</MatrixWidth>
+        <MatrixHeight>128</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:8</ows:Identifier>
+        <ScaleDenominator>11718.750000000022</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>512</MatrixWidth>
+        <MatrixHeight>256</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:9</ows:Identifier>
+        <ScaleDenominator>5859.375000000011</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>1024</MatrixWidth>
+        <MatrixHeight>512</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:10</ows:Identifier>
+        <ScaleDenominator>2929.6875000000055</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>2048</MatrixWidth>
+        <MatrixHeight>1024</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:11</ows:Identifier>
+        <ScaleDenominator>1464.8437500000027</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>4096</MatrixWidth>
+        <MatrixHeight>2048</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:12</ows:Identifier>
+        <ScaleDenominator>732.4218750000014</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>8192</MatrixWidth>
+        <MatrixHeight>4096</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:13</ows:Identifier>
+        <ScaleDenominator>366.2109375000007</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>16384</MatrixWidth>
+        <MatrixHeight>8192</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:14</ows:Identifier>
+        <ScaleDenominator>183.10546875000034</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>32768</MatrixWidth>
+        <MatrixHeight>16384</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:15</ows:Identifier>
+        <ScaleDenominator>91.55273437500017</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>65536</MatrixWidth>
+        <MatrixHeight>32768</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:16</ows:Identifier>
+        <ScaleDenominator>45.776367187500085</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>131072</MatrixWidth>
+        <MatrixHeight>65536</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:4326_BDOF5:17</ows:Identifier>
+        <ScaleDenominator>22.888183593750043</ScaleDenominator>
+        <TopLeftCorner>13.3400608 47.0</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>262144</MatrixWidth>
+        <MatrixHeight>131072</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+  </Contents>
+  <ServiceMetadataURL xlink:href="https://ipi.eprostor.gov.si/gwc-si-gurs-dts/service/wmts?SERVICE=wmts&amp;REQUEST=getcapabilities&amp;VERSION=1.0.0"/>
+  <ServiceMetadataURL xlink:href="https://ipi.eprostor.gov.si/gwc-si-gurs-dts/service/wmts/rest/WMTSCapabilities.xml"/>
+</Capabilities>

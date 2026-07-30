@@ -1,0 +1,40 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "PARC_ENOTA.27801039.STZ",
+      "geometry": null,
+      "properties": {
+        "FEATUREID": "27801039.STZ",
+        "ID_PARC_ENOTA": "27801039.STZ",
+        "EID_PARCELA": "100100000278010399",
+        "ID_MODEL": "STZ",
+        "NAZIV_MODEL": "STAVBNA ZEMLJIŠČA",
+        "DELEZ_POVRSINE": 63.7066,
+        "RAVEN": "31/31",
+        "POSPLOSENA_VREDNOST": 316800
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "PARC_ENOTA.27801039.ZPS",
+      "geometry": null,
+      "properties": {
+        "FEATUREID": "27801039.ZPS",
+        "ID_PARC_ENOTA": "27801039.ZPS",
+        "EID_PARCELA": "100100000278010399",
+        "ID_MODEL": "ZPS",
+        "NAZIV_MODEL": "ZEMLJIŠČE POD STAVBAMI",
+        "DELEZ_POVRSINE": 36.2934,
+        "RAVEN": null,
+        "POSPLOSENA_VREDNOST": 0
+      }
+    }
+  ],
+  "totalFeatures": 2,
+  "numberMatched": 2,
+  "numberReturned": 2,
+  "timeStamp": "2026-07-30T13:06:50.839Z",
+  "crs": null
+}

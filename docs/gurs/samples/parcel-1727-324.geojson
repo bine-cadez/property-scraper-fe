@@ -1,0 +1,150 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "PARCELE.100100000278010399",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [14.51436679, 46.04800521],
+            [14.51438248, 46.04801428],
+            [14.51438758, 46.0480215],
+            [14.51439112, 46.04803051],
+            [14.51439519, 46.04803773],
+            [14.51438859, 46.04805389],
+            [14.51437788, 46.04806734],
+            [14.51438172, 46.04810101],
+            [14.51438453, 46.04811938],
+            [14.51439592, 46.04814615],
+            [14.51439948, 46.04815246],
+            [14.51415378, 46.04820298],
+            [14.51415502, 46.04819461],
+            [14.51406302, 46.047988],
+            [14.51424569, 46.04794927],
+            [14.51430472, 46.04793684],
+            [14.51431571, 46.04796559],
+            [14.51434864, 46.04799713],
+            [14.51435894, 46.04800158],
+            [14.51436679, 46.04800521]
+          ]
+        ]
+      },
+      "geometry_name": "GEOM",
+      "properties": {
+        "FEATUREID": 100100000278010399,
+        "EID": "100100000278010399",
+        "EID_PARCELA": "100100000278010399",
+        "PARCELA_ID": 27801039,
+        "KO_ID": 1727,
+        "NAZIV": "1727 POLJANSKO PREDMESTJE",
+        "ST_PARCELE": "324",
+        "POVRSINA": 518,
+        "DOLOCITEV_POVRSINE": 0,
+        "METODE_DOLOCITVE_POVRSINE_SIFRA": 0,
+        "METODE_DOLOCITVE_POVRSINE_NAZIV_SL": "ni podatka",
+        "METODE_DOLOCITVE_POVRSINE_OPIS_SL": "Ob migraciji grafična površina parcele v zemljiškokatastrskem načrtu (ZKN) in vpisana (atributna) površina parcele ni bila enaka, način izračuna površine ni znan. Šifra se uporablja samo ob migraciji iz starega sistema v IS kataster.",
+        "METODE_DOLOCITVE_POVRSINE_NAZIV_EN": null,
+        "METODE_DOLOCITVE_POVRSINE_OPIS_EN": null,
+        "METODE_DOLOCITVE_POVRSINE_NAZIV_IT": null,
+        "METODE_DOLOCITVE_POVRSINE_OPIS_IT": null,
+        "METODE_DOLOCITVE_POVRSINE_NAZIV_HU": null,
+        "METODE_DOLOCITVE_POVRSINE_OPIS_HU": null,
+        "UPRAVNI_STATUS_ID": 1,
+        "UPRAVNI_STATUSI_SIFRA": 1,
+        "UPRAVNI_STATUSI_NAZIV_SL": "ni urejena",
+        "UPRAVNI_STATUSI_OPIS_SL": null,
+        "UPRAVNI_STATUSI_NAZIV_EN": null,
+        "UPRAVNI_STATUSI_OPIS_EN": null,
+        "UPRAVNI_STATUSI_NAZIV_IT": "determinato",
+        "UPRAVNI_STATUSI_OPIS_IT": "determinato",
+        "UPRAVNI_STATUSI_NAZIV_HU": "rendezett",
+        "UPRAVNI_STATUSI_OPIS_HU": "rendezett",
+        "E_CEN": 462408.76,
+        "N_CEN": 101035.42,
+        "DATUM_SYS": "2024-01-16T14:56:11Z",
+        "BONITETA": null,
+        "ZNESEK_KD": null,
+        "SKUPNI_DEL_ETAZNA_LASTNINA": 2,
+        "SKUPNI_DEL_ETAZNA_LASTNINA_SIFRA": 2,
+        "SKUPNI_DEL_ETAZNA_LASTNINA_NAZIV_SL": "Ne",
+        "SKUPNI_DEL_ETAZNA_LASTNINA_OPIS_SL": "Ne",
+        "SKUPNI_DEL_ETAZNA_LASTNINA_NAZIV_EN": null,
+        "SKUPNI_DEL_ETAZNA_LASTNINA_OPIS_EN": null,
+        "SKUPNI_DEL_ETAZNA_LASTNINA_NAZIV_IT": "No",
+        "SKUPNI_DEL_ETAZNA_LASTNINA_OPIS_IT": "No",
+        "SKUPNI_DEL_ETAZNA_LASTNINA_NAZIV_HU": "Nem",
+        "SKUPNI_DEL_ETAZNA_LASTNINA_OPIS_HU": "Nem",
+        "GRAD_PARC": "Ne",
+        "OMEJITEV": "Ne"
+      },
+      "bbox": [14.51406302, 46.04793684, 14.51439948, 46.04820298]
+    }
+  ],
+  "numberMatched": 1,
+  "numberReturned": 1,
+  "timeStamp": "2026-07-30T13:05:24.570Z",
+  "links": [
+    {
+      "title": "Next page",
+      "type": "application/geo+json",
+      "rel": "next",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE/items?filter=KO_ID%3D1727%20AND%20ST_PARCELE%3D%27324%27&startIndex=1&filter-lang=cql-text&crs=EPSG%3A4326&f=application%2Fgeo%2Bjson&limit=1"
+    },
+    {
+      "title": "This document as text/html",
+      "type": "text/html",
+      "rel": "alternate",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE/items?f=text%2Fhtml"
+    },
+    {
+      "title": "This document as application/vnd.google-earth.kml+xml",
+      "type": "application/vnd.google-earth.kml+xml",
+      "rel": "alternate",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE/items?f=application%2Fvnd.google-earth.kml%2Bxml"
+    },
+    {
+      "title": "This document",
+      "type": "application/geo+json",
+      "rel": "self",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE/items?f=application%2Fgeo%2Bjson"
+    },
+    {
+      "title": "This document as application/stac+json",
+      "type": "application/stac+json",
+      "rel": "alternate",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE/items?f=application%2Fstac%2Bjson"
+    },
+    {
+      "title": "This document as application/gml+xml;version=3.2",
+      "type": "application/gml+xml;version=3.2",
+      "rel": "alternate",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE/items?f=application%2Fgml%2Bxml%3Bversion%3D3.2"
+    },
+    {
+      "title": "This document as application/json",
+      "type": "application/json",
+      "rel": "alternate",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE/items?f=application%2Fjson"
+    },
+    {
+      "title": "The collection description as application/x-yaml",
+      "type": "application/x-yaml",
+      "rel": "collection",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE?f=application%2Fx-yaml"
+    },
+    {
+      "title": "The collection description as application/json",
+      "type": "application/json",
+      "rel": "collection",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE?f=application%2Fjson"
+    },
+    {
+      "title": "The collection description as text/html",
+      "type": "text/html",
+      "rel": "collection",
+      "href": "https://ipi.eprostor.gov.si/wfs-si-gurs-kn/ogc/features/collections/SI.GURS.KN%3APARCELE?f=text%2Fhtml"
+    }
+  ]
+}

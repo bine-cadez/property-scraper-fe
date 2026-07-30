@@ -1,26 +1,38 @@
 {
-	"name": "my-nuxt-app",
-	"type": "module",
-	"private": true,
-	"scripts": {
-		"build": "nuxt build",
-		"dev": "nuxt dev",
-		"generate": "nuxt generate",
-		"preview": "pnpm run build && wrangler dev",
-		"postinstall": "nuxt prepare",
-		"deploy": "pnpm run build && wrangler deploy",
-		"cf-typegen": "wrangler types"
-	},
-	"dependencies": {
-		"nuxt": "^4.5.1",
-		"vue": "^3.5.40",
-		"vue-router": "^5.2.0"
-	},
-	"devDependencies": {
-		"@types/node": "^26.1.2",
-		"h3": "^1.15.11",
-		"nitro-cloudflare-dev": "^0.2.2",
-		"nitropack": "^2.13.4",
-		"wrangler": "^4.115.0"
-	}
+  "name": "prostor-na-dlani",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.5.3",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "maplibre-gl": "^5.15.0",
+    "nuxt": "^4.5.1",
+    "proj4": "^2.20.2",
+    "tailwindcss": "^4.1.18",
+    "vue": "^3.5.26",
+    "vue-router": "^5.2.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.14.0",
+    "@nuxt/test-utils": "^4.1.0",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.39.2",
+    "happy-dom": "^20.0.11",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "vue-tsc": "^3.3.8"
+  }
 }
