@@ -10,17 +10,35 @@ const emit = defineEmits<{
 }>()
 
 const open = ref(false)
-const draft = reactive({
-  propertyType: props.filters.propertyTypes[0] ?? '',
-  minPrice: props.filters.minPrice?.toString() ?? '',
-  maxPrice: props.filters.maxPrice?.toString() ?? '',
-  minPriceM2: props.filters.minPricePerM2?.toString() ?? '',
-  maxPriceM2: props.filters.maxPricePerM2?.toString() ?? '',
-  transactionFrom: props.filters.transactionFrom ?? '',
-  minArea: props.filters.minAreaM2?.toString() ?? '',
-  minParcelArea: props.filters.minParcelAreaM2?.toString() ?? '',
-  year: props.filters.constructionYearFrom?.toString() ?? '',
-})
+
+function createDraft(filters: MapFilters) {
+  return {
+    propertyType: filters.propertyTypes[0] ?? '',
+    minPrice: filters.minPrice?.toString() ?? '',
+    maxPrice: filters.maxPrice?.toString() ?? '',
+    minPriceM2: filters.minPricePerM2?.toString() ?? '',
+    maxPriceM2: filters.maxPricePerM2?.toString() ?? '',
+    transactionFrom: filters.transactionFrom ?? '',
+    minArea: filters.minAreaM2?.toString() ?? '',
+    minParcelArea: filters.minParcelAreaM2?.toString() ?? '',
+    year: filters.constructionYearFrom?.toString() ?? '',
+  }
+}
+
+const draft = reactive(createDraft(props.filters))
+const activeFilterCount = computed(
+  () =>
+    props.filters.propertyTypes.length +
+    Object.entries(props.filters).filter(
+      ([key, value]) => key !== 'propertyTypes' && value !== undefined,
+    ).length,
+)
+
+watch(
+  () => props.filters,
+  (filters) => Object.assign(draft, createDraft(filters)),
+  { deep: true },
+)
 
 function apply() {
   emit('change', {
@@ -48,11 +66,11 @@ function apply() {
   <div class="filter-shell relative">
     <button
       type="button"
-      class="filter-trigger flex min-h-12 min-w-[104px] items-center justify-center gap-2 rounded-md border border-line/92 bg-white/96 px-3.5 text-[13px] font-bold text-ink shadow-overlay backdrop-blur-[14px] transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
+      class="filter-trigger relative flex size-12 items-center justify-center gap-2 rounded-[10px] border border-[#6259dc] bg-[#5b52c8] px-1 text-[12px] font-[750] text-white shadow-[0_4px_14px_rgb(72_64_209_/_20%)] backdrop-blur-[12px] transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
       :aria-expanded="open"
       @click="open = !open"
     >
-      <svg class="w-[18px] text-accent" viewBox="0 0 20 20" aria-hidden="true">
+      <svg class="w-5 text-current" viewBox="0 0 20 20" aria-hidden="true">
         <path
           d="M3 5h14M6 10h8M8.5 15h3"
           fill="none"
@@ -61,8 +79,13 @@ function apply() {
           stroke-linecap="round"
         />
       </svg>
-      Filtri
-      <span v-if="Object.keys(filters).length > 1" class="text-warm">•</span>
+      <span class="filter-label">Filtri</span>
+      <span
+        v-if="activeFilterCount > 0"
+        class="absolute top-1.5 right-2 text-[#ffc267]"
+        :aria-label="`${activeFilterCount} aktivnih filtrov`"
+        >•</span
+      >
     </button>
     <form
       v-if="open"

@@ -39,10 +39,20 @@ pnpm format
 - `server/api` is the browser-facing backend-for-frontend boundary.
 - `server/utils/map-features.ts` produces limited, viewport-specific GeoJSON.
 - `shared/utils/coordinates.ts` isolates EPSG:3794 → WGS84 normalization.
-- `app/components/PropertyMap.client.vue` is the only MapLibre/WebGL boundary.
+- `app/composables/useMapWorkspace.ts` owns map-page state, URL
+  synchronization, selection loading, and browser-tool lifecycles.
+- `app/utils/map` contains pure filtering/measurement logic and declarative
+  MapLibre layer registration.
+- `app/components/PropertyMap.client.vue` is the lifecycle and event boundary
+  for MapLibre/WebGL; it delegates business rules and layer definitions.
 - `app/pages/nepremicnina/[id].vue` is the main SSR and SEO surface.
 
 The browser requests only the current bounding box. Requests are debounced, previous requests are aborted, results are capped, and cache headers permit short stale-while-revalidate reuse. The UI consumes server contracts and does not import fixtures.
+
+When adding map behavior, keep domain calculations in `app/utils/map`, shared
+page orchestration in `useMapWorkspace`, and imperative MapLibre calls inside
+the client boundary. This keeps browser-only code out of SSR routes and makes
+business rules testable without WebGL.
 
 ## Environment
 

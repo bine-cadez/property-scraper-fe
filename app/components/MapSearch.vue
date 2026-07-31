@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { sl } from '~/locales/sl'
 import type { SearchResult } from '#shared/types/property'
+import { isAbortError } from '~/utils/request'
 
 const emit = defineEmits<{
   select: [result: SearchResult]
@@ -38,24 +39,34 @@ watch(query, (value) => {
   loading.value = true
   open.value = true
   debounceTimer = setTimeout(async () => {
-    controller = new AbortController()
+    const requestController = new AbortController()
+    controller = requestController
     try {
       const response = await $fetch<{ results: SearchResult[] }>(
         '/api/search',
         {
           query: { q: value.trim() },
-          signal: controller.signal,
+          signal: requestController.signal,
         },
       )
-      results.value = response.results
+      if (controller === requestController) {
+        results.value = response.results
+      }
     } catch (error) {
-      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+      if (!isAbortError(error) && controller === requestController) {
         results.value = []
       }
     } finally {
-      loading.value = false
+      if (controller === requestController) {
+        loading.value = false
+      }
     }
   }, 220)
+})
+
+onBeforeUnmount(() => {
+  clearTimeout(debounceTimer)
+  controller?.abort()
 })
 
 function choose(result: SearchResult) {

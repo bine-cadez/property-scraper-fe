@@ -30,25 +30,25 @@ function toggle(id: MapLayerId) {
 
 <template>
   <section
-    class="layer-control overflow-hidden rounded-md border border-line/92 bg-white/96 shadow-overlay backdrop-blur-[14px] transition-[width] duration-[240ms] ease-out-expo motion-reduce:transition-opacity"
-    :class="expanded ? 'expanded w-[246px]' : 'w-[132px]'"
+    class="layer-control self-end overflow-hidden rounded-[10px] border border-[#e1e3ea] bg-white/95 shadow-[0_4px_14px_rgb(42_45_67_/_10%)] backdrop-blur-[12px] transition-[width] duration-[240ms] ease-out-expo motion-reduce:transition-opacity"
+    :class="expanded ? 'expanded w-[246px]' : 'w-12'"
     aria-label="Sloji zemljevida"
   >
     <button
-      class="grid min-h-12 w-full grid-cols-[22px_1fr_auto] items-center gap-[9px] bg-transparent px-3 text-left text-[13px] font-bold text-ink transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
+      class="layer-trigger relative flex h-12 w-full items-center justify-center gap-[9px] bg-transparent px-1 text-center text-[12px] font-[700] text-[#4f5360] transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
       type="button"
       :aria-expanded="expanded"
       aria-controls="layer-options"
       @click="expanded = !expanded"
     >
       <span
-        class="grid w-[18px] grid-cols-2 gap-0.5 [&_i]:aspect-square [&_i]:rounded-[1px] [&_i]:border-[1.5px] [&_i]:border-accent"
+        class="layer-icon hidden w-[18px] grid-cols-2 gap-0.5 [&_i]:aspect-square [&_i]:rounded-[1px] [&_i]:border-[1.5px] [&_i]:border-accent"
         aria-hidden="true"
         ><i /><i /><i /><i
       /></span>
-      <span>Sloji</span>
+      <span class="layer-label">Karta</span>
       <small
-        class="grid size-[21px] place-items-center rounded-full bg-accent-soft text-[10px] text-accent-strong"
+        class="layer-count absolute top-1.5 right-1.5 hidden size-[21px] place-items-center rounded-full bg-accent-soft text-[10px] text-accent-strong"
         >{{ layers.length }}</small
       >
     </button>

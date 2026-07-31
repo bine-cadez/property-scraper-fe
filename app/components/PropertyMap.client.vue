@@ -3,10 +3,13 @@ import type {
   GeoJSONSource,
   Map as MapLibreMap,
   MapLayerMouseEvent,
-  SymbolLayerSpecification,
 } from 'maplibre-gl'
 import type { ViewportResponse } from '#shared/types/geojson'
 import type { MapFilters, MapLayerId, Position } from '#shared/types/property'
+import { filterViewportFeatures } from '~/utils/map/filter-features'
+import { addPropertyMapLayers } from '~/utils/map/layers'
+import { formatMeasuredDistance } from '~/utils/map/measurement'
+import { isAbortError } from '~/utils/request'
 
 const props = defineProps<{
   center: Position
@@ -14,6 +17,7 @@ const props = defineProps<{
   layers: MapLayerId[]
   filters: MapFilters
   selectedId: string | undefined
+  measureMode: boolean
 }>()
 
 const emit = defineEmits<{
@@ -22,6 +26,7 @@ const emit = defineEmits<{
   loading: [value: boolean]
   error: [message: string]
   count: [value: number]
+  measure: [value: string | undefined]
 }>()
 
 const config = useRuntimeConfig()
@@ -32,6 +37,7 @@ let fetchTimer: ReturnType<typeof setTimeout> | undefined
 let hovered: { source: string; id: string | number } | undefined
 let syncingFromProps = false
 let viewportData: ViewportResponse | undefined
+let measurePoints: Position[] = []
 
 const localStyle = {
   version: 8 as const,
@@ -55,8 +61,32 @@ const visibilityByLayer: Record<MapLayerId, string[]> = {
   officialValue: ['parcel-official-fill'],
 }
 
-function emptyCollection() {
-  return { type: 'FeatureCollection' as const, features: [] }
+function updateMeasurement() {
+  if (!map?.isStyleLoaded()) return
+  const features = [
+    ...measurePoints.map((coordinates, index) => ({
+      type: 'Feature' as const,
+      properties: { index },
+      geometry: { type: 'Point' as const, coordinates },
+    })),
+    ...(measurePoints.length >= 2
+      ? [
+          {
+            type: 'Feature' as const,
+            properties: {},
+            geometry: {
+              type: 'LineString' as const,
+              coordinates: measurePoints,
+            },
+          },
+        ]
+      : []),
+  ]
+  ;(map.getSource('measurement') as GeoJSONSource | undefined)?.setData({
+    type: 'FeatureCollection',
+    features,
+  })
+  emit('measure', formatMeasuredDistance(measurePoints))
 }
 
 function flattenBasemap() {
@@ -126,289 +156,23 @@ function syncLayerVisibility() {
 
 function applyMapFilters() {
   if (!map?.isStyleLoaded() || !viewportData) return
-  const active = props.filters
-  const typeMatches = (propertyType: unknown) =>
-    !active.propertyTypes.length ||
-    (typeof propertyType === 'string' &&
-      active.propertyTypes.includes(
-        propertyType as (typeof active.propertyTypes)[number],
-      ))
-
-  const parcelFeatures = viewportData.parcels.features.filter(
-    (feature) =>
-      active.minParcelAreaM2 === undefined ||
-      feature.properties.areaM2 >= active.minParcelAreaM2,
-  )
-  const buildingFeatures = viewportData.buildings.features.filter(
-    (feature) =>
-      typeMatches(feature.properties.propertyType) &&
-      (active.constructionYearFrom === undefined ||
-        (feature.properties.constructionYear !== undefined &&
-          feature.properties.constructionYear >= active.constructionYearFrom)),
-  )
-  const pointFeatures = viewportData.points.features.filter((feature) => {
-    const value = feature.properties
-    return (
-      typeMatches(value.propertyType) &&
-      (active.minPrice === undefined || value.amount >= active.minPrice) &&
-      (active.maxPrice === undefined || value.amount <= active.maxPrice) &&
-      (active.minPricePerM2 === undefined ||
-        value.pricePerM2 >= active.minPricePerM2) &&
-      (active.maxPricePerM2 === undefined ||
-        value.pricePerM2 <= active.maxPricePerM2) &&
-      (active.minAreaM2 === undefined || value.areaM2 >= active.minAreaM2) &&
-      (value.kind !== 'transaction' ||
-        active.transactionFrom === undefined ||
-        value.date >= active.transactionFrom)
-    )
-  })
+  const filtered = filterViewportFeatures(viewportData, props.filters)
 
   ;(map.getSource('parcels') as GeoJSONSource | undefined)?.setData({
-    type: 'FeatureCollection',
-    features: parcelFeatures,
+    ...filtered.parcels,
   })
   ;(map.getSource('buildings') as GeoJSONSource | undefined)?.setData({
-    type: 'FeatureCollection',
-    features: buildingFeatures,
+    ...filtered.buildings,
   })
   ;(map.getSource('market-points') as GeoJSONSource | undefined)?.setData({
-    type: 'FeatureCollection',
-    features: pointFeatures,
+    ...filtered.points,
   })
-  emit(
-    'count',
-    parcelFeatures.length + buildingFeatures.length + pointFeatures.length,
-  )
+  emit('count', filtered.count)
 }
 
 function addDataLayers() {
   if (!map) return
-  map.addSource('parcels', {
-    type: 'geojson',
-    data: emptyCollection(),
-    promoteId: 'id',
-  })
-  map.addSource('buildings', {
-    type: 'geojson',
-    data: emptyCollection(),
-    promoteId: 'id',
-  })
-  map.addSource('market-points', {
-    type: 'geojson',
-    data: emptyCollection(),
-    promoteId: 'id',
-    cluster: true,
-    clusterMaxZoom: 14,
-    clusterRadius: 48,
-  })
-
-  map.addLayer({
-    id: 'parcels-fill',
-    type: 'fill',
-    source: 'parcels',
-    paint: {
-      'fill-color': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        '#43a796',
-        '#f4d6a8',
-      ],
-      'fill-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        0.28,
-        0.16,
-      ],
-    },
-  })
-  map.addLayer({
-    id: 'parcels-line',
-    type: 'line',
-    source: 'parcels',
-    paint: {
-      'line-color': '#ba772b',
-      'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.7, 17, 1.5],
-      'line-opacity': 0.78,
-    },
-  })
-  map.addLayer({
-    id: 'parcel-official-fill',
-    type: 'fill',
-    source: 'parcels',
-    filter: ['has', 'officialValue'],
-    layout: { visibility: 'none' },
-    paint: {
-      'fill-color': [
-        'interpolate',
-        ['linear'],
-        ['get', 'officialValue'],
-        400000,
-        '#d8e8f6',
-        550000,
-        '#2865a8',
-      ],
-      'fill-opacity': 0.44,
-    },
-  })
-  map.addLayer({
-    id: 'buildings-fill',
-    type: 'fill',
-    source: 'buildings',
-    paint: {
-      'fill-color': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        '#087f70',
-        '#8ba8a0',
-      ],
-      'fill-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        0.58,
-        0.44,
-      ],
-    },
-  })
-  map.addLayer({
-    id: 'buildings-line',
-    type: 'line',
-    source: 'buildings',
-    paint: {
-      'line-color': '#315f56',
-      'line-width': 1.1,
-    },
-  })
-  map.addLayer({
-    id: 'parcel-selected',
-    type: 'line',
-    source: 'parcels',
-    filter: ['==', ['get', 'id'], '__none__'],
-    paint: {
-      'line-color': '#d87918',
-      'line-width': 4,
-      'line-opacity': 1,
-    },
-  })
-  map.addLayer({
-    id: 'building-selected',
-    type: 'line',
-    source: 'buildings',
-    filter: ['==', ['get', 'id'], '__none__'],
-    paint: {
-      'line-color': '#f0a44b',
-      'line-width': 4,
-    },
-  })
-  map.addLayer({
-    id: 'point-clusters',
-    type: 'circle',
-    source: 'market-points',
-    filter: ['has', 'point_count'],
-    paint: {
-      'circle-color': '#34364a',
-      'circle-radius': ['step', ['get', 'point_count'], 19, 10, 23, 30, 27],
-      'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 3,
-      'circle-opacity': 0.94,
-    },
-  })
-  map.addLayer({
-    id: 'cluster-count',
-    type: 'symbol',
-    source: 'market-points',
-    filter: ['has', 'point_count'],
-    layout: {
-      'text-field': ['get', 'point_count_abbreviated'],
-      'text-size': 11,
-      'text-font': ['Open Sans Bold'],
-    },
-    paint: { 'text-color': '#ffffff' },
-  })
-  map.addLayer({
-    id: 'transaction-points',
-    type: 'circle',
-    source: 'market-points',
-    filter: [
-      'all',
-      ['!', ['has', 'point_count']],
-      ['==', ['get', 'kind'], 'transaction'],
-    ],
-    paint: {
-      'circle-color': '#5b52e8',
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 18, 16, 27],
-      'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 3,
-      'circle-opacity': 0.92,
-    },
-  })
-  map.addLayer({
-    id: 'listing-points',
-    type: 'circle',
-    source: 'market-points',
-    filter: [
-      'all',
-      ['!', ['has', 'point_count']],
-      ['==', ['get', 'kind'], 'listing'],
-    ],
-    paint: {
-      'circle-color': '#0e9fba',
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 18, 16, 27],
-      'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 3,
-      'circle-opacity': 0.92,
-    },
-  })
-  const labelLayout: SymbolLayerSpecification['layout'] = {
-    'text-field': [
-      'concat',
-      '€',
-      [
-        'number-format',
-        ['/', ['get', 'pricePerM2'], 1000],
-        {
-          locale: 'sl-SI',
-          'min-fraction-digits': 1,
-          'max-fraction-digits': 1,
-        },
-      ],
-      'k',
-    ],
-    'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 16, 12],
-    'text-font': ['Open Sans Bold'],
-    'text-anchor': 'center',
-    'text-allow-overlap': true,
-    'text-ignore-placement': true,
-  }
-  const labelPaint: SymbolLayerSpecification['paint'] = {
-    'text-color': '#ffffff',
-    'text-halo-color': 'rgba(35, 31, 111, 0.25)',
-    'text-halo-width': 1,
-  }
-  map.addLayer({
-    id: 'transaction-labels',
-    type: 'symbol',
-    source: 'market-points',
-    filter: [
-      'all',
-      ['!', ['has', 'point_count']],
-      ['==', ['get', 'kind'], 'transaction'],
-    ],
-    layout: labelLayout,
-    paint: labelPaint,
-  })
-  map.addLayer({
-    id: 'listing-labels',
-    type: 'symbol',
-    source: 'market-points',
-    filter: [
-      'all',
-      ['!', ['has', 'point_count']],
-      ['==', ['get', 'kind'], 'listing'],
-    ],
-    layout: labelLayout,
-    paint: labelPaint,
-  })
-
+  addPropertyMapLayers(map)
   setSelectionFilters()
   syncLayerVisibility()
   applyMapFilters()
@@ -417,7 +181,8 @@ function addDataLayers() {
 async function fetchViewport() {
   if (!map) return
   controller?.abort()
-  controller = new AbortController()
+  const requestController = new AbortController()
+  controller = requestController
   const bounds = map.getBounds()
   const bbox = [
     bounds.getWest(),
@@ -431,16 +196,21 @@ async function fetchViewport() {
   try {
     const data = await $fetch<ViewportResponse>('/api/map/features', {
       query: { bbox, limit: 500 },
-      signal: controller.signal,
+      signal: requestController.signal,
     })
-    viewportData = data
-    applyMapFilters()
+    if (controller === requestController) {
+      viewportData = data
+      emit('error', '')
+      applyMapFilters()
+    }
   } catch (error) {
-    if (!(error instanceof DOMException && error.name === 'AbortError')) {
+    if (!isAbortError(error) && controller === requestController) {
       emit('error', 'Prostorskih podatkov ni bilo mogoče pridobiti.')
     }
   } finally {
-    emit('loading', false)
+    if (controller === requestController) {
+      emit('loading', false)
+    }
   }
 }
 
@@ -451,6 +221,10 @@ function scheduleViewportFetch() {
 
 function hoverFeature(event: MapLayerMouseEvent) {
   if (!map || !matchMedia('(hover: hover) and (pointer: fine)').matches) return
+  if (props.measureMode) {
+    map.getCanvas().style.cursor = 'crosshair'
+    return
+  }
   const feature = event.features?.[0]
   if (!feature || feature.id === undefined) return
   if (hovered) map.setFeatureState(hovered, { hover: false })
@@ -464,7 +238,7 @@ function clearHover() {
   if (!map) return
   if (hovered) map.setFeatureState(hovered, { hover: false })
   hovered = undefined
-  map.getCanvas().style.cursor = ''
+  map.getCanvas().style.cursor = props.measureMode ? 'crosshair' : ''
 }
 
 onMounted(async () => {
@@ -543,6 +317,7 @@ onMounted(async () => {
       map.on('mousemove', layerId, hoverFeature)
       map.on('mouseleave', layerId, clearHover)
       map.on('click', layerId, (event) => {
+        if (props.measureMode) return
         const id = event.features?.[0]?.properties?.id
         if (typeof id === 'string') emit('select', id)
       })
@@ -550,18 +325,24 @@ onMounted(async () => {
 
     for (const layerId of ['transaction-points', 'listing-points']) {
       map.on('mouseenter', layerId, () => {
-        if (map) map.getCanvas().style.cursor = 'pointer'
+        if (map)
+          map.getCanvas().style.cursor = props.measureMode
+            ? 'crosshair'
+            : 'pointer'
       })
       map.on('mouseleave', layerId, () => {
-        if (map) map.getCanvas().style.cursor = ''
+        if (map)
+          map.getCanvas().style.cursor = props.measureMode ? 'crosshair' : ''
       })
       map.on('click', layerId, (event) => {
+        if (props.measureMode) return
         const id = event.features?.[0]?.properties?.id
         if (typeof id === 'string') emit('select', id)
       })
     }
 
     map.on('click', 'point-clusters', async (event) => {
+      if (props.measureMode) return
       const feature = event.features?.[0]
       const clusterId = feature?.properties?.cluster_id
       if (
@@ -577,6 +358,14 @@ onMounted(async () => {
         zoom,
         duration: 320,
       })
+    })
+    map.on('click', (event) => {
+      if (!props.measureMode) return
+      measurePoints =
+        measurePoints.length >= 2
+          ? [[event.lngLat.lng, event.lngLat.lat]]
+          : [...measurePoints, [event.lngLat.lng, event.lngLat.lat]]
+      updateMeasurement()
     })
   } catch (error) {
     container.dataset.mapState = 'error'
@@ -607,6 +396,14 @@ watch(
 watch(() => props.selectedId, setSelectionFilters)
 watch(() => props.layers, syncLayerVisibility, { deep: true })
 watch(() => props.filters, applyMapFilters, { deep: true })
+watch(
+  () => props.measureMode,
+  (enabled) => {
+    measurePoints = []
+    updateMeasurement()
+    if (map) map.getCanvas().style.cursor = enabled ? 'crosshair' : ''
+  },
+)
 
 onBeforeUnmount(() => {
   controller?.abort()
@@ -652,7 +449,7 @@ defineExpose({
 }
 
 .property-map :deep(.maplibregl-ctrl-bottom-right) {
-  right: 10px;
+  right: 72px;
   bottom: 18px;
 }
 
@@ -670,6 +467,7 @@ defineExpose({
 
 @media (max-width: 720px), (max-height: 560px) and (max-width: 1024px) {
   .property-map :deep(.maplibregl-ctrl-bottom-right) {
+    right: 10px;
     bottom: 68px;
   }
 }
