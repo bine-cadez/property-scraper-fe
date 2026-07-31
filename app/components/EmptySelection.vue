@@ -1,86 +1,26 @@
 <template>
-  <section class="empty-selection">
-    <div class="diagram" aria-hidden="true">
-      <span class="plot plot-a" />
-      <span class="plot plot-b" />
-      <span class="building" />
-      <span class="pin">•</span>
+  <section class="px-7 py-11 text-center">
+    <div class="relative mx-auto mb-6 h-24 w-32" aria-hidden="true">
+      <span
+        class="absolute inset-[24px_48px_10px_6px] skew-y-[-10deg] border-[1.5px] border-[#9dc8bd] bg-[#edf7f4]"
+      />
+      <span
+        class="absolute inset-[10px_4px_18px_66px] skew-y-[-10deg] border-[1.5px] border-[#9dc8bd] bg-[#edf7f4]"
+      />
+      <span
+        class="absolute top-[29px] left-[45px] h-[34px] w-[42px] skew-y-[-10deg] border-2 border-ink-muted bg-white"
+      />
+      <span
+        class="absolute top-[7px] left-[73px] grid h-[34px] w-[26px] -rotate-45 place-items-center rounded-[50%_50%_50%_0] bg-warm text-white"
+        >•</span
+      >
     </div>
-    <h2>Izberite prostor na zemljevidu</h2>
-    <p>
+    <h2 class="text-[17px] font-bold">Izberite prostor na zemljevidu</h2>
+    <p
+      class="mx-auto mt-[9px] max-w-[290px] text-[13px] leading-[1.55] text-ink-muted"
+    >
       Kliknite parcelo, stavbo ali cenovno oznako. Pomembni rezultati so
       dostopni tudi v seznamu.
     </p>
   </section>
 </template>
-
-<style scoped>
-.empty-selection {
-  padding: 44px 28px;
-  text-align: center;
-}
-
-.diagram {
-  position: relative;
-  width: 128px;
-  height: 96px;
-  margin: 0 auto 24px;
-}
-
-.plot {
-  position: absolute;
-  border: 1.5px solid #9dc8bd;
-  background: #edf7f4;
-  transform: skewY(-10deg);
-}
-
-.plot-a {
-  inset: 24px 48px 10px 6px;
-}
-
-.plot-b {
-  inset: 10px 4px 18px 66px;
-}
-
-.building {
-  position: absolute;
-  top: 29px;
-  left: 45px;
-  width: 42px;
-  height: 34px;
-  border: 2px solid var(--color-ink-muted);
-  background: white;
-  transform: skewY(-10deg);
-}
-
-.pin {
-  position: absolute;
-  top: 7px;
-  left: 73px;
-  display: grid;
-  width: 26px;
-  height: 34px;
-  place-items: center;
-  border-radius: 50% 50% 50% 0;
-  color: white;
-  background: var(--color-warm);
-  transform: rotate(-45deg);
-}
-
-.pin::first-letter {
-  transform: rotate(45deg);
-}
-
-h2 {
-  margin: 0;
-  font-size: 17px;
-}
-
-p {
-  max-width: 290px;
-  margin: 9px auto 0;
-  color: var(--color-ink-muted);
-  font-size: 13px;
-  line-height: 1.55;
-}
-</style>

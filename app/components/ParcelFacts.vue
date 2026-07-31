@@ -6,12 +6,18 @@ defineProps<{ parcel: Parcel }>()
 </script>
 
 <template>
-  <section class="facts">
+  <section class="grid gap-3.5">
     <header>
-      <span>Katastrski podatki</span>
-      <h3>Parcela {{ parcel.parcelNumber }}</h3>
+      <span class="text-[10px] font-extrabold uppercase text-accent-strong"
+        >Katastrski podatki</span
+      >
+      <h3 class="mt-0.5 text-base font-bold">
+        Parcela {{ parcel.parcelNumber }}
+      </h3>
     </header>
-    <dl>
+    <dl
+      class="border-t border-line [&>div]:grid [&>div]:grid-cols-[minmax(110px,0.8fr)_1.2fr] [&>div]:gap-3 [&>div]:border-b [&>div]:border-line [&>div]:py-[11px] [&_dd]:m-0 [&_dd]:text-right [&_dd]:text-xs [&_dd]:font-[650] [&_dt]:text-[11px] [&_dt]:text-ink-muted"
+    >
       <div>
         <dt>Katastrska občina</dt>
         <dd>
@@ -53,47 +59,3 @@ defineProps<{ parcel: Parcel }>()
     />
   </section>
 </template>
-
-<style scoped>
-.facts {
-  display: grid;
-  gap: 14px;
-}
-
-header span {
-  color: var(--color-accent-strong);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-h3 {
-  margin: 3px 0 0;
-  font-size: 16px;
-}
-
-dl {
-  margin: 0;
-  border-top: 1px solid var(--color-line);
-}
-
-dl div {
-  display: grid;
-  grid-template-columns: minmax(110px, 0.8fr) 1.2fr;
-  gap: 12px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--color-line);
-}
-
-dt {
-  color: var(--color-ink-muted);
-  font-size: 11px;
-}
-
-dd {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 650;
-  text-align: right;
-}
-</style>

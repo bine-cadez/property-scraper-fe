@@ -92,9 +92,11 @@ function clear() {
 </script>
 
 <template>
-  <div class="search-shell">
-    <div class="search-box map-overlay">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
+  <div class="search-shell relative w-[min(520px,calc(100vw-32px))]">
+    <div
+      class="search-box grid min-h-[52px] grid-cols-[22px_1fr_auto_auto] items-center gap-2.5 rounded-md border border-line/92 bg-white/96 pr-3 pl-4 shadow-overlay backdrop-blur-[14px] max-[640px]:min-h-12"
+    >
+      <svg class="w-[21px] text-accent" viewBox="0 0 24 24" aria-hidden="true">
         <circle
           cx="10.8"
           cy="10.8"
@@ -125,19 +127,28 @@ function clear() {
         :aria-activedescendant="
           activeIndex >= 0 ? `search-result-${activeIndex}` : undefined
         "
+        class="search-input h-[50px] min-w-0 border-0 bg-transparent text-[15px] text-ink outline-0 placeholder:text-[#7a8783] max-[640px]:h-[46px] max-[640px]:text-sm"
         @focus="open = query.trim().length >= 2"
         @keydown="handleKeydown"
       />
-      <span v-if="loading" class="tiny-spinner" aria-label="Iščemo" />
+      <span
+        v-if="loading"
+        class="size-[15px] animate-spin rounded-full border-2 border-accent-soft border-t-accent motion-reduce:animate-none motion-reduce:border-accent"
+        aria-label="Iščemo"
+      />
       <button
         v-else-if="query"
+        class="grid size-9 place-items-center rounded-full bg-transparent text-[21px] text-ink-muted hover:bg-[#f0f4f2]"
         type="button"
         aria-label="Počisti iskanje"
         @click="clear"
       >
         ×
       </button>
-      <kbd>⌘ K</kbd>
+      <kbd
+        class="rounded border border-line bg-[#f8faf9] px-1.5 py-[3px] font-sans text-[10px] text-ink-muted max-[640px]:hidden"
+        >⌘ K</kbd
+      >
     </div>
 
     <SearchResults
@@ -154,100 +165,18 @@ function clear() {
 </template>
 
 <style scoped>
-.search-shell {
-  position: relative;
-  width: min(520px, calc(100vw - 32px));
-}
-
-.search-box {
-  display: grid;
-  grid-template-columns: 22px 1fr auto auto;
-  min-height: 52px;
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px 0 16px;
-  border-radius: var(--radius-md);
-}
-
-svg {
-  width: 21px;
-  color: var(--color-accent);
-}
-
-input {
-  min-width: 0;
-  height: 50px;
-  border: 0;
+.search-input:focus-visible {
   outline: 0;
-  color: var(--color-ink);
-  background: transparent;
-  font-size: 15px;
 }
 
-input::placeholder {
-  color: #7a8783;
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-decoration {
+  display: none;
+  appearance: none;
 }
 
-button {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  color: var(--color-ink-muted);
-  background: transparent;
-  font-size: 21px;
-}
-
-button:hover {
-  background: #f0f4f2;
-}
-
-kbd {
-  padding: 3px 6px;
-  border: 1px solid var(--color-line);
-  border-radius: 4px;
-  color: var(--color-ink-muted);
-  background: #f8faf9;
-  font-family: inherit;
-  font-size: 10px;
-}
-
-.tiny-spinner {
-  width: 15px;
-  height: 15px;
-  border: 2px solid var(--color-accent-soft);
-  border-top-color: var(--color-accent);
-  border-radius: 50%;
-  animation: spin 0.65s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 640px) {
-  .search-box {
-    min-height: 48px;
-  }
-
-  input {
-    height: 46px;
-    font-size: 14px;
-  }
-
-  kbd {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tiny-spinner {
-    animation: none;
-    border-color: var(--color-accent);
-  }
+.search-box:focus-within {
+  outline: 3px solid rgb(8 127 112 / 32%);
+  outline-offset: 2px;
 }
 </style>

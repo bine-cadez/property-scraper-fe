@@ -45,14 +45,14 @@ function apply() {
 </script>
 
 <template>
-  <div class="filter-shell">
+  <div class="filter-shell relative">
     <button
       type="button"
-      class="filter-trigger map-overlay focus-ring"
+      class="filter-trigger flex min-h-12 min-w-[104px] items-center justify-center gap-2 rounded-md border border-line/92 bg-white/96 px-3.5 text-[13px] font-bold text-ink shadow-overlay backdrop-blur-[14px] transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
       :aria-expanded="open"
       @click="open = !open"
     >
-      <svg viewBox="0 0 20 20" aria-hidden="true">
+      <svg class="w-[18px] text-accent" viewBox="0 0 20 20" aria-hidden="true">
         <path
           d="M3 5h14M6 10h8M8.5 15h3"
           fill="none"
@@ -62,12 +62,21 @@ function apply() {
         />
       </svg>
       Filtri
-      <span v-if="Object.keys(filters).length > 1">•</span>
+      <span v-if="Object.keys(filters).length > 1" class="text-warm">•</span>
     </button>
-    <form v-if="open" class="filter-panel map-overlay" @submit.prevent="apply">
-      <div class="filter-heading">
-        <strong>Filtriraj prikaz</strong>
-        <button type="button" aria-label="Zapri filtre" @click="open = false">
+    <form
+      v-if="open"
+      class="filter-panel absolute top-[calc(100%+8px)] left-0 grid max-h-[min(620px,calc(100dvh-150px))] w-[290px] gap-3.5 overflow-y-auto rounded-md border border-line/92 bg-white/96 p-4 shadow-overlay backdrop-blur-[14px] [&_fieldset]:grid [&_fieldset]:grid-cols-2 [&_fieldset]:gap-2 [&_fieldset]:border-0 [&_fieldset]:p-0 [&_input]:min-h-[42px] [&_input]:w-full [&_input]:rounded-[7px] [&_input]:border [&_input]:border-line [&_input]:bg-white [&_input]:px-2.5 [&_input]:text-xs [&_input]:text-ink [&_label]:grid [&_label]:gap-1.5 [&_label]:text-[11px] [&_label]:font-bold [&_label]:text-ink-muted [&_legend]:col-span-full [&_legend]:mb-1.5 [&_legend]:w-full [&_legend]:text-[11px] [&_legend]:font-bold [&_legend]:text-ink-muted [&_select]:min-h-[42px] [&_select]:w-full [&_select]:rounded-[7px] [&_select]:border [&_select]:border-line [&_select]:bg-white [&_select]:px-2.5 [&_select]:text-xs [&_select]:text-ink"
+      @submit.prevent="apply"
+    >
+      <div class="flex items-center justify-between">
+        <strong class="text-sm">Filtriraj prikaz</strong>
+        <button
+          class="size-9 bg-transparent text-xl text-ink-muted"
+          type="button"
+          aria-label="Zapri filtre"
+          @click="open = false"
+        >
           ×
         </button>
       </div>
@@ -154,116 +163,12 @@ function apply() {
           aria-label="Transakcije od datuma"
         />
       </fieldset>
-      <button class="apply focus-ring" type="submit">Uporabi filtre</button>
+      <button
+        class="apply min-h-11 rounded-[7px] bg-accent text-xs font-[750] text-white transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
+        type="submit"
+      >
+        Uporabi filtre
+      </button>
     </form>
   </div>
 </template>
-
-<style scoped>
-.filter-shell {
-  position: relative;
-}
-
-.filter-trigger {
-  display: flex;
-  min-width: 104px;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 14px;
-  border-radius: var(--radius-md);
-  color: var(--color-ink);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.filter-trigger svg {
-  width: 18px;
-  color: var(--color-accent);
-}
-
-.filter-trigger span {
-  color: var(--color-warm);
-}
-
-.filter-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  display: grid;
-  width: 290px;
-  max-height: min(620px, calc(100dvh - 150px));
-  gap: 14px;
-  overflow-y: auto;
-  padding: 16px;
-  border-radius: var(--radius-md);
-}
-
-.filter-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.filter-heading strong {
-  font-size: 14px;
-}
-
-.filter-heading button {
-  width: 36px;
-  height: 36px;
-  border: 0;
-  color: var(--color-ink-muted);
-  background: transparent;
-  font-size: 20px;
-}
-
-label,
-legend {
-  color: var(--color-ink-muted);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-label {
-  display: grid;
-  gap: 6px;
-}
-
-select,
-input {
-  width: 100%;
-  min-height: 42px;
-  padding: 0 10px;
-  border: 1px solid var(--color-line);
-  border-radius: 7px;
-  color: var(--color-ink);
-  background: white;
-  font-size: 12px;
-}
-
-fieldset {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 0;
-  border: 0;
-}
-
-legend {
-  grid-column: 1 / -1;
-  width: 100%;
-  margin-bottom: 6px;
-}
-
-.apply {
-  min-height: 44px;
-  border: 0;
-  border-radius: 7px;
-  color: white;
-  background: var(--color-accent);
-  font-size: 12px;
-  font-weight: 750;
-}
-</style>

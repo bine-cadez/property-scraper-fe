@@ -13,21 +13,34 @@ defineProps<{
 </script>
 
 <template>
-  <section class="sales">
-    <header>
+  <section class="grid gap-3.5">
+    <header class="flex items-end justify-between">
       <div>
-        <span>ETN · zaključene transakcije</span>
-        <h3>Primerljive prodaje v bližini</h3>
+        <span class="text-[10px] font-extrabold uppercase text-sale"
+          >ETN · zaključene transakcije</span
+        >
+        <h3 class="mt-1 text-base font-bold">Primerljive prodaje v bližini</h3>
       </div>
-      <strong>{{ transactions.length }}</strong>
+      <strong
+        class="grid size-7 place-items-center rounded-full bg-warm-soft text-[11px] text-sale"
+        >{{ transactions.length }}</strong
+      >
     </header>
-    <div v-if="transactions.length" class="sale-list">
-      <article v-for="transaction in transactions" :key="transaction.id">
-        <div class="sale-main">
-          <strong>{{ formatEur(transaction.price.amount) }}</strong>
-          <span>{{ formatPricePerM2(transaction.pricePerM2) }}</span>
+    <div v-if="transactions.length" class="border-t border-line">
+      <article
+        v-for="transaction in transactions"
+        :key="transaction.id"
+        class="grid gap-[7px] border-b border-line py-3.5"
+      >
+        <div class="flex justify-between gap-2.5">
+          <strong class="text-[15px] tabular-nums">{{
+            formatEur(transaction.price.amount)
+          }}</strong>
+          <span class="text-xs font-[750] text-sale">{{
+            formatPricePerM2(transaction.pricePerM2)
+          }}</span>
         </div>
-        <div class="sale-meta">
+        <div class="flex justify-between gap-2.5 text-[11px] text-ink-muted">
           <span
             >{{ formatArea(transaction.areaM2) }} ·
             {{ formatDate(transaction.transactionDate) }}</span
@@ -39,86 +52,11 @@ defineProps<{
         <DataSourceBadge :source="transaction.dataSource" />
       </article>
     </div>
-    <p v-else class="empty">
+    <p
+      v-else
+      class="border border-dashed border-line p-5 text-center text-xs text-ink-muted"
+    >
       V izbranem obdobju ni primerljivih zaključenih prodaj.
     </p>
   </section>
 </template>
-
-<style scoped>
-.sales {
-  display: grid;
-  gap: 14px;
-}
-
-header {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-}
-
-header span {
-  color: var(--color-sale);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-h3 {
-  margin: 4px 0 0;
-  font-size: 16px;
-}
-
-header > strong {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--color-sale);
-  background: var(--color-warm-soft);
-  font-size: 11px;
-}
-
-.sale-list {
-  border-top: 1px solid var(--color-line);
-}
-
-article {
-  display: grid;
-  gap: 7px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.sale-main,
-.sale-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.sale-main strong {
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-}
-
-.sale-main span {
-  color: var(--color-sale);
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.sale-meta {
-  color: var(--color-ink-muted);
-  font-size: 11px;
-}
-
-.empty {
-  padding: 20px;
-  border: 1px dashed var(--color-line);
-  color: var(--color-ink-muted);
-  font-size: 12px;
-  text-align: center;
-}
-</style>

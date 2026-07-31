@@ -129,10 +129,9 @@ async function initializeMap() {
       clearTimeout(loadTimer);
       map?.resize();
       requestAnimationFrame(() => {
-        const compactAttribution =
-          container.querySelector<HTMLDetailsElement>(
-            ".maplibregl-ctrl-attrib",
-          );
+        const compactAttribution = container.querySelector<HTMLDetailsElement>(
+          ".maplibregl-ctrl-attrib",
+        );
         if (compactAttribution) compactAttribution.open = false;
       });
     });
@@ -175,30 +174,51 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="preview-section" aria-labelledby="preview-3d-title">
-    <div class="preview-heading">
+  <section class="grid gap-2.5" aria-labelledby="preview-3d-title">
+    <div class="flex items-end justify-between gap-4">
       <div>
-        <span>Prostorski pogled</span>
-        <h3 id="preview-3d-title">3D pogled stavbe</h3>
+        <span
+          class="text-[9px] font-extrabold tracking-[0.075em] text-accent-strong uppercase"
+          >Prostorski pogled</span
+        >
+        <h3 id="preview-3d-title" class="mt-0.5 text-sm font-bold">
+          3D pogled stavbe
+        </h3>
       </div>
-      <p id="preview-3d-help">Kliknite zemljevid za kratek obhod.</p>
+      <p
+        id="preview-3d-help"
+        class="max-w-[150px] text-right text-[10px] leading-[1.35] text-ink-muted"
+      >
+        Kliknite zemljevid za kratek obhod.
+      </p>
     </div>
 
     <div
-      class="preview-frame"
-      :class="{ 'is-ready': ready, 'is-animating': isAnimating }"
+      class="preview-frame relative isolate h-[168px] overflow-hidden rounded-md border border-line bg-[#e7ece9]"
     >
-      <div ref="mapContainer" class="preview-map" aria-hidden="true" />
-      <div v-if="!ready && !loadFailed" class="preview-state" role="status">
+      <div
+        ref="mapContainer"
+        class="absolute inset-0 opacity-0 transition-opacity duration-220 motion-reduce:duration-160"
+        :class="{ 'opacity-100': ready }"
+        aria-hidden="true"
+      />
+      <div
+        v-if="!ready && !loadFailed"
+        class="absolute inset-0 z-2 grid place-items-center bg-[#eef2f0] text-[11px] text-ink-muted"
+        role="status"
+      >
         Pripravljamo 3D pogled …
       </div>
-      <div v-else-if="loadFailed" class="preview-state">
+      <div
+        v-else-if="loadFailed"
+        class="absolute inset-0 z-2 grid place-items-center bg-[#eef2f0] text-[11px] text-ink-muted"
+      >
         3D pogled trenutno ni na voljo.
       </div>
       <button
         v-else
         type="button"
-        class="preview-button focus-ring"
+        class="group absolute inset-0 z-1 flex cursor-pointer items-end bg-[linear-gradient(to_top,rgb(19_30_28_/_36%),transparent_56%)] p-3 text-accent-strong focus-visible:-outline-offset-4 focus-visible:outline-accent"
         aria-describedby="preview-3d-help"
         :aria-label="
           isAnimating
@@ -207,8 +227,10 @@ onBeforeUnmount(() => {
         "
         @click="orbitBuilding"
       >
-        <span class="preview-cta">
-          <svg viewBox="0 0 20 20" aria-hidden="true">
+        <span
+          class="inline-flex min-h-[34px] items-center gap-[7px] rounded-full border border-white/72 bg-white/92 px-[11px] text-[10px] font-extrabold shadow-[0_4px_14px_rgb(20_30_28_/_16%)] transition-transform duration-150 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-active:scale-[0.97] motion-reduce:transition-none motion-reduce:group-active:scale-100"
+        >
+          <svg class="size-4" viewBox="0 0 20 20" aria-hidden="true">
             <path
               d="M15.4 7.2A6 6 0 1 0 16 11"
               fill="none"
@@ -233,133 +255,11 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.preview-section {
-  display: grid;
-  gap: 10px;
-}
-
-.preview-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.preview-heading span {
-  color: var(--color-accent-strong);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
-}
-
-.preview-heading h3 {
-  margin: 3px 0 0;
-  font-size: 14px;
-}
-
-.preview-heading p {
-  max-width: 150px;
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: 10px;
-  line-height: 1.35;
-  text-align: right;
-}
-
-.preview-frame {
-  position: relative;
-  height: 168px;
-  overflow: hidden;
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
-  background: #e7ece9;
-  isolation: isolate;
-}
-
-.preview-map {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 220ms ease;
-}
-
-.preview-frame.is-ready .preview-map {
-  opacity: 1;
-}
-
-.preview-state {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--color-ink-muted);
-  background: #eef2f0;
-  font-size: 11px;
-}
-
-.preview-button {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  display: flex;
-  align-items: end;
-  padding: 12px;
-  border: 0;
-  color: var(--color-accent-strong);
-  background: linear-gradient(to top, rgb(19 30 28 / 36%), transparent 56%);
-  cursor: pointer;
-}
-
-.preview-button:focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: -4px;
-}
-
-.preview-cta {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  gap: 7px;
-  padding: 0 11px;
-  border: 1px solid rgb(255 255 255 / 72%);
-  border-radius: 999px;
-  background: rgb(255 255 255 / 92%);
-  box-shadow: 0 4px 14px rgb(20 30 28 / 16%);
-  font-size: 10px;
-  font-weight: 800;
-  transition: transform 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.preview-cta svg {
-  width: 16px;
-  height: 16px;
-}
-
-.preview-button:active .preview-cta {
-  transform: scale(0.97);
-}
-
 .preview-frame :deep(.maplibregl-ctrl-bottom-right) {
   z-index: 3;
 }
 
 .preview-frame :deep(.maplibregl-ctrl-attrib) {
   font-size: 8px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .preview-map {
-    transition: opacity 160ms ease;
-  }
-
-  .preview-cta {
-    transition: none;
-  }
-
-  .preview-button:active .preview-cta {
-    transform: none;
-  }
 }
 </style>

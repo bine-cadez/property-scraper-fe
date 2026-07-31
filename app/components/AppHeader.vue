@@ -7,14 +7,19 @@ defineProps<{
 </script>
 
 <template>
-  <header class="app-header">
+  <header
+    class="relative z-50 flex h-16 items-center justify-between gap-6 border-b border-line bg-white/96 px-[22px] max-[760px]:h-14 max-[760px]:px-3.5"
+  >
     <NuxtLink
-      class="brand focus-ring"
+      class="inline-flex items-center gap-2.5 whitespace-nowrap text-[15px] text-ink no-underline transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100 max-[760px]:text-sm"
       to="/"
       aria-label="Prostor na dlani, domov"
     >
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 28 28" fill="none">
+      <span
+        class="grid size-[34px] place-items-center rounded-[9px] bg-accent text-white max-[760px]:size-8"
+        aria-hidden="true"
+      >
+        <svg class="w-[22px]" viewBox="0 0 28 28" fill="none">
           <path
             d="M5.5 7.5 14 3l8.5 4.5v10L14 25l-8.5-7.5v-10Z"
             stroke="currentColor"
@@ -28,123 +33,32 @@ defineProps<{
         </svg>
       </span>
       <span
-        ><strong>{{ sl.brand }}</strong> {{ sl.brandSuffix }}</span
+        ><strong class="font-[750]">{{ sl.brand }}</strong>
+        {{ sl.brandSuffix }}</span
       >
     </NuxtLink>
 
-    <nav v-if="!compact" aria-label="Glavna navigacija">
+    <nav
+      v-if="!compact"
+      class="mr-auto flex items-center gap-7 max-[760px]:hidden [&_a.router-link-active]:text-accent-strong [&_a]:text-sm [&_a]:font-semibold [&_a]:text-ink-muted [&_a]:no-underline [&_a]:hover:text-accent-strong"
+      aria-label="Glavna navigacija"
+    >
       <NuxtLink to="/zemljevid">{{ sl.navigation.map }}</NuxtLink>
       <NuxtLink to="/trg-nepremicnin">{{ sl.navigation.market }}</NuxtLink>
       <NuxtLink to="/metodologija">{{ sl.navigation.methodology }}</NuxtLink>
       <NuxtLink to="/viri-podatkov">{{ sl.navigation.sources }}</NuxtLink>
     </nav>
 
-    <div class="header-actions">
-      <span class="demo-label">DEMO</span>
-      <NuxtLink class="about-link focus-ring" to="/o-projektu"
+    <div class="flex items-center gap-3.5">
+      <span
+        class="rounded-[5px] border border-[#b9cec8] px-[7px] py-1 text-[10px] font-extrabold tracking-[0.08em] text-accent-strong"
+        >DEMO</span
+      >
+      <NuxtLink
+        class="text-sm font-semibold text-ink-muted no-underline transition-[background-color,color,border-color,transform] duration-150 ease-out-expo hover:text-accent-strong active:scale-[0.97] motion-reduce:active:scale-100 max-[760px]:hidden"
+        to="/o-projektu"
         >O projektu</NuxtLink
       >
     </div>
   </header>
 </template>
-
-<style scoped>
-.app-header {
-  position: relative;
-  z-index: 50;
-  display: flex;
-  height: 64px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 0 22px;
-  border-bottom: 1px solid var(--color-line);
-  background: rgb(255 255 255 / 96%);
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--color-ink);
-  font-size: 15px;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.brand strong {
-  font-weight: 750;
-}
-
-.brand-mark {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border-radius: 9px;
-  color: white;
-  background: var(--color-accent);
-}
-
-.brand-mark svg {
-  width: 22px;
-}
-
-nav {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  margin-right: auto;
-}
-
-nav a,
-.about-link {
-  color: var(--color-ink-muted);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-nav a:hover,
-nav a.router-link-active,
-.about-link:hover {
-  color: var(--color-accent-strong);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.demo-label {
-  padding: 4px 7px;
-  border: 1px solid #b9cec8;
-  border-radius: 5px;
-  color: var(--color-accent-strong);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-@media (max-width: 760px) {
-  .app-header {
-    height: 56px;
-    padding: 0 14px;
-  }
-
-  nav,
-  .about-link {
-    display: none;
-  }
-
-  .brand {
-    font-size: 14px;
-  }
-
-  .brand-mark {
-    width: 32px;
-    height: 32px;
-  }
-}
-</style>

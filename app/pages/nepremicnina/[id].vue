@@ -135,10 +135,13 @@ useHead({
 </script>
 
 <template>
-  <div class="property-page">
+  <div class="min-h-dvh bg-[#f7f9f8]">
     <AppHeader />
-    <main>
-      <nav class="breadcrumbs" aria-label="Drobtinice">
+    <main class="mx-auto w-[min(1160px,calc(100%-36px))] pt-6 pb-[90px]">
+      <nav
+        class="flex min-h-[38px] items-center gap-2 text-[10px] text-ink-muted [&_a]:text-ink-muted"
+        aria-label="Drobtinice"
+      >
         <NuxtLink to="/">Domov</NuxtLink>
         <span>/</span>
         <NuxtLink to="/zemljevid">Zemljevid</NuxtLink>
@@ -146,9 +149,13 @@ useHead({
         <span aria-current="page">{{ record.address }}</span>
       </nav>
 
-      <header class="property-heading">
+      <header
+        class="flex items-end justify-between gap-8 pt-[38px] pb-[34px] max-[800px]:flex-col max-[800px]:items-start"
+      >
         <div>
-          <span class="eyebrow">
+          <span
+            class="text-[10px] font-extrabold tracking-[0.075em] text-accent-strong uppercase"
+          >
             {{
               record.propertyType === 'apartment'
                 ? 'Stanovanje'
@@ -156,8 +163,12 @@ useHead({
             }}
             · {{ record.municipality }}
           </span>
-          <h1>{{ record.address }}</h1>
-          <p>
+          <h1
+            class="mt-[9px] mb-2 text-[clamp(30px,5vw,52px)] leading-[1.05] font-bold tracking-[-0.045em]"
+          >
+            {{ record.address }}
+          </h1>
+          <p class="text-[13px] text-ink-muted">
             {{ record.title }} · parcela {{ record.parcel.parcelNumber }} · k.
             o.
             {{ record.parcel.cadastralMunicipalityId }}
@@ -165,7 +176,7 @@ useHead({
           </p>
         </div>
         <NuxtLink
-          class="map-link focus-ring"
+          class="inline-flex min-h-12 items-center gap-2 rounded-sm border border-accent bg-white px-[15px] text-xs font-[750] whitespace-nowrap text-accent-strong no-underline transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
           :to="{
             path: '/zemljevid',
             query: {
@@ -181,12 +192,24 @@ useHead({
         </NuxtLink>
       </header>
 
-      <div class="summary-grid">
-        <section class="value-card">
-          <span>Glavni prikaz vrednosti</span>
-          <PriceMetric v-if="primaryMoney" :value="primaryMoney" primary />
+      <div
+        class="grid grid-cols-[1fr_1.1fr] border border-line bg-white max-[800px]:grid-cols-1"
+      >
+        <section
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 border-l-4 border-accent p-7 max-[560px]:grid-cols-1 max-[560px]:px-[18px] max-[560px]:py-[22px]"
+        >
+          <span
+            class="col-span-full text-[10px] font-extrabold tracking-[0.075em] text-accent-strong uppercase"
+            >Glavni prikaz vrednosti</span
+          >
+          <PriceMetric
+            v-if="primaryMoney"
+            class="col-span-full"
+            :value="primaryMoney"
+            primary
+          />
           <p v-else>Vrednost za ta zapis ni na voljo.</p>
-          <div v-if="record.primaryValuation" class="value-meta">
+          <div v-if="record.primaryValuation" class="flex items-center gap-3.5">
             <ConfidenceIndicator
               :confidence="record.primaryValuation.confidence"
             />
@@ -195,9 +218,15 @@ useHead({
               :quality="record.primaryValuation.source.quality"
             />
           </div>
-          <DataSourceBadge v-if="primaryMoney" :source="primaryMoney.source" />
+          <DataSourceBadge
+            v-if="primaryMoney"
+            class="col-span-full"
+            :source="primaryMoney.source"
+          />
         </section>
-        <dl class="headline-facts">
+        <dl
+          class="grid grid-cols-2 border-l border-line max-[800px]:border-t max-[800px]:border-l-0 [&>div:nth-child(3)]:border-b-0 [&>div:nth-child(4)]:border-b-0 [&>div]:grid [&>div]:min-h-[90px] [&>div]:content-center [&>div]:gap-[5px] [&>div]:border-r [&>div]:border-b [&>div]:border-line [&>div]:p-[18px] max-[560px]:[&>div]:p-[13px] [&_dd]:text-[17px] [&_dd]:font-[750] [&_dt]:text-[10px] [&_dt]:text-ink-muted"
+        >
           <div>
             <dt>Uporabna površina</dt>
             <dd>{{ unit ? formatArea(unit.usableAreaM2) : 'Ni podatka' }}</dd>
@@ -217,37 +246,67 @@ useHead({
         </dl>
       </div>
 
-      <div class="content-grid">
-        <div class="main-column">
-          <section class="index-section" aria-labelledby="value-title">
-            <header>
-              <span>Transparentna primerjava</span>
-              <h2 id="value-title">Vrednosti in cene</h2>
+      <div
+        class="mt-[54px] grid grid-cols-[minmax(0,1fr)_270px] items-start gap-[54px] max-[800px]:grid-cols-1"
+      >
+        <div class="grid gap-[60px]">
+          <section class="grid gap-6" aria-labelledby="value-title">
+            <header class="border-b border-line pb-3.5">
+              <span
+                class="text-[10px] font-extrabold tracking-[0.075em] text-accent-strong uppercase"
+                >Transparentna primerjava</span
+              >
+              <h2
+                id="value-title"
+                class="mt-[5px] text-[25px] font-bold tracking-[-0.025em]"
+              >
+                Vrednosti in cene
+              </h2>
             </header>
             <ValuationSummary :property="record" />
           </section>
 
-          <section class="index-section" aria-labelledby="sales-title">
-            <header>
-              <span>Dejanski trg</span>
-              <h2 id="sales-title">Primerljive zaključene prodaje</h2>
+          <section class="grid gap-6" aria-labelledby="sales-title">
+            <header class="border-b border-line pb-3.5">
+              <span
+                class="text-[10px] font-extrabold tracking-[0.075em] text-accent-strong uppercase"
+                >Dejanski trg</span
+              >
+              <h2
+                id="sales-title"
+                class="mt-[5px] text-[25px] font-bold tracking-[-0.025em]"
+              >
+                Primerljive zaključene prodaje
+              </h2>
             </header>
             <ComparableSales :transactions="record.transactions" />
           </section>
 
-          <section class="index-section" aria-labelledby="facts-title">
-            <header>
-              <span>Uradna dejstva</span>
-              <h2 id="facts-title">Parcela in stavba</h2>
+          <section class="grid gap-6" aria-labelledby="facts-title">
+            <header class="border-b border-line pb-3.5">
+              <span
+                class="text-[10px] font-extrabold tracking-[0.075em] text-accent-strong uppercase"
+                >Uradna dejstva</span
+              >
+              <h2
+                id="facts-title"
+                class="mt-[5px] text-[25px] font-bold tracking-[-0.025em]"
+              >
+                Parcela in stavba
+              </h2>
             </header>
-            <div class="facts-grid">
+            <div class="grid grid-cols-2 gap-[38px] max-[800px]:grid-cols-1">
               <ParcelFacts :parcel="record.parcel" />
               <BuildingFacts :building="record.building" />
             </div>
           </section>
 
-          <section class="explanation">
-            <h2>Kaj je dobro vedeti o tej nepremičnini</h2>
+          <section
+            class="border-l-[3px] border-warm bg-warm-soft p-7 text-[13px] leading-[1.65] text-[#5f574b]"
+          >
+            <h2 class="mt-[5px] text-[25px] font-bold tracking-[-0.025em]">
+              Kaj je dobro vedeti o tej nepremičnini
+            </h2>
             <p>
               Ta stran združuje evidentirane lastnosti parcele in stavbe z
               modelno oceno ter bližnjimi zaključenimi transakcijami. Modelna
@@ -272,10 +331,15 @@ useHead({
           </section>
         </div>
 
-        <aside class="side-column">
-          <div class="source-card">
-            <span>Podatkovna sled</span>
-            <h2>Viri tega pregleda</h2>
+        <aside class="sticky top-5 grid gap-4 max-[800px]:static">
+          <div class="grid gap-2.5 border border-line bg-white p-[18px]">
+            <span
+              class="text-[10px] font-extrabold tracking-[0.075em] text-accent-strong uppercase"
+              >Podatkovna sled</span
+            >
+            <h2 class="mt-0.5 mb-2 text-[17px] font-bold">
+              Viri tega pregleda
+            </h2>
             <DataSourceBadge :source="record.parcel.dataSource" />
             <DataFreshness
               :date="record.parcel.sourceUpdatedAt"
@@ -288,20 +352,33 @@ useHead({
                 :quality="record.primaryValuation.source.quality"
               />
             </template>
-            <NuxtLink to="/viri-podatkov">Vsi viri in omejitve →</NuxtLink>
+            <NuxtLink
+              class="mt-[7px] text-[10px] font-[750] text-accent-strong"
+              to="/viri-podatkov"
+              >Vsi viri in omejitve →</NuxtLink
+            >
           </div>
-          <div class="disclaimer">
-            <strong>Informativni prikaz</strong>
-            <p>
+          <div
+            class="grid gap-2.5 border border-[#ead4b6] bg-warm-soft p-[18px]"
+          >
+            <strong class="text-[11px]">Informativni prikaz</strong>
+            <p class="text-[10px] leading-[1.55] text-[#6e6252]">
               Uradne vrednosti in tržne ocene niso isto. Oglasi niso prodaje.
               Podatki so lahko zamaknjeni ali nepopolni.
             </p>
-            <NuxtLink to="/metodologija">Preberite metodologijo</NuxtLink>
+            <NuxtLink
+              class="mt-[7px] text-[10px] font-[750] text-accent-strong"
+              to="/metodologija"
+              >Preberite metodologijo</NuxtLink
+            >
           </div>
         </aside>
       </div>
 
-      <nav class="internal-links" aria-label="Sorodne vsebine">
+      <nav
+        class="mt-[70px] grid grid-cols-3 gap-px border border-line bg-line max-[560px]:grid-cols-1 [&_a]:grid [&_a]:min-h-[84px] [&_a]:content-center [&_a]:gap-[5px] [&_a]:bg-white [&_a]:p-4 [&_a]:text-ink [&_a]:no-underline [&_a]:hover:bg-accent-soft [&_span]:text-[9px] [&_span]:font-[750] [&_span]:text-ink-muted [&_span]:uppercase [&_strong]:text-xs"
+        aria-label="Sorodne vsebine"
+      >
         <NuxtLink :to="`/parcela/${record.parcel.id}`">
           <span>Parcela</span>
           <strong>{{ record.parcel.parcelNumber }}</strong>
@@ -318,305 +395,3 @@ useHead({
     </main>
   </div>
 </template>
-
-<style scoped>
-.property-page {
-  min-height: 100dvh;
-  background: #f7f9f8;
-}
-
-main {
-  width: min(1160px, calc(100% - 36px));
-  margin: 0 auto;
-  padding: 24px 0 90px;
-}
-
-.breadcrumbs {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  min-height: 38px;
-  color: var(--color-ink-muted);
-  font-size: 10px;
-}
-
-.breadcrumbs a {
-  color: var(--color-ink-muted);
-}
-
-.property-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 32px;
-  padding: 38px 0 34px;
-}
-
-.eyebrow,
-.index-section > header span,
-.value-card > span,
-.source-card > span {
-  color: var(--color-accent-strong);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 9px 0 8px;
-  font-size: clamp(30px, 5vw, 52px);
-  line-height: 1.05;
-  letter-spacing: -0.045em;
-}
-
-.property-heading p {
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: 13px;
-}
-
-.map-link {
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 15px;
-  border: 1px solid var(--color-accent);
-  border-radius: 8px;
-  color: var(--color-accent-strong);
-  background: white;
-  font-size: 12px;
-  font-weight: 750;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  border: 1px solid var(--color-line);
-  background: white;
-}
-
-.value-card {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px 16px;
-  padding: 28px;
-  border-left: 4px solid var(--color-accent);
-}
-
-.value-card > span,
-.value-card :deep(.price-metric),
-.value-card :deep(.source-badge) {
-  grid-column: 1 / -1;
-}
-
-.value-meta {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.headline-facts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin: 0;
-  border-left: 1px solid var(--color-line);
-}
-
-.headline-facts div {
-  display: grid;
-  align-content: center;
-  gap: 5px;
-  min-height: 90px;
-  padding: 18px;
-  border-right: 1px solid var(--color-line);
-  border-bottom: 1px solid var(--color-line);
-}
-
-.headline-facts div:nth-child(3),
-.headline-facts div:nth-child(4) {
-  border-bottom: 0;
-}
-
-.headline-facts dt {
-  color: var(--color-ink-muted);
-  font-size: 10px;
-}
-
-.headline-facts dd {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 750;
-}
-
-.content-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 270px;
-  gap: 54px;
-  align-items: start;
-  margin-top: 54px;
-}
-
-.main-column {
-  display: grid;
-  gap: 60px;
-}
-
-.index-section {
-  display: grid;
-  gap: 24px;
-}
-
-.index-section > header {
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.index-section > header h2,
-.explanation h2 {
-  margin: 5px 0 0;
-  font-size: 25px;
-  letter-spacing: -0.025em;
-}
-
-.facts-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 38px;
-}
-
-.explanation {
-  padding: 28px;
-  border-left: 3px solid var(--color-warm);
-  background: var(--color-warm-soft);
-}
-
-.explanation p {
-  color: #5f574b;
-  font-size: 13px;
-  line-height: 1.65;
-}
-
-.side-column {
-  position: sticky;
-  top: 20px;
-  display: grid;
-  gap: 16px;
-}
-
-.source-card,
-.disclaimer {
-  display: grid;
-  gap: 10px;
-  padding: 18px;
-  border: 1px solid var(--color-line);
-  background: white;
-}
-
-.source-card h2 {
-  margin: 2px 0 8px;
-  font-size: 17px;
-}
-
-.source-card a,
-.disclaimer a {
-  margin-top: 7px;
-  color: var(--color-accent-strong);
-  font-size: 10px;
-  font-weight: 750;
-}
-
-.disclaimer {
-  border-color: #ead4b6;
-  background: var(--color-warm-soft);
-}
-
-.disclaimer strong {
-  font-size: 11px;
-}
-
-.disclaimer p {
-  margin: 0;
-  color: #6e6252;
-  font-size: 10px;
-  line-height: 1.55;
-}
-
-.internal-links {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  margin-top: 70px;
-  border: 1px solid var(--color-line);
-  background: var(--color-line);
-}
-
-.internal-links a {
-  display: grid;
-  gap: 5px;
-  min-height: 84px;
-  align-content: center;
-  padding: 16px;
-  color: var(--color-ink);
-  background: white;
-  text-decoration: none;
-}
-
-.internal-links a:hover {
-  background: var(--color-accent-soft);
-}
-
-.internal-links span {
-  color: var(--color-ink-muted);
-  font-size: 9px;
-  font-weight: 750;
-  text-transform: uppercase;
-}
-
-.internal-links strong {
-  font-size: 12px;
-}
-
-@media (max-width: 800px) {
-  .property-heading {
-    align-items: start;
-    flex-direction: column;
-  }
-
-  .summary-grid,
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .headline-facts {
-    border-top: 1px solid var(--color-line);
-    border-left: 0;
-  }
-
-  .side-column {
-    position: static;
-  }
-
-  .facts-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 560px) {
-  .value-card {
-    grid-template-columns: 1fr;
-    padding: 22px 18px;
-  }
-
-  .headline-facts div {
-    padding: 13px;
-  }
-
-  .internal-links {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

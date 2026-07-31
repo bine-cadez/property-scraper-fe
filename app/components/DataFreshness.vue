@@ -16,34 +16,16 @@ const labels: Record<DataQuality, string> = {
 </script>
 
 <template>
-  <span class="freshness" :class="quality || 'current'">
-    <span class="dot" aria-hidden="true" />
+  <span class="inline-flex items-center gap-1.5 text-[11px] text-ink-muted">
+    <span
+      class="size-1.5 rounded-full"
+      :class="{
+        'bg-accent': !quality || quality === 'current',
+        'bg-warm': quality === 'stale' || quality === 'partial',
+        'bg-[#9aa4a1]': quality === 'unavailable',
+      }"
+      aria-hidden="true"
+    />
     {{ quality ? labels[quality] : 'Posodobljeno' }} · {{ formatDate(date) }}
   </span>
 </template>
-
-<style scoped>
-.freshness {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--color-ink-muted);
-  font-size: 11px;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
-}
-
-.stale .dot,
-.partial .dot {
-  background: var(--color-warm);
-}
-
-.unavailable .dot {
-  background: #9aa4a1;
-}
-</style>

@@ -126,10 +126,7 @@ function closeSelection() {
   sidebarExpanded.value = false
   clearTimeout(closeTimer)
 
-  if (
-    import.meta.client &&
-    window.matchMedia('(max-width: 720px)').matches
-  ) {
+  if (import.meta.client && window.matchMedia('(max-width: 720px)').matches) {
     selectedId.value = undefined
     return
   }
@@ -169,13 +166,15 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="map-page">
+  <div
+    class="flex h-dvh min-h-[560px] flex-col overflow-hidden max-[720px]:min-h-0 [@media_(max-height:560px)_and_(max-width:1024px)]:min-h-0"
+  >
     <main
-      class="map-workspace"
+      class="map-workspace relative min-h-0 flex-1 overflow-hidden [--sidebar-width:clamp(390px,30vw,460px)] max-[720px]:[--mobile-content-top:261px] max-[720px]:[--mobile-toolbar-top:205px] max-[720px]:[--sidebar-width:0px] [@media_(max-height:560px)_and_(max-width:1024px)]:[--mobile-content-top:202px] [@media_(max-height:560px)_and_(max-width:1024px)]:[--mobile-toolbar-top:146px] [@media_(max-height:560px)_and_(max-width:1024px)]:[--sidebar-width:0px]"
       :class="{ 'has-selection': sidebarExpanded }"
     >
       <aside
-        class="map-sidebar"
+        class="map-sidebar pointer-events-none absolute top-0 left-0 z-32 isolate h-full w-[var(--sidebar-width)] [--color-accent-soft:#f0efff] [--color-accent-strong:#4940d1] [--color-accent:#5b52e8] [--sidebar-head-height:233px] max-[720px]:inset-x-2.5 max-[720px]:top-2.5 max-[720px]:h-auto max-[720px]:w-auto max-[720px]:min-w-0 max-[720px]:overflow-visible [@media_(max-height:560px)_and_(max-width:1024px)]:top-2.5 [@media_(max-height:560px)_and_(max-width:1024px)]:right-auto [@media_(max-height:560px)_and_(max-width:1024px)]:left-2.5 [@media_(max-height:560px)_and_(max-width:1024px)]:h-auto [@media_(max-height:560px)_and_(max-width:1024px)]:w-[min(520px,calc(100vw-20px))] [@media_(max-height:560px)_and_(max-width:1024px)]:min-w-0 [@media_(max-height:560px)_and_(max-width:1024px)]:overflow-visible"
         :class="{ 'is-expanded': sidebarExpanded }"
         aria-label="Raziskovanje nepremičnin"
       >
@@ -191,26 +190,35 @@ onBeforeUnmount(() => {
           @layers-change="layers = $event"
         />
 
-        <div class="sidebar-body">
+        <div
+          class="sidebar-body absolute right-0 bottom-0 left-0 z-1 flex min-h-0 flex-col overflow-hidden max-[720px]:hidden [@media_(max-height:560px)_and_(max-width:1024px)]:hidden"
+        >
           <div
             v-if="selectionLoading"
-            class="sidebar-loading"
+            class="relative min-h-[190px] bg-white"
             aria-live="polite"
           >
-            <div class="selection-skeleton">
+            <div
+              class="grid gap-3 px-5 py-[34px] [&>span:nth-child(1)]:w-2/5 [&>span:nth-child(2)]:h-[22px] [&>span:nth-child(2)]:w-[82%] [&>span:nth-child(3)]:w-[62%] [&>span:nth-child(4)]:h-[42px] [&>span:nth-child(4)]:w-full [&>span]:h-3 [&>span]:rounded [&>span]:bg-[#e8eeeb]"
+            >
               <span /><span /><span /><span />
             </div>
           </div>
-          <div v-else-if="selectionError" class="sidebar-error" role="alert">
+          <div
+            v-else-if="selectionError"
+            class="relative min-h-[190px] bg-white px-[22px] py-[34px]"
+            role="alert"
+          >
             <button
+              class="absolute top-2.5 right-2.5 size-[38px] rounded-[9px] bg-transparent text-[22px] text-ink-muted hover:bg-[#f3f4f8]"
               type="button"
               aria-label="Zapri"
               @click="closeSelection"
             >
               ×
             </button>
-            <strong>Podatki niso na voljo</strong>
-            <p>{{ selectionError }}</p>
+            <strong class="text-[15px]">Podatki niso na voljo</strong>
+            <p class="text-xs text-ink-muted">{{ selectionError }}</p>
           </div>
           <PropertyDetailsDrawer
             v-else-if="selectedProperty"
@@ -218,11 +226,14 @@ onBeforeUnmount(() => {
             :property="selectedProperty"
             @close="closeSelection"
           />
-          <EmptySelection v-else class="sidebar-empty" />
+          <EmptySelection v-else class="my-auto" />
         </div>
       </aside>
 
-      <section class="map-stage" aria-label="Raziskovanje nepremičnin">
+      <section
+        class="map-stage absolute inset-0 min-w-0 overflow-hidden bg-[#e8eeeb]"
+        aria-label="Raziskovanje nepremičnin"
+      >
         <ClientOnly>
           <PropertyMap
             :key="mapKey"
@@ -238,19 +249,24 @@ onBeforeUnmount(() => {
             @count="featureCount = $event"
           />
           <template #fallback>
-            <div class="map-fallback"><MapLoadingState /></div>
+            <div class="absolute inset-0 grid place-items-center bg-[#e8eeeb]">
+              <MapLoadingState />
+            </div>
           </template>
         </ClientOnly>
 
-        <div class="map-tool-rail">
+        <div
+          class="map-tool-rail absolute top-3.5 right-3.5 z-22 flex w-[132px] flex-col items-stretch gap-2 max-[720px]:inset-x-2.5 max-[720px]:top-[var(--mobile-toolbar-top)] max-[720px]:grid max-[720px]:w-auto max-[720px]:grid-cols-[minmax(96px,1fr)_minmax(82px,0.85fr)_42px_42px] max-[720px]:items-start max-[720px]:gap-1.5 [@media_(max-height:560px)_and_(max-width:1024px)]:top-[var(--mobile-toolbar-top)] [@media_(max-height:560px)_and_(max-width:1024px)]:right-2.5 [@media_(max-height:560px)_and_(max-width:1024px)]:left-auto [@media_(max-height:560px)_and_(max-width:1024px)]:grid [@media_(max-height:560px)_and_(max-width:1024px)]:w-[min(360px,calc(100vw-20px))] [@media_(max-height:560px)_and_(max-width:1024px)]:grid-cols-[minmax(96px,1fr)_minmax(82px,0.85fr)_42px_42px] [@media_(max-height:560px)_and_(max-width:1024px)]:items-start [@media_(max-height:560px)_and_(max-width:1024px)]:gap-1.5"
+          :class="{
+            'max-[720px]:invisible max-[720px]:pointer-events-none max-[720px]:opacity-0 [@media_(max-height:560px)_and_(max-width:1024px)]:invisible [@media_(max-height:560px)_and_(max-width:1024px)]:pointer-events-none [@media_(max-height:560px)_and_(max-width:1024px)]:opacity-0':
+              sidebarExpanded,
+          }"
+        >
           <MapLayerControl :layers="layers" @change="layers = $event" />
-          <PropertyFilters
-            :filters="filters"
-            @change="filters = $event"
-          />
+          <PropertyFilters :filters="filters" @change="filters = $event" />
           <button
             type="button"
-            class="rail-button map-overlay"
+            class="grid size-[46px] self-end place-items-center rounded-md border border-line/92 bg-white/96 text-[#5148db] shadow-overlay backdrop-blur-[14px] max-[720px]:h-12 max-[720px]:w-[42px] [@media_(max-height:560px)_and_(max-width:1024px)]:h-12 [@media_(max-height:560px)_and_(max-width:1024px)]:w-[42px] [&_svg]:w-[21px]"
             title="Ponastavi pogled na Ljubljano"
             aria-label="Ponastavi pogled na Ljubljano"
             @click="resetMapView"
@@ -274,7 +290,7 @@ onBeforeUnmount(() => {
             </svg>
           </button>
           <NuxtLink
-            class="rail-button map-overlay"
+            class="grid size-[46px] self-end place-items-center rounded-md border border-line/92 bg-white/96 text-[#5148db] no-underline shadow-overlay backdrop-blur-[14px] max-[720px]:h-12 max-[720px]:w-[42px] [@media_(max-height:560px)_and_(max-width:1024px)]:h-12 [@media_(max-height:560px)_and_(max-width:1024px)]:w-[42px] [&_svg]:w-[21px]"
             to="/"
             title="Začetna stran"
             aria-label="Začetna stran"
@@ -291,89 +307,93 @@ onBeforeUnmount(() => {
           </NuxtLink>
         </div>
 
-        <div v-if="mapLoading && !mapError" class="map-status">
+        <div
+          v-if="mapLoading && !mapError"
+          class="absolute top-3.5 left-3.5 z-24 max-[720px]:top-[var(--mobile-content-top)] max-[720px]:left-2.5 [@media_(max-height:560px)_and_(max-width:1024px)]:top-[var(--mobile-content-top)] [@media_(max-height:560px)_and_(max-width:1024px)]:left-2.5"
+          :class="{
+            'max-[720px]:invisible max-[720px]:pointer-events-none max-[720px]:opacity-0 [@media_(max-height:560px)_and_(max-width:1024px)]:invisible [@media_(max-height:560px)_and_(max-width:1024px)]:pointer-events-none [@media_(max-height:560px)_and_(max-width:1024px)]:opacity-0':
+              sidebarExpanded,
+          }"
+        >
           <MapLoadingState />
         </div>
-        <div v-if="mapError" class="map-status">
+        <div
+          v-if="mapError"
+          class="absolute top-3.5 left-3.5 z-24 max-[720px]:top-[var(--mobile-content-top)] max-[720px]:left-2.5 [@media_(max-height:560px)_and_(max-width:1024px)]:top-[var(--mobile-content-top)] [@media_(max-height:560px)_and_(max-width:1024px)]:left-2.5"
+          :class="{
+            'max-[720px]:invisible max-[720px]:pointer-events-none max-[720px]:opacity-0 [@media_(max-height:560px)_and_(max-width:1024px)]:invisible [@media_(max-height:560px)_and_(max-width:1024px)]:pointer-events-none [@media_(max-height:560px)_and_(max-width:1024px)]:opacity-0':
+              sidebarExpanded,
+          }"
+        >
           <MapErrorState @retry="retryMap" />
         </div>
 
         <div
-          class="map-legend map-overlay"
+          class="map-legend absolute bottom-[18px] left-3.5 z-18 flex min-h-[38px] items-center gap-3.5 rounded-sm border border-line/92 bg-white/96 px-3 shadow-overlay backdrop-blur-[14px] max-[720px]:right-[70px] max-[720px]:left-3 max-[720px]:overflow-hidden [@media_(max-height:560px)_and_(max-width:1024px)]:right-auto [@media_(max-height:560px)_and_(max-width:1024px)]:bottom-3 [@media_(max-height:560px)_and_(max-width:1024px)]:left-3 [@media_(max-height:560px)_and_(max-width:1024px)]:w-max [@media_(max-height:560px)_and_(max-width:1024px)]:max-w-[calc(100vw-82px)] [@media_(max-height:560px)_and_(max-width:1024px)]:overflow-hidden [&>span]:inline-flex [&>span]:items-center [&>span]:gap-[5px] [&>span]:text-[10px] [&>span]:font-[650] [&>span]:text-ink-muted max-[520px]:[&>span]:text-[9px]"
+          :class="{
+            'translate-x-[var(--sidebar-width)] max-[720px]:invisible max-[720px]:translate-x-0 max-[720px]:pointer-events-none max-[720px]:opacity-0 [@media_(max-height:560px)_and_(max-width:1024px)]:invisible [@media_(max-height:560px)_and_(max-width:1024px)]:translate-x-0 [@media_(max-height:560px)_and_(max-width:1024px)]:pointer-events-none [@media_(max-height:560px)_and_(max-width:1024px)]:opacity-0':
+              sidebarExpanded,
+          }"
           aria-label="Legenda cenovnih kategorij"
         >
-          <span><i class="sale" /> Zaključene prodaje</span>
-          <span><i class="listing" /> Aktivni oglasi</span>
-          <small>Cena prikazuje vrednost na m²</small>
+          <span
+            ><i class="size-2 rounded-full border-2 border-sale" /> Zaključene
+            prodaje</span
+          >
+          <span
+            ><i class="size-2 rotate-45 rounded-sm border-2 border-listing" />
+            Aktivni oglasi</span
+          >
+          <small
+            class="border-l border-line pl-2.5 text-[9px] text-ink-muted max-[720px]:hidden [@media_(max-height:560px)_and_(max-width:1024px)]:hidden"
+            >Cena prikazuje vrednost na m²</small
+          >
         </div>
 
-        <div class="result-list-position">
+        <div class="absolute right-3.5 bottom-[118px] z-18">
           <MapResultList @select="selectResult" />
         </div>
 
         <div
           v-if="selectionLoading"
-          class="selection-loading"
+          class="absolute right-0 bottom-0 left-0 z-32 hidden min-h-[180px] rounded-t-[18px] bg-white shadow-[0_-8px_30px_rgb(23_33_31_/_16%)] max-[720px]:block [@media_(max-height:560px)_and_(max-width:1024px)]:block"
           aria-live="polite"
         >
-          <div class="selection-skeleton"><span /><span /><span /><span /></div>
+          <div
+            class="grid gap-3 px-5 py-[34px] [&>span:nth-child(1)]:w-2/5 [&>span:nth-child(2)]:h-[22px] [&>span:nth-child(2)]:w-[82%] [&>span:nth-child(3)]:w-[62%] [&>span:nth-child(4)]:h-[42px] [&>span:nth-child(4)]:w-full [&>span]:h-3 [&>span]:rounded [&>span]:bg-[#e8eeeb]"
+          >
+            <span /><span /><span /><span />
+          </div>
         </div>
-        <div v-else-if="selectionError" class="selection-error" role="alert">
+        <div
+          v-else-if="selectionError"
+          class="absolute right-0 bottom-0 left-0 z-32 hidden min-h-[180px] rounded-t-[18px] bg-white px-5 py-[34px] shadow-[0_-8px_30px_rgb(23_33_31_/_16%)] max-[720px]:block [@media_(max-height:560px)_and_(max-width:1024px)]:block"
+          role="alert"
+        >
           <button
+            class="absolute top-3 right-3 size-11 bg-transparent text-[22px]"
             type="button"
             aria-label="Zapri"
             @click="closeSelection"
           >
             ×
           </button>
-          <strong>Podatki niso na voljo</strong>
-          <p>{{ selectionError }}</p>
+          <strong class="text-base">Podatki niso na voljo</strong>
+          <p class="text-xs text-ink-muted">{{ selectionError }}</p>
         </div>
 
         <PropertyBottomSheet
           v-if="selectedProperty"
-          class="mobile-sheet"
+          class="hidden max-[720px]:block [@media_(max-height:560px)_and_(max-width:1024px)]:block"
           :property="selectedProperty"
           @close="closeSelection"
         />
       </section>
-
     </main>
   </div>
 </template>
 
 <style scoped>
-.map-page {
-  display: flex;
-  height: 100dvh;
-  min-height: 560px;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.map-workspace {
-  --sidebar-width: clamp(390px, 30vw, 460px);
-  position: relative;
-  min-height: 0;
-  flex: 1;
-  overflow: hidden;
-}
-
-.map-sidebar {
-  --sidebar-head-height: 233px;
-  --color-accent: #5b52e8;
-  --color-accent-strong: #4940d1;
-  --color-accent-soft: #f0efff;
-  position: absolute;
-  z-index: 32;
-  top: 0;
-  left: 0;
-  width: var(--sidebar-width);
-  height: 100%;
-  pointer-events: none;
-  isolation: isolate;
-}
-
 .map-sidebar::before {
   position: absolute;
   z-index: 0;
@@ -381,9 +401,7 @@ onBeforeUnmount(() => {
   border-right: 1px solid #dfe1e9;
   background: white;
   box-shadow: 6px 0 24px rgb(35 38 67 / 8%);
-  clip-path: inset(
-    14px 0 calc(100% - 430px) 0 round 18px
-  );
+  clip-path: inset(14px 0 calc(100% - 430px) 0 round 18px);
   content: '';
   opacity: 0;
   transition:
@@ -408,16 +426,7 @@ onBeforeUnmount(() => {
 }
 
 .sidebar-body {
-  position: absolute;
-  z-index: 1;
   top: var(--sidebar-head-height);
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  overflow: hidden;
   opacity: 0;
   pointer-events: none;
   transform: translateX(-12px);
@@ -439,81 +448,14 @@ onBeforeUnmount(() => {
     visibility 0s;
 }
 
-.sidebar-empty {
-  margin: auto 0;
-}
-
-.sidebar-loading,
-.sidebar-error {
-  position: relative;
-  min-height: 190px;
-  background: white;
-}
-
-.sidebar-error {
-  padding: 34px 22px;
-}
-
-.sidebar-error button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 38px;
-  height: 38px;
-  border: 0;
-  border-radius: 9px;
-  color: var(--color-ink-muted);
-  background: transparent;
-  font-size: 22px;
-}
-
-.sidebar-error button:hover {
-  background: #f3f4f8;
-}
-
-.sidebar-error strong {
-  font-size: 15px;
-}
-
-.sidebar-error p {
-  color: var(--color-ink-muted);
-  font-size: 12px;
-}
-
 .map-stage {
-  position: absolute;
-  inset: 0;
-  min-width: 0;
-  overflow: hidden;
-  background: #e8eeeb;
   clip-path: inset(0);
   transition: clip-path 280ms var(--ease-sheet);
 }
 
 .map-workspace.has-selection .map-stage {
   clip-path: inset(0 0 0 var(--sidebar-width));
-  transition:
-    clip-path 300ms cubic-bezier(0.645, 0.045, 0.355, 1);
-}
-
-.map-fallback {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: #e8eeeb;
-}
-
-.map-tool-rail {
-  position: absolute;
-  z-index: 22;
-  top: 14px;
-  right: 14px;
-  display: flex;
-  width: 132px;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
+  transition: clip-path 300ms cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
 .map-tool-rail :deep(.filter-shell) {
@@ -539,162 +481,17 @@ onBeforeUnmount(() => {
   background: #5b52e8;
 }
 
-.rail-button {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  align-self: flex-end;
-  place-items: center;
-  border-radius: 12px;
-  color: #5148db;
-  text-decoration: none;
-}
-
-.rail-button svg {
-  width: 21px;
-}
-
-.map-status {
-  position: absolute;
-  z-index: 24;
-  top: 14px;
-  left: 14px;
-}
-
 .map-legend {
-  position: absolute;
-  z-index: 18;
-  bottom: 18px;
-  left: 14px;
-  display: flex;
-  min-height: 38px;
-  align-items: center;
-  gap: 14px;
-  padding: 0 12px;
-  border-radius: 8px;
   transition: transform 280ms var(--ease-sheet);
 }
 
 .map-workspace.has-selection .map-legend {
   transform: translateX(var(--sidebar-width));
-  transition:
-    transform 300ms cubic-bezier(0.645, 0.045, 0.355, 1);
-}
-
-.map-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--color-ink-muted);
-  font-size: 10px;
-  font-weight: 650;
-}
-
-.map-legend i {
-  width: 8px;
-  height: 8px;
-  border: 2px solid;
-  border-radius: 50%;
-}
-
-.map-legend .sale {
-  border-color: var(--color-sale);
-}
-
-.map-legend .listing {
-  border-color: var(--color-listing);
-  border-radius: 2px;
-  transform: rotate(45deg);
-}
-
-.map-legend small {
-  padding-left: 10px;
-  border-left: 1px solid var(--color-line);
-  color: var(--color-ink-muted);
-  font-size: 9px;
-}
-
-.result-list-position {
-  position: absolute;
-  z-index: 18;
-  right: 14px;
-  bottom: 118px;
-}
-
-.selection-skeleton {
-  display: grid;
-  gap: 12px;
-  padding: 34px 20px;
-}
-
-.selection-skeleton span {
-  height: 12px;
-  border-radius: 4px;
-  background: #e8eeeb;
-}
-
-.selection-skeleton span:nth-child(1) {
-  width: 40%;
-}
-
-.selection-skeleton span:nth-child(2) {
-  width: 82%;
-  height: 22px;
-}
-
-.selection-skeleton span:nth-child(3) {
-  width: 62%;
-}
-
-.selection-skeleton span:nth-child(4) {
-  width: 100%;
-  height: 42px;
-}
-
-.selection-loading,
-.selection-error {
-  display: none;
-}
-
-.mobile-sheet {
-  display: none;
+  transition: transform 300ms cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
 @media (max-width: 720px) {
-  .map-page {
-    min-height: 0;
-  }
-
-  .map-workspace {
-    --sidebar-width: 0px;
-    --mobile-toolbar-top: 205px;
-    --mobile-content-top: 261px;
-  }
-
-  .map-sidebar {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    width: auto;
-    min-width: 0;
-    height: auto;
-    overflow: visible;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    pointer-events: none;
-  }
-
   .map-sidebar::before {
-    display: none;
-  }
-
-  .map-sidebar :deep(.browse-panel) {
-    pointer-events: auto;
-  }
-
-  .sidebar-body {
     display: none;
   }
 
@@ -702,43 +499,10 @@ onBeforeUnmount(() => {
     clip-path: inset(0);
   }
 
-  .map-workspace.has-selection .map-legend {
-    transform: none;
-  }
-
-  .map-workspace.has-selection .map-tool-rail,
-  .map-workspace.has-selection .map-legend,
-  .map-workspace.has-selection .map-status,
   .map-workspace.has-selection :deep(.maplibregl-ctrl-bottom-right) {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
-  }
-
-  .mobile-sheet {
-    display: block;
-  }
-
-  .map-legend {
-    right: 70px;
-    bottom: 18px;
-    left: 12px;
-    overflow: hidden;
-  }
-
-  .map-legend small {
-    display: none;
-  }
-
-  .map-tool-rail {
-    top: var(--mobile-toolbar-top);
-    right: 10px;
-    left: 10px;
-    display: grid;
-    width: auto;
-    grid-template-columns: minmax(96px, 1fr) minmax(82px, 0.85fr) 42px 42px;
-    align-items: start;
-    gap: 6px;
   }
 
   .map-tool-rail :deep(.layer-control) {
@@ -753,54 +517,6 @@ onBeforeUnmount(() => {
     width: 100%;
     min-width: 0;
     padding: 0 10px;
-  }
-
-  .map-tool-rail .rail-button {
-    width: 42px;
-    height: 48px;
-  }
-
-  .map-status {
-    top: var(--mobile-content-top);
-    left: 10px;
-  }
-
-  .selection-loading,
-  .selection-error {
-    position: absolute;
-    z-index: 32;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: block;
-    min-height: 180px;
-    border-radius: 18px 18px 0 0;
-    background: white;
-    box-shadow: 0 -8px 30px rgb(23 33 31 / 16%);
-  }
-
-  .selection-error {
-    padding: 34px 20px;
-  }
-
-  .selection-error button {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 44px;
-    height: 44px;
-    border: 0;
-    background: transparent;
-    font-size: 22px;
-  }
-
-  .selection-error strong {
-    font-size: 16px;
-  }
-
-  .selection-error p {
-    color: var(--color-ink-muted);
-    font-size: 12px;
   }
 }
 
@@ -826,73 +542,22 @@ onBeforeUnmount(() => {
     width: auto;
     max-height: calc(100dvh - var(--mobile-content-top) - 10px);
   }
-
-  .map-legend span {
-    font-size: 9px;
-  }
 }
 
 @media (max-height: 560px) and (max-width: 1024px) {
-  .map-page {
-    min-height: 0;
-  }
-
-  .map-workspace {
-    --sidebar-width: 0px;
-    --mobile-toolbar-top: 146px;
-    --mobile-content-top: 202px;
-  }
-
-  .map-sidebar {
-    position: absolute;
-    top: 10px;
-    right: auto;
-    left: 10px;
-    width: min(520px, calc(100vw - 20px));
-    min-width: 0;
-    height: auto;
-    overflow: visible;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    pointer-events: none;
-  }
-
   .map-sidebar::before,
   .sidebar-body {
     display: none;
-  }
-
-  .map-sidebar :deep(.browse-panel) {
-    pointer-events: auto;
   }
 
   .map-workspace.has-selection .map-stage {
     clip-path: inset(0);
   }
 
-  .map-workspace.has-selection .map-tool-rail,
-  .map-workspace.has-selection .map-legend,
-  .map-workspace.has-selection .map-status,
   .map-workspace.has-selection :deep(.maplibregl-ctrl-bottom-right) {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
-  }
-
-  .mobile-sheet {
-    display: block;
-  }
-
-  .map-tool-rail {
-    top: var(--mobile-toolbar-top);
-    right: 10px;
-    left: auto;
-    display: grid;
-    width: min(360px, calc(100vw - 20px));
-    grid-template-columns: minmax(96px, 1fr) minmax(82px, 0.85fr) 42px 42px;
-    align-items: start;
-    gap: 6px;
   }
 
   .map-tool-rail :deep(.layer-control),
@@ -904,11 +569,6 @@ onBeforeUnmount(() => {
     width: 100%;
     min-width: 0;
     padding: 0 10px;
-  }
-
-  .map-tool-rail .rail-button {
-    width: 42px;
-    height: 48px;
   }
 
   .map-tool-rail :deep(.layer-control.expanded) {
@@ -931,24 +591,6 @@ onBeforeUnmount(() => {
     width: min(360px, calc(100vw - 20px));
     max-height: calc(100dvh - var(--mobile-content-top) - 10px);
   }
-
-  .map-status {
-    top: var(--mobile-content-top);
-    left: 10px;
-  }
-
-  .map-legend {
-    right: auto;
-    bottom: 12px;
-    left: 12px;
-    width: max-content;
-    max-width: calc(100vw - 82px);
-    overflow: hidden;
-  }
-
-  .map-legend small {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -964,5 +606,4 @@ onBeforeUnmount(() => {
     clip-path: inset(0 0 0 var(--sidebar-width));
   }
 }
-
 </style>

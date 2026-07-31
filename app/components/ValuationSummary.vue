@@ -30,18 +30,28 @@ const values = computed<MoneyValue[]>(() => {
 </script>
 
 <template>
-  <section class="valuation-summary">
-    <header>
+  <section class="grid gap-4">
+    <header class="flex items-end justify-between gap-3">
       <div>
-        <span class="section-kicker">Primerjava kategorij</span>
-        <h3>Vrednosti niso ista stvar</h3>
+        <span class="text-[10px] font-extrabold uppercase text-accent-strong"
+          >Primerjava kategorij</span
+        >
+        <h3 class="mt-0.5 text-base font-bold">Vrednosti niso ista stvar</h3>
       </div>
-      <NuxtLink to="/metodologija">Kako računamo?</NuxtLink>
+      <NuxtLink
+        class="text-[11px] font-bold text-accent-strong"
+        to="/metodologija"
+        >Kako računamo?</NuxtLink
+      >
     </header>
 
-    <div class="value-list">
-      <div v-for="value in values" :key="value.valueType" class="value-row">
-        <PriceMetric :value="value" />
+    <div class="border-t border-line">
+      <div
+        v-for="value in values"
+        :key="value.valueType"
+        class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-b border-line py-[15px]"
+      >
+        <PriceMetric class="col-span-full" :value="value" />
         <DataSourceBadge :source="value.source" />
         <DataFreshness
           :date="value.sourceUpdatedAt"
@@ -50,9 +60,14 @@ const values = computed<MoneyValue[]>(() => {
       </div>
     </div>
 
-    <div v-if="property.primaryValuation" class="factors">
-      <strong>Glavni dejavniki ocene</strong>
-      <ul>
+    <div
+      v-if="property.primaryValuation"
+      class="border border-line bg-[#fafcfb] p-3.5"
+    >
+      <strong class="text-xs">Glavni dejavniki ocene</strong>
+      <ul
+        class="my-2.5 grid list-disc gap-1.5 pl-[18px] text-xs text-ink-muted"
+      >
         <li
           v-for="factor in property.primaryValuation.explanatoryFactors"
           :key="factor"
@@ -60,81 +75,9 @@ const values = computed<MoneyValue[]>(() => {
           {{ factor }}
         </li>
       </ul>
-      <small
+      <small class="text-[10px] text-ink-muted"
         >Metodologija {{ property.primaryValuation.methodologyVersion }}</small
       >
     </div>
   </section>
 </template>
-
-<style scoped>
-.valuation-summary {
-  display: grid;
-  gap: 16px;
-}
-
-header {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.section-kicker {
-  color: var(--color-accent-strong);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-h3 {
-  margin: 3px 0 0;
-  font-size: 16px;
-}
-
-header a {
-  color: var(--color-accent-strong);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.value-list {
-  border-top: 1px solid var(--color-line);
-}
-
-.value-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 12px;
-  padding: 15px 0;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.value-row :deep(.price-metric) {
-  grid-column: 1 / -1;
-}
-
-.factors {
-  padding: 14px;
-  border: 1px solid var(--color-line);
-  background: #fafcfb;
-}
-
-.factors strong {
-  font-size: 12px;
-}
-
-ul {
-  display: grid;
-  gap: 6px;
-  margin: 10px 0;
-  padding-left: 18px;
-  color: var(--color-ink-muted);
-  font-size: 12px;
-}
-
-small {
-  color: var(--color-ink-muted);
-  font-size: 10px;
-}
-</style>

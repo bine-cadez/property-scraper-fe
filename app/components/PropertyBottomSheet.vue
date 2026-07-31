@@ -12,12 +12,15 @@ defineEmits<{
 
 <template>
   <section
-    class="bottom-sheet"
+    class="bottom-sheet absolute right-0 bottom-0 left-0 z-32 h-[min(68dvh,620px)] overflow-hidden rounded-t-[18px] border border-b-0 border-line bg-white shadow-[0_-10px_34px_rgb(23_33_31_/_16%)]"
     role="dialog"
     aria-label="Podrobnosti izbrane nepremičnine"
     aria-modal="false"
   >
-    <div class="sheet-handle" aria-hidden="true" />
+    <div
+      class="absolute top-[7px] left-1/2 z-2 h-1 w-9 -translate-x-1/2 rounded-full bg-[#c5cfcb]"
+      aria-hidden="true"
+    />
     <PropertyDetailsDrawer
       :property="property"
       embedded
@@ -28,31 +31,7 @@ defineEmits<{
 
 <style scoped>
 .bottom-sheet {
-  position: absolute;
-  z-index: 32;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: min(68dvh, 620px);
-  overflow: hidden;
-  border: 1px solid var(--color-line);
-  border-bottom: 0;
-  border-radius: 18px 18px 0 0;
-  background: white;
-  box-shadow: 0 -10px 34px rgb(23 33 31 / 16%);
   animation: sheet-in 420ms var(--ease-sheet) both;
-}
-
-.sheet-handle {
-  position: absolute;
-  z-index: 2;
-  top: 7px;
-  left: 50%;
-  width: 36px;
-  height: 4px;
-  border-radius: 999px;
-  background: #c5cfcb;
-  transform: translateX(-50%);
 }
 
 .bottom-sheet :deep(.details) {

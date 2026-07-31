@@ -7,8 +7,14 @@ defineProps<{
 </script>
 
 <template>
-  <span class="source-badge">
-    <svg viewBox="0 0 16 16" aria-hidden="true">
+  <span
+    class="inline-flex items-center gap-[5px] text-[11px] leading-[1.35] text-ink-muted"
+  >
+    <svg
+      class="w-3.5 shrink-0 text-accent"
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+    >
       <path
         d="M8 1.5 13 4v4.2c0 3-2 5.2-5 6.3-3-1.1-5-3.3-5-6.3V4l5-2.5Z"
         fill="none"
@@ -24,20 +30,3 @@ defineProps<{
     {{ source.name }}
   </span>
 </template>
-
-<style scoped>
-.source-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--color-ink-muted);
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-svg {
-  width: 14px;
-  flex: 0 0 auto;
-  color: var(--color-accent);
-}
-</style>

@@ -24,119 +24,38 @@ onMounted(async () => {
 
 <template>
   <section
-    class="result-list map-overlay"
-    :class="{ expanded }"
+    class="w-[210px] overflow-hidden rounded-md border border-line/92 bg-white/96 shadow-overlay backdrop-blur-[14px] max-[720px]:hidden max-[1024px]:max-h-[560px]:hidden"
     aria-label="Besedilni seznam rezultatov na zemljevidu"
   >
     <button
-      class="result-trigger"
+      class="grid min-h-[46px] w-full grid-cols-[20px_1fr_auto] items-center gap-[7px] bg-transparent px-3 text-left text-ink"
       type="button"
       :aria-expanded="expanded"
       @click="expanded = !expanded"
     >
-      <span aria-hidden="true">☷</span>
-      <strong>Rezultati na karti</strong>
-      <small>{{ results.length }}</small>
+      <span class="text-accent" aria-hidden="true">☷</span>
+      <strong class="text-[11px]">Rezultati na karti</strong>
+      <small
+        class="grid size-5 place-items-center rounded-full bg-accent-soft text-[9px] text-accent-strong"
+        >{{ results.length }}</small
+      >
     </button>
-    <div v-if="expanded" class="result-items">
+    <div v-if="expanded" class="border-t border-line px-[7px] pt-1 pb-[7px]">
       <button
         v-for="result in results"
         :key="result.id"
+        class="grid min-h-[53px] w-full gap-[3px] rounded-[7px] bg-transparent p-2 text-left text-ink hover:bg-accent-soft"
         type="button"
         @click="$emit('select', result)"
       >
-        <strong>{{ result.primaryLabel }}</strong>
-        <span>{{ result.secondaryLabel }}</span>
+        <strong class="truncate text-[11px]">{{ result.primaryLabel }}</strong>
+        <span class="truncate text-[9px] text-ink-muted">{{
+          result.secondaryLabel
+        }}</span>
       </button>
-      <p v-if="!results.length">
+      <p v-if="!results.length" class="truncate text-[9px] text-ink-muted">
         Na trenutnem območju ni besedilnih rezultatov.
       </p>
     </div>
   </section>
 </template>
-
-<style scoped>
-.result-list {
-  width: 210px;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-}
-
-.result-trigger {
-  display: grid;
-  width: 100%;
-  min-height: 46px;
-  grid-template-columns: 20px 1fr auto;
-  align-items: center;
-  gap: 7px;
-  padding: 0 12px;
-  border: 0;
-  color: var(--color-ink);
-  background: transparent;
-  text-align: left;
-}
-
-.result-trigger > span {
-  color: var(--color-accent);
-}
-
-.result-trigger strong {
-  font-size: 11px;
-}
-
-.result-trigger small {
-  display: grid;
-  width: 20px;
-  height: 20px;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--color-accent-strong);
-  background: var(--color-accent-soft);
-  font-size: 9px;
-}
-
-.result-items {
-  padding: 4px 7px 7px;
-  border-top: 1px solid var(--color-line);
-}
-
-.result-items button {
-  display: grid;
-  width: 100%;
-  gap: 3px;
-  min-height: 53px;
-  padding: 8px;
-  border: 0;
-  border-radius: 7px;
-  color: var(--color-ink);
-  background: transparent;
-  text-align: left;
-}
-
-.result-items button:hover {
-  background: var(--color-accent-soft);
-}
-
-.result-items strong {
-  overflow: hidden;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.result-items span,
-.result-items p {
-  overflow: hidden;
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 720px), (max-height: 560px) and (max-width: 1024px) {
-  .result-list {
-    display: none;
-  }
-}
-</style>

@@ -7,20 +7,37 @@ defineProps<{
 </script>
 
 <template>
-  <div class="content-page">
+  <div class="min-h-dvh bg-[#f7f9f8]">
     <AppHeader />
-    <main>
-      <header class="page-heading">
-        <span>{{ eyebrow }}</span>
-        <h1>{{ title }}</h1>
-        <p>{{ description }}</p>
+    <main
+      class="mx-auto w-[min(1040px,calc(100%-32px))] pt-16 pb-[90px] max-[700px]:pt-[42px]"
+    >
+      <header class="max-w-[760px] pb-9">
+        <span
+          class="text-[11px] font-extrabold tracking-[0.08em] text-accent-strong uppercase"
+          >{{ eyebrow }}</span
+        >
+        <h1
+          class="my-2.5 mb-3.5 text-[clamp(34px,6vw,58px)] leading-[1.03] font-bold tracking-[-0.045em]"
+        >
+          {{ title }}
+        </h1>
+        <p class="text-[17px] leading-[1.65] text-ink-muted">
+          {{ description }}
+        </p>
       </header>
-      <div class="page-grid">
-        <article class="page-content">
+      <div
+        class="grid grid-cols-[minmax(0,1fr)_230px] items-start gap-[54px] border-t border-line pt-[34px] max-[700px]:grid-cols-1 max-[700px]:gap-[30px]"
+      >
+        <article
+          class="text-[15px] leading-[1.7] text-[#35413e] [&_h2:first-child]:mt-0 [&_h2]:mt-9 [&_h2]:mb-2.5 [&_h2]:text-2xl [&_h2]:leading-tight [&_h2]:font-bold [&_h2]:tracking-[-0.02em] [&_h2]:text-ink [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-[17px] [&_h3]:font-bold [&_h3]:text-ink [&_li]:my-1.5 [&_p]:mb-4"
+        >
           <slot />
         </article>
-        <aside>
-          <strong>Hiter dostop</strong>
+        <aside
+          class="grid gap-0.5 border-t-2 border-accent py-3.5 max-[700px]:-order-1 [&_a]:border-b [&_a]:border-line [&_a]:px-1 [&_a]:py-[9px] [&_a]:text-xs [&_a]:font-[650] [&_a]:text-ink-muted [&_a]:no-underline [&_a]:hover:text-accent-strong"
+        >
+          <strong class="mb-2 text-[11px] uppercase">Hiter dostop</strong>
           <NuxtLink to="/zemljevid">Odpri zemljevid</NuxtLink>
           <NuxtLink to="/metodologija">Metodologija</NuxtLink>
           <NuxtLink to="/viri-podatkov">Viri podatkov</NuxtLink>
@@ -29,125 +46,3 @@ defineProps<{
     </main>
   </div>
 </template>
-
-<style scoped>
-.content-page {
-  min-height: 100dvh;
-  background: #f7f9f8;
-}
-
-main {
-  width: min(1040px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 64px 0 90px;
-}
-
-.page-heading {
-  max-width: 760px;
-  padding-bottom: 36px;
-}
-
-.page-heading span {
-  color: var(--color-accent-strong);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 10px 0 14px;
-  font-size: clamp(34px, 6vw, 58px);
-  line-height: 1.03;
-  letter-spacing: -0.045em;
-}
-
-.page-heading p {
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: 17px;
-  line-height: 1.65;
-}
-
-.page-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 230px;
-  gap: 54px;
-  align-items: start;
-  padding-top: 34px;
-  border-top: 1px solid var(--color-line);
-}
-
-.page-content {
-  color: #35413e;
-  font-size: 15px;
-  line-height: 1.7;
-}
-
-.page-content :deep(h2) {
-  margin: 36px 0 10px;
-  color: var(--color-ink);
-  font-size: 24px;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-}
-
-.page-content :deep(h2:first-child) {
-  margin-top: 0;
-}
-
-.page-content :deep(h3) {
-  margin: 24px 0 8px;
-  color: var(--color-ink);
-  font-size: 17px;
-}
-
-.page-content :deep(p) {
-  margin: 0 0 16px;
-}
-
-.page-content :deep(li) {
-  margin: 6px 0;
-}
-
-aside {
-  display: grid;
-  gap: 2px;
-  padding: 14px 0;
-  border-top: 2px solid var(--color-accent);
-}
-
-aside strong {
-  margin-bottom: 8px;
-  font-size: 11px;
-  text-transform: uppercase;
-}
-
-aside a {
-  padding: 9px 4px;
-  border-bottom: 1px solid var(--color-line);
-  color: var(--color-ink-muted);
-  font-size: 12px;
-  font-weight: 650;
-  text-decoration: none;
-}
-
-aside a:hover {
-  color: var(--color-accent-strong);
-}
-
-@media (max-width: 700px) {
-  main {
-    padding-top: 42px;
-  }
-
-  .page-grid {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-
-  aside {
-    order: -1;
-  }
-}
-</style>

@@ -10,68 +10,33 @@ defineProps<{
 </script>
 
 <template>
-  <div class="price-metric" :class="[value.valueType, { primary }]">
-    <span class="category">
-      <span class="category-mark" aria-hidden="true" />
+  <div class="grid gap-1">
+    <span
+      class="flex items-center gap-[7px] text-[11px] font-bold tracking-[0.02em] text-ink-muted"
+    >
+      <span
+        class="size-2 border-2"
+        :class="{
+          'rounded-sm border-estimate':
+            value.valueType === 'market_estimate' ||
+            value.valueType === 'user_entered',
+          'rounded-sm border-official': value.valueType === 'official_assessed',
+          'rounded-full border-sale': value.valueType === 'transaction',
+          'rotate-45 border-listing': value.valueType === 'asking',
+        }"
+        aria-hidden="true"
+      />
       {{ getValueLabel(value.valueType) }}
     </span>
-    <strong>{{ formatEur(value.amount) }}</strong>
-    <span v-if="value.amountPerM2" class="per-m2">{{
-      formatPricePerM2(value.amountPerM2)
-    }}</span>
+    <strong
+      class="font-bold leading-tight tracking-[-0.025em] tabular-nums"
+      :class="primary ? 'text-[clamp(28px,4vw,34px)]' : 'text-xl'"
+      >{{ formatEur(value.amount) }}</strong
+    >
+    <span
+      v-if="value.amountPerM2"
+      class="text-xs font-semibold text-ink-muted"
+      >{{ formatPricePerM2(value.amountPerM2) }}</span
+    >
   </div>
 </template>
-
-<style scoped>
-.price-metric {
-  display: grid;
-  gap: 4px;
-}
-
-.category {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--color-ink-muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.category-mark {
-  width: 8px;
-  height: 8px;
-  border: 2px solid var(--color-estimate);
-  border-radius: 2px;
-}
-
-.official_assessed .category-mark {
-  border-color: var(--color-official);
-}
-
-.transaction .category-mark {
-  border-color: var(--color-sale);
-  border-radius: 50%;
-}
-
-.asking .category-mark {
-  border-color: var(--color-listing);
-  transform: rotate(45deg);
-}
-
-strong {
-  font-size: 20px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.025em;
-}
-
-.primary strong {
-  font-size: clamp(28px, 4vw, 34px);
-}
-
-.per-m2 {
-  color: var(--color-ink-muted);
-  font-size: 12px;
-  font-weight: 600;
-}
-</style>

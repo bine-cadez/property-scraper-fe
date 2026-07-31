@@ -65,23 +65,28 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
 
 <template>
   <aside
-    class="details"
+    class="details flex h-full w-[420px] min-w-[380px] flex-col border-l border-line bg-white max-[1100px]:w-[390px] max-[1100px]:min-w-[360px]"
     :class="{ embedded }"
     aria-label="Podrobnosti izbrane nepremičnine"
     @keydown.esc="$emit('close')"
   >
-    <div class="details-header">
-      <span class="selection-status"
-        ><i aria-hidden="true" /> Izbrano na zemljevidu</span
+    <div
+      class="details-header flex min-h-[52px] items-center justify-between border-b border-line pr-3.5 pl-[18px]"
+      :class="{ 'pt-[7px]': embedded }"
+    >
+      <span
+        class="inline-flex items-center gap-[7px] text-[10px] font-[750] text-ink-muted uppercase"
+        ><i class="size-[7px] rounded-full bg-warm" aria-hidden="true" />
+        Izbrano na zemljevidu</span
       >
-      <div>
+      <div class="flex">
         <button
-          class="icon-button focus-ring"
+          class="inline-grid size-[42px] place-items-center rounded-sm bg-transparent text-[22px] text-ink-muted transition-[background-color,color,border-color,transform] duration-150 ease-out-expo hover:bg-[#f3f6f5] active:scale-[0.97] motion-reduce:active:scale-100"
           type="button"
           aria-label="Deli povezavo"
           @click="shareCurrentUrl"
         >
-          <svg viewBox="0 0 20 20" aria-hidden="true">
+          <svg class="w-[18px]" viewBox="0 0 20 20" aria-hidden="true">
             <circle cx="5" cy="10" r="2" fill="none" stroke="currentColor" />
             <circle cx="15" cy="5" r="2" fill="none" stroke="currentColor" />
             <circle cx="15" cy="15" r="2" fill="none" stroke="currentColor" />
@@ -89,7 +94,7 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
           </svg>
         </button>
         <button
-          class="icon-button focus-ring"
+          class="inline-grid size-[42px] place-items-center rounded-sm bg-transparent text-[22px] text-ink-muted transition-[background-color,color,border-color,transform] duration-150 ease-out-expo hover:bg-[#f3f6f5] active:scale-[0.97] motion-reduce:active:scale-100"
           type="button"
           aria-label="Zapri podrobnosti"
           @click="emit('close')"
@@ -99,7 +104,11 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
       </div>
     </div>
 
-    <div class="tabs" role="tablist" aria-label="Podrobnosti">
+    <div
+      class="flex min-h-[46px] overflow-x-auto border-b border-line px-2.5"
+      role="tablist"
+      aria-label="Podrobnosti"
+    >
       <button
         v-for="(tab, index) in tabs"
         :id="`tab-${tab.id}`"
@@ -109,6 +118,7 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
         :aria-selected="activeTab === tab.id"
         :aria-controls="`panel-${tab.id}`"
         :tabindex="activeTab === tab.id ? 0 : -1"
+        class="relative min-w-fit flex-1 bg-transparent px-[9px] text-[11px] font-bold whitespace-nowrap text-ink-muted after:absolute after:right-[7px] after:bottom-0 after:left-[7px] after:h-0.5 after:bg-transparent after:content-[''] aria-selected:text-accent-strong aria-selected:after:bg-accent"
         @click="activeTab = tab.id"
         @keydown="onTabKeydown($event, index)"
       >
@@ -116,13 +126,16 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
       </button>
     </div>
 
-    <div class="details-scroll">
+    <div
+      class="details-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      :class="{ 'pb-[env(safe-area-inset-bottom)]': embedded }"
+    >
       <div
         v-if="activeTab === 'overview'"
         id="panel-overview"
         role="tabpanel"
         aria-labelledby="tab-overview"
-        class="panel-content"
+        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
       >
         <PropertySummary :property="property" />
         <PropertyPreview3D
@@ -130,10 +143,10 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
           :key="property.id"
           :property="property"
         />
-        <div class="overview-divider" />
+        <div class="mx-[-22px] my-0.5 h-px bg-line" />
         <ValuationSummary :property="property" />
         <NuxtLink
-          class="detail-link focus-ring"
+          class="flex min-h-[46px] items-center justify-between rounded-sm border border-accent bg-white px-3.5 text-xs font-[750] text-accent-strong no-underline transition-[background-color,color,border-color,transform] duration-150 ease-out-expo hover:bg-accent-soft active:scale-[0.97] motion-reduce:active:scale-100"
           :to="`/nepremicnina/${property.id}`"
         >
           Odpri celoten pregled nepremičnine
@@ -146,7 +159,7 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
         id="panel-value"
         role="tabpanel"
         aria-labelledby="tab-value"
-        class="panel-content"
+        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
       >
         <ValuationSummary :property="property" />
       </div>
@@ -156,7 +169,7 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
         id="panel-sales"
         role="tabpanel"
         aria-labelledby="tab-sales"
-        class="panel-content"
+        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
       >
         <ComparableSales :transactions="property.transactions" />
       </div>
@@ -166,10 +179,10 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
         id="panel-facts"
         role="tabpanel"
         aria-labelledby="tab-facts"
-        class="panel-content"
+        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
       >
         <ParcelFacts :parcel="property.parcel" />
-        <div class="overview-divider" />
+        <div class="mx-[-22px] my-0.5 h-px bg-line" />
         <BuildingFacts :building="property.building" />
       </div>
 
@@ -178,62 +191,76 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
         id="panel-area"
         role="tabpanel"
         aria-labelledby="tab-area"
-        class="panel-content"
+        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
       >
-        <section class="area-intro">
-          <span>Okolica in ponudba</span>
-          <h3>{{ property.settlement }}, {{ property.municipality }}</h3>
-          <p>
+        <section>
+          <span class="text-[10px] font-extrabold text-listing uppercase"
+            >Okolica in ponudba</span
+          >
+          <h3 class="mt-1 mb-[7px] text-[17px] font-bold">
+            {{ property.settlement }}, {{ property.municipality }}
+          </h3>
+          <p class="text-xs leading-[1.55] text-ink-muted">
             Prikazani oglasi so ločeni od zaključenih prodaj. Oglaševana cena ne
             pomeni, da je bila nepremičnina po tej ceni prodana.
           </p>
         </section>
-        <div v-if="property.listings.length" class="listing-list">
-          <article v-for="listing in property.listings" :key="listing.id">
-            <span class="asking-label">Oglaševana cena</span>
-            <h4>{{ listing.title }}</h4>
-            <strong>{{ formatEur(listing.askingPrice.amount) }}</strong>
-            <p>
+        <div v-if="property.listings.length" class="border-t border-line">
+          <article
+            v-for="listing in property.listings"
+            :key="listing.id"
+            class="grid grid-cols-[1fr_auto] gap-x-2.5 gap-y-[5px] border-b border-line py-[15px]"
+          >
+            <span
+              class="col-span-full text-[10px] font-extrabold text-listing uppercase"
+              >Oglaševana cena</span
+            >
+            <h4 class="col-span-full text-[13px] font-bold">
+              {{ listing.title }}
+            </h4>
+            <strong class="text-base">{{
+              formatEur(listing.askingPrice.amount)
+            }}</strong>
+            <p class="text-[11px] font-bold text-listing">
               {{ formatArea(listing.areaM2) }} ·
               {{ formatPricePerM2(listing.pricePerM2) }}
             </p>
-            <small
+            <small class="col-span-full text-[10px] text-ink-muted"
               >Objavljeno {{ formatDate(listing.publishedAt) }} ·
               {{ listing.sourceName }}</small
             >
           </article>
         </div>
-        <p v-else class="empty-list">
+        <p
+          v-else
+          class="border border-dashed border-line p-5 text-center text-ink-muted"
+        >
           V bližini ni preverjenih aktivnih oglasov.
         </p>
       </div>
 
-      <footer class="disclaimer">
-        <strong>Pomembno o podatkih</strong>
-        <p>
+      <footer
+        class="mt-2.5 border-t border-line bg-[#f8faf9] px-[22px] pt-[18px] pb-7 text-ink-muted"
+      >
+        <strong class="text-[11px] text-ink">Pomembno o podatkih</strong>
+        <p class="mt-[7px] mb-[9px] text-[10px] leading-[1.55]">
           Ocene so informativne in se lahko razlikujejo od dosegljive tržne
           cene. Uradna vrednost, tržna ocena, oglaševana cena in zaključena
           prodajna cena niso enakovredne kategorije. Podatki so lahko zamaknjeni
           ali nepopolni in ne nadomeščajo pravnega, geodetskega, cenilskega ali
           investicijskega svetovanja.
         </p>
-        <NuxtLink to="/viri-podatkov">Viri in omejitve podatkov</NuxtLink>
+        <NuxtLink
+          class="text-[10px] font-[750] text-accent-strong"
+          to="/viri-podatkov"
+          >Viri in omejitve podatkov</NuxtLink
+        >
       </footer>
     </div>
   </aside>
 </template>
 
 <style scoped>
-.details {
-  display: flex;
-  width: 420px;
-  min-width: 380px;
-  height: 100%;
-  flex-direction: column;
-  border-left: 1px solid var(--color-line);
-  background: white;
-}
-
 .details.embedded {
   width: 100%;
   min-width: 0;
@@ -241,222 +268,5 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
   min-height: 0;
   flex: 1;
   border-left: 0;
-}
-
-.details-header {
-  display: flex;
-  min-height: 52px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 14px 0 18px;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.selection-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--color-ink-muted);
-  font-size: 10px;
-  font-weight: 750;
-  text-transform: uppercase;
-}
-
-.selection-status i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-warm);
-}
-
-.details-header > div {
-  display: flex;
-}
-
-.icon-button {
-  display: inline-grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 0;
-  border-radius: 8px;
-  color: var(--color-ink-muted);
-  background: transparent;
-  font-size: 22px;
-}
-
-.icon-button:hover {
-  background: #f3f6f5;
-}
-
-.icon-button svg {
-  width: 18px;
-}
-
-.tabs {
-  display: flex;
-  min-height: 46px;
-  padding: 0 10px;
-  border-bottom: 1px solid var(--color-line);
-  overflow-x: auto;
-}
-
-.tabs button {
-  position: relative;
-  flex: 1;
-  min-width: fit-content;
-  padding: 0 9px;
-  border: 0;
-  color: var(--color-ink-muted);
-  background: transparent;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.tabs button[aria-selected='true'] {
-  color: var(--color-accent-strong);
-}
-
-.tabs button[aria-selected='true']::after {
-  position: absolute;
-  right: 7px;
-  bottom: 0;
-  left: 7px;
-  height: 2px;
-  background: var(--color-accent);
-  content: '';
-}
-
-.details-scroll {
-  min-height: 0;
-  flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.panel-content {
-  display: grid;
-  gap: 22px;
-  padding: 22px 22px 26px;
-}
-
-.overview-divider {
-  height: 1px;
-  margin: 2px -22px;
-  background: var(--color-line);
-}
-
-.detail-link {
-  display: flex;
-  min-height: 46px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 14px;
-  border: 1px solid var(--color-accent);
-  border-radius: 8px;
-  color: var(--color-accent-strong);
-  background: white;
-  font-size: 12px;
-  font-weight: 750;
-  text-decoration: none;
-}
-
-.detail-link:hover {
-  background: var(--color-accent-soft);
-}
-
-.area-intro > span,
-.asking-label {
-  color: var(--color-listing);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.area-intro h3 {
-  margin: 4px 0 7px;
-  font-size: 17px;
-}
-
-.area-intro p {
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.listing-list {
-  border-top: 1px solid var(--color-line);
-}
-
-.listing-list article {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 5px 10px;
-  padding: 15px 0;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.listing-list h4 {
-  grid-column: 1 / -1;
-  margin: 0;
-  font-size: 13px;
-}
-
-.listing-list article > strong {
-  font-size: 16px;
-}
-
-.listing-list p {
-  margin: 0;
-  color: var(--color-listing);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.listing-list small {
-  grid-column: 1 / -1;
-  color: var(--color-ink-muted);
-  font-size: 10px;
-}
-
-.empty-list {
-  padding: 20px;
-  border: 1px dashed var(--color-line);
-  color: var(--color-ink-muted);
-  text-align: center;
-}
-
-.disclaimer {
-  margin-top: 10px;
-  padding: 18px 22px 28px;
-  border-top: 1px solid var(--color-line);
-  color: var(--color-ink-muted);
-  background: #f8faf9;
-}
-
-.disclaimer strong {
-  color: var(--color-ink);
-  font-size: 11px;
-}
-
-.disclaimer p {
-  margin: 7px 0 9px;
-  font-size: 10px;
-  line-height: 1.55;
-}
-
-.disclaimer a {
-  color: var(--color-accent-strong);
-  font-size: 10px;
-  font-weight: 750;
-}
-
-@media (max-width: 1100px) {
-  .details:not(.embedded) {
-    width: 390px;
-    min-width: 360px;
-  }
 }
 </style>
