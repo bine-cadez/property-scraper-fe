@@ -14,12 +14,15 @@ function tileUrl(
   layer: PropertyMapLayer,
   query: Record<string, string | number | undefined> = {},
 ) {
-  const parameters = new URLSearchParams()
+  // Bust browser/MapLibre caches when the tile transport contract changes.
+  const parameters = new URLSearchParams({ v: '3' })
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined && value !== '') parameters.set(key, String(value))
   }
-  const suffix = parameters.size ? `?${parameters.toString()}` : ''
-  return `/api/map/tiles/${layer}/{z}/{x}/{y}.mvt${suffix}`
+  const path = `/api/map/tiles/${layer}/{z}/{x}/{y}.mvt?${parameters.toString()}`
+  // MapLibre requires an absolute URL here. Concatenation intentionally keeps
+  // the template braces intact (URL() percent-encodes them).
+  return import.meta.client ? `${window.location.origin}${path}` : path
 }
 
 /**

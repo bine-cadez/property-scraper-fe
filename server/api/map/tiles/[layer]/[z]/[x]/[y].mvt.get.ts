@@ -32,7 +32,8 @@ export default defineEventHandler(async (event) => {
   const layer = getRouterParam(event, 'layer') as GursTileLayer
   const z = Number(getRouterParam(event, 'z'))
   const x = Number(getRouterParam(event, 'x'))
-  const rawY = getRouterParam(event, 'y') || ''
+  const rawY =
+    getRouterParam(event, 'y.mvt') || getRouterParam(event, 'y') || ''
   const y = Number(rawY.replace(/\.mvt$/, ''))
 
   if (
@@ -62,11 +63,10 @@ export default defineEventHandler(async (event) => {
     ),
   )
   const tile = await gursTile(event, layer, z, x, y, query)
-  setHeader(event, 'Content-Type', 'application/vnd.mapbox-vector-tile')
-  setHeader(
-    event,
-    'Cache-Control',
-    'public, max-age=300, stale-while-revalidate=3600',
-  )
-  return new Uint8Array(tile)
+  return new Response(tile.body, {
+    headers: {
+      'Content-Type': 'application/vnd.mapbox-vector-tile',
+      'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
+    },
+  })
 })

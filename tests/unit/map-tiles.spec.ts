@@ -3,11 +3,12 @@ import { propertyMapTileUrls } from '../../app/utils/map/layers'
 
 describe('property map vector tile URLs', () => {
   it('uses the backend z/x/y MVT contract for every spatial layer', () => {
+    const origin = window.location.origin
     expect(propertyMapTileUrls({ propertyTypes: [] })).toEqual({
-      'gurs-properties': '/api/map/tiles/properties/{z}/{x}/{y}.mvt',
-      'gurs-sales': '/api/map/tiles/sales/{z}/{x}/{y}.mvt',
-      'gurs-parcels': '/api/map/tiles/parcels/{z}/{x}/{y}.mvt',
-      'gurs-cadastral': '/api/map/tiles/cadastral/{z}/{x}/{y}.mvt',
+      'gurs-properties': `${origin}/api/map/tiles/properties/{z}/{x}/{y}.mvt?v=3`,
+      'gurs-sales': `${origin}/api/map/tiles/sales/{z}/{x}/{y}.mvt?v=3`,
+      'gurs-parcels': `${origin}/api/map/tiles/parcels/{z}/{x}/{y}.mvt?v=3`,
+      'gurs-cadastral': `${origin}/api/map/tiles/cadastral/{z}/{x}/{y}.mvt?v=3`,
     })
   })
 

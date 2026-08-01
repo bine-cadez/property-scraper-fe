@@ -41,26 +41,8 @@ function parcelIds(value: unknown): string[] {
     .filter(Boolean)
 }
 
-function forwardedQuery(event: Parameters<typeof getQuery>[0]) {
-  return Object.fromEntries(
-    Object.entries(getQuery(event)).flatMap(([key, value]) =>
-      typeof value === 'string' ? [[key, value]] : [],
-    ),
-  )
-}
-
 export default defineEventHandler(async (event) => {
   const pathname = getRequestURL(event).pathname
-
-  if (pathname === '/gurs/buildings') {
-    const payload = await gursList(event, 'buildings', forwardedQuery(event))
-    setHeader(
-      event,
-      'Cache-Control',
-      'public, max-age=60, stale-while-revalidate=300',
-    )
-    return buildingFeatureCollection(payload)
-  }
 
   const buildingMatch = pathname.match(/^\/gurs\/buildings\/([^/]+)$/)
   if (buildingMatch?.[1]) {

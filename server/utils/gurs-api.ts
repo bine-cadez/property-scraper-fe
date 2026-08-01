@@ -100,20 +100,31 @@ export async function gursTile(
   x: number,
   y: number,
   query: GursRequestOptions['query'] = {},
-): Promise<ArrayBuffer> {
+): Promise<Response> {
   const { baseURL, headers } = connection(event)
-  try {
-    return (await $fetch(`/map/tiles/${layer}/${z}/${x}/${y}.mvt`, {
-      baseURL,
-      headers,
-      query,
-      responseType: 'arrayBuffer',
-      retry: 1,
-      timeout: 12_000,
-    })) as ArrayBuffer
-  } catch (error) {
-    upstreamError(error)
+  const url = new URL(`/map/tiles/${layer}/${z}/${x}/${y}.mvt`, baseURL)
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined) url.searchParams.set(key, String(value))
   }
+
+  let lastError: unknown
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        headers,
+        signal: AbortSignal.timeout(12_000),
+      })
+      if (!response.ok) {
+        throw Object.assign(new Error(`Tile API returned ${response.status}`), {
+          statusCode: response.status,
+        })
+      }
+      return response
+    } catch (error) {
+      lastError = error
+    }
+  }
+  upstreamError(lastError)
 }
 
 export const gursOperations = {

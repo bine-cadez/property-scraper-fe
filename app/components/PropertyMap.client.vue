@@ -197,6 +197,25 @@ function rememberBuilding(feature: ShapeFeature) {
   ]
 }
 
+function visibleBuildingFootprints(ids: Set<string>): ShapeFeature[] {
+  if (!map || !ids.size) return []
+  const buildingsById = new Map<string, ShapeFeature>()
+  for (const feature of map.querySourceFeatures('gurs-properties', {
+    sourceLayer: 'properties',
+    filter: ['==', ['get', 'feature_type'], 'footprint'],
+  })) {
+    const id = String(feature.properties?.id ?? feature.id ?? '')
+    if (!id || !ids.has(id) || buildingsById.has(id)) continue
+    buildingsById.set(id, {
+      type: 'Feature',
+      id,
+      geometry: feature.geometry,
+      properties: { ...feature.properties, id, kind: 'building' },
+    })
+  }
+  return [...buildingsById.values()]
+}
+
 function fitSelection(features: ShapeFeature[]) {
   if (!map) return
   const positions: Position[] = []
@@ -287,29 +306,18 @@ async function selectBuildingFeature(
         .filter((response) => response.ok)
         .map((response) => response.json() as Promise<ShapeFeature>),
     )
-    const parcelBuildingResponses = await Promise.all(
-      detail.parcelIds.map((parcelId) =>
-        fetch(`/gurs/buildings?parcelId=${encodeURIComponent(parcelId)}`, {
-          signal: controller.signal,
-        }),
-      ),
+    const relatedBuildingIds = new Set(
+      parcels.flatMap((parcel) => {
+        const ids = parcel.properties.buildingIds
+        return Array.isArray(ids) ? ids.map(String) : []
+      }),
     )
-    const parcelBuildingCollections = await Promise.all(
-      parcelBuildingResponses
-        .filter((response) => response.ok)
-        .map(
-          (response) =>
-            response.json() as Promise<{
-              type: 'FeatureCollection'
-              features: ShapeFeature[]
-            }>,
-        ),
-    )
+    relatedBuildingIds.add(id)
     if (activeBuildingId !== id) return
     selectedParcelFeatures = parcels
     const buildingsById = new Map<string, ShapeFeature>()
     for (const building of [
-      ...parcelBuildingCollections.flatMap((collection) => collection.features),
+      ...visibleBuildingFootprints(relatedBuildingIds),
       ...parcelBuildingFeatures,
     ]) {
       const buildingId = String(building.properties.id ?? building.id ?? '')
@@ -466,6 +474,11 @@ onMounted(async () => {
     })
     map.on('mousemove', 'property-footprint-fill', hoverFeature)
     map.on('mouseleave', 'property-footprint-fill', clearHover)
+    map.on('click', 'property-footprint-fill', (event) => {
+      if (props.measureMode) return
+      const feature = event.features?.[0]
+      if (feature) void selectBuildingFeature(feature)
+    })
 
     map.on('mousemove', 'parcel-fill', hoverFeature)
     map.on('mouseleave', 'parcel-fill', clearHover)
