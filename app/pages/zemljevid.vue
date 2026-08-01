@@ -119,7 +119,7 @@ useHead({
             :zoom="zoom"
             :layers="layers"
             :filters="filters"
-            :selected-id="selectedId"
+            :selected-id="sidebarExpanded ? selectedId : undefined"
             :measure-mode="measureMode"
             @select="openSelection"
             @move="onMapMove"
@@ -360,10 +360,6 @@ useHead({
             class="border-l border-line pl-2.5 text-[9px] text-ink-muted max-[720px]:hidden [@media_(max-height:560px)_and_(max-width:1024px)]:hidden"
             >Cena prikazuje vrednost na m²</small
           >
-        </div>
-
-        <div class="absolute right-[84px] bottom-[118px] z-18">
-          <MapResultList @select="selectResult" />
         </div>
 
         <div

@@ -64,7 +64,42 @@ function number(raw: Raw, ...keys: string[]): number | undefined {
 }
 
 function id(raw: Raw): string {
-  return text(raw, 'id', 'recordId', 'record_id', 'gursId', 'gurs_id')
+  return text(
+    raw,
+    'id',
+    'recordId',
+    'record_id',
+    'gursId',
+    'gurs_id',
+    'eidParcela',
+    'eidStavba',
+  )
+}
+
+function geometryCenter(coordinates: unknown): Position | undefined {
+  const positions: Position[] = []
+
+  function visit(value: unknown) {
+    if (!Array.isArray(value)) return
+    if (
+      value.length >= 2 &&
+      Number.isFinite(Number(value[0])) &&
+      Number.isFinite(Number(value[1]))
+    ) {
+      positions.push([Number(value[0]), Number(value[1])])
+      return
+    }
+    for (const nested of value) visit(nested)
+  }
+
+  visit(coordinates)
+  if (!positions.length) return undefined
+  const lngs = positions.map(([lng]) => lng)
+  const lats = positions.map(([, lat]) => lat)
+  return [
+    (Math.min(...lngs) + Math.max(...lngs)) / 2,
+    (Math.min(...lats) + Math.max(...lats)) / 2,
+  ]
 }
 
 function position(raw: Raw): Position {
@@ -78,6 +113,8 @@ function position(raw: Raw): Position {
   ) {
     return [Number(coordinates[0]), Number(coordinates[1])]
   }
+  const center = geometryCenter(coordinates)
+  if (center) return center
   const longitude = number(raw, 'longitude', 'lng', 'lon', 'x_wgs84')
   const latitude = number(raw, 'latitude', 'lat', 'y_wgs84')
   return longitude !== undefined && latitude !== undefined

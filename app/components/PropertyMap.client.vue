@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import type {
+  GeoJSONFeature,
   GeoJSONSource,
   Map as MapLibreMap,
   MapLayerMouseEvent,
 } from 'maplibre-gl'
-import type { MapFilters, MapLayerId, Position } from '#shared/types/property'
+import type {
+  MapFilters,
+  MapLayerId,
+  Position,
+} from '#shared/types/property'
 import { addPropertyMapLayers } from '~/utils/map/layers'
 import { formatMeasuredDistance } from '~/utils/map/measurement'
 
@@ -27,12 +32,25 @@ const emit = defineEmits<{
 }>()
 
 const config = useRuntimeConfig()
+const route = useRoute()
+const shouldFitInitialBuildings = typeof route.query.c !== 'string'
+type ShapeFeature = {
+  type: 'Feature'
+  id?: string | number
+  geometry: GeoJSONFeature['geometry']
+  properties: Record<string, unknown>
+}
 const mapContainer = ref<HTMLDivElement>()
 let map: MapLibreMap | undefined
 let hovered:
-  { source: string; sourceLayer: string; id: string | number } | undefined
+  { source: string; sourceLayer?: string; id: string | number } | undefined
 let syncingFromProps = false
 let measurePoints: Position[] = []
+let fittedBuildingSource = false
+let selectedParcelFeatures: ShapeFeature[] = []
+let parcelBuildingFeatures: ShapeFeature[] = []
+let activeBuildingId = ''
+let detailController: AbortController | undefined
 
 const localStyle = {
   version: 8 as const,
@@ -48,12 +66,19 @@ const localStyle = {
 }
 
 const visibilityByLayer: Record<MapLayerId, string[]> = {
-  parcels: ['parcels-fill', 'parcels-line', 'parcel-selected'],
-  buildings: ['buildings-fill', 'buildings-line', 'building-selected'],
+  parcels: [],
+  buildings: [
+    'house-clusters',
+    'house-cluster-count',
+    'building-markers',
+    'parcel-selected-line',
+    'selected-building-fill',
+    'selected-building-line',
+  ],
   transactions: ['point-clusters', 'cluster-count', 'transaction-points'],
   listings: [],
   priceM2: ['transaction-labels'],
-  officialValue: ['parcel-official-fill'],
+  officialValue: [],
 }
 
 function updateMeasurement() {
@@ -93,18 +118,6 @@ function flattenBasemap() {
   }
 }
 
-function setSelectionFilters() {
-  if (!map?.isStyleLoaded()) return
-  const id = props.selectedId?.includes(':')
-    ? props.selectedId.slice(props.selectedId.indexOf(':') + 1)
-    : (props.selectedId ?? '__none__')
-  for (const layerId of ['parcel-selected', 'building-selected']) {
-    if (map.getLayer(layerId)) {
-      map.setFilter(layerId, ['==', ['get', 'id'], id])
-    }
-  }
-}
-
 function syncLayerVisibility() {
   if (!map?.isStyleLoaded()) return
   const configured = new Set(props.layers)
@@ -132,6 +145,12 @@ function syncLayerVisibility() {
           'visibility',
           configured.has('listings') ? 'visible' : 'none',
         )
+      } else if (layerId.startsWith('house-cluster')) {
+        map.setLayoutProperty(
+          layerId,
+          'visibility',
+          configured.has('buildings') ? 'visible' : 'none',
+        )
       } else if (layerId.includes('cluster')) {
         map.setLayoutProperty(
           layerId,
@@ -153,23 +172,286 @@ function syncLayerVisibility() {
 
 function updateFeatureCount() {
   if (!map?.isStyleLoaded()) return
-  const features = map.queryRenderedFeatures(undefined, {
-    layers: ['parcels-fill', 'buildings-fill', 'transaction-points'],
+  const buildingFeatures = map.queryRenderedFeatures(undefined, {
+    layers: ['house-clusters', 'building-markers'],
   })
-  const unique = new Set(
-    features.map(
-      (feature, index) =>
-        `${feature.source}:${String(feature.id ?? feature.properties?.id ?? index)}`,
+  const seen = new Set<string>()
+  const buildingCount = buildingFeatures.reduce((total, feature, index) => {
+    const key = `${feature.layer.id}:${String(
+      feature.properties?.cluster_id ??
+        feature.id ??
+        feature.properties?.id ??
+        index,
+    )}`
+    if (seen.has(key)) return total
+    seen.add(key)
+    return total + Number(feature.properties?.point_count ?? 1)
+  }, 0)
+  const transactionFeatures = map.queryRenderedFeatures(undefined, {
+    layers: ['transaction-points'],
+  })
+  const transactionIds = new Set(
+    transactionFeatures.map((feature, index) =>
+      String(feature.id ?? feature.properties?.id ?? index),
     ),
   )
-  emit('count', unique.size)
+  emit('count', buildingCount + transactionIds.size)
 }
 
-function addDataLayers() {
+function geometryCenter(
+  geometry: GeoJSONFeature['geometry'],
+): Position | undefined {
+  if (!('coordinates' in geometry)) return undefined
+  const positions: Position[] = []
+  function collect(value: unknown) {
+    if (!Array.isArray(value)) return
+    if (
+      value.length >= 2 &&
+      Number.isFinite(Number(value[0])) &&
+      Number.isFinite(Number(value[1]))
+    ) {
+      positions.push([Number(value[0]), Number(value[1])])
+      return
+    }
+    for (const nested of value) collect(nested)
+  }
+  collect(geometry.coordinates)
+  if (!positions.length) return undefined
+  const lngs = positions.map(([lng]) => lng)
+  const lats = positions.map(([, lat]) => lat)
+  return [
+    (Math.min(...lngs) + Math.max(...lngs)) / 2,
+    (Math.min(...lats) + Math.max(...lats)) / 2,
+  ]
+}
+
+async function addDataLayers() {
   if (!map) return
-  addPropertyMapLayers(map)
-  setSelectionFilters()
+  const response = await fetch('/gurs/buildings')
+  if (!response.ok) throw new Error('Stavb ni bilo mogoče naložiti.')
+  const buildings = (await response.json()) as {
+    type: 'FeatureCollection'
+    features: ShapeFeature[]
+  }
+  const buildingMarkers = {
+    type: 'FeatureCollection' as const,
+    features: buildings.features.flatMap((feature) => {
+      const center = geometryCenter(feature.geometry)
+      if (!center) return []
+      return [
+        {
+          ...feature,
+          geometry: {
+            type: 'Point' as const,
+            coordinates: center,
+          },
+        },
+      ]
+    }),
+  }
+  addPropertyMapLayers(map, buildingMarkers)
   syncLayerVisibility()
+  if (shouldFitInitialBuildings) fitFetchedBuildings(buildings.features)
+}
+
+function fitFetchedBuildings(sourceFeatures?: ShapeFeature[]) {
+  if (!map || fittedBuildingSource) return
+  const features = sourceFeatures ?? map.querySourceFeatures('gurs-buildings')
+  if (!features.length) return
+  fittedBuildingSource = true
+
+  if (
+    !sourceFeatures &&
+    map.queryRenderedFeatures(undefined, { layers: ['building-markers'] })
+      .length
+  ) {
+    return
+  }
+
+  const positions: Position[] = []
+  function collect(value: unknown) {
+    if (!Array.isArray(value)) return
+    if (
+      value.length >= 2 &&
+      Number.isFinite(Number(value[0])) &&
+      Number.isFinite(Number(value[1]))
+    ) {
+      positions.push([Number(value[0]), Number(value[1])])
+      return
+    }
+    for (const nested of value) collect(nested)
+  }
+  for (const feature of features) {
+    if ('coordinates' in feature.geometry) collect(feature.geometry.coordinates)
+  }
+  if (!positions.length) return
+
+  const lngs = positions.map(([lng]) => lng)
+  const lats = positions.map(([, lat]) => lat)
+  map.fitBounds(
+    [
+      [Math.min(...lngs), Math.min(...lats)],
+      [Math.max(...lngs), Math.max(...lats)],
+    ],
+    { padding: 64, maxZoom: 17, duration: 450 },
+  )
+}
+
+function setSelectedShapes() {
+  const buildings = parcelBuildingFeatures.map((feature) => ({
+    ...feature,
+    properties: {
+      ...feature.properties,
+      active:
+        String(feature.properties.id ?? feature.id ?? '') === activeBuildingId,
+    },
+  }))
+  ;(
+    map?.getSource('selected-parcel-shapes') as GeoJSONSource | undefined
+  )?.setData({
+    type: 'FeatureCollection',
+    features: [...selectedParcelFeatures, ...buildings],
+  })
+}
+
+function rememberBuilding(feature: ShapeFeature) {
+  const id = String(feature.properties.id ?? feature.id ?? '')
+  parcelBuildingFeatures = [
+    ...parcelBuildingFeatures.filter(
+      (item) => String(item.properties.id ?? item.id ?? '') !== id,
+    ),
+    feature,
+  ]
+}
+
+function fitSelection(features: ShapeFeature[]) {
+  if (!map) return
+  const positions: Position[] = []
+  function collect(value: unknown) {
+    if (!Array.isArray(value)) return
+    if (
+      value.length >= 2 &&
+      Number.isFinite(Number(value[0])) &&
+      Number.isFinite(Number(value[1]))
+    ) {
+      positions.push([Number(value[0]), Number(value[1])])
+      return
+    }
+    for (const nested of value) collect(nested)
+  }
+  for (const feature of features) {
+    if ('coordinates' in feature.geometry) collect(feature.geometry.coordinates)
+  }
+  if (!positions.length) return
+  const lngs = positions.map(([lng]) => lng)
+  const lats = positions.map(([, lat]) => lat)
+  map.fitBounds(
+    [
+      [Math.min(...lngs), Math.min(...lats)],
+      [Math.max(...lngs), Math.max(...lats)],
+    ],
+    {
+      padding: matchMedia('(max-width: 720px)').matches
+        ? 42
+        : { top: 70, right: 70, bottom: 70, left: 490 },
+      maxZoom: 18,
+      duration: 420,
+    },
+  )
+}
+
+async function selectBuildingFeature(
+  feature: GeoJSONFeature,
+  emitSelection = true,
+  fitAfterLoad = true,
+) {
+  const id = String(feature.properties?.id ?? feature.id ?? '')
+  if (!id) return
+  if (activeBuildingId && activeBuildingId !== id) {
+    selectedParcelFeatures = []
+    parcelBuildingFeatures = []
+    setSelectedShapes()
+  }
+  activeBuildingId = id
+  detailController?.abort()
+  const selectedBuilding: ShapeFeature = {
+    type: 'Feature',
+    id,
+    geometry: feature.geometry,
+    properties: { ...feature.properties, id, kind: 'building' },
+  }
+  rememberBuilding(selectedBuilding)
+  setSelectedShapes()
+  if (!selectedParcelFeatures.length) fitSelection([selectedBuilding])
+  if (emitSelection) emit('select', `building:${id}`)
+
+  const controller = new AbortController()
+  detailController = controller
+  try {
+    const buildingResponse = await fetch(
+      `/gurs/buildings/${encodeURIComponent(id)}`,
+      {
+        signal: controller.signal,
+      },
+    )
+    if (!buildingResponse.ok) return
+    const detail = (await buildingResponse.json()) as {
+      building?: ShapeFeature
+      parcelIds: string[]
+    }
+    if (activeBuildingId !== id) return
+    if (detail.building) rememberBuilding(detail.building)
+
+    const parcelResponses = await Promise.all(
+      detail.parcelIds.map((parcelId) =>
+        fetch(`/gurs/parcels/${encodeURIComponent(parcelId)}`, {
+          signal: controller.signal,
+        }),
+      ),
+    )
+    const parcels = await Promise.all(
+      parcelResponses
+        .filter((response) => response.ok)
+        .map((response) => response.json() as Promise<ShapeFeature>),
+    )
+    const parcelBuildingResponses = await Promise.all(
+      detail.parcelIds.map((parcelId) =>
+        fetch(`/gurs/buildings?parcelId=${encodeURIComponent(parcelId)}`, {
+          signal: controller.signal,
+        }),
+      ),
+    )
+    const parcelBuildingCollections = await Promise.all(
+      parcelBuildingResponses
+        .filter((response) => response.ok)
+        .map(
+          (response) =>
+            response.json() as Promise<{
+              type: 'FeatureCollection'
+              features: ShapeFeature[]
+            }>,
+        ),
+    )
+    if (activeBuildingId !== id) return
+    selectedParcelFeatures = parcels
+    const buildingsById = new Map<string, ShapeFeature>()
+    for (const building of [
+      ...parcelBuildingCollections.flatMap((collection) => collection.features),
+      ...parcelBuildingFeatures,
+    ]) {
+      const buildingId = String(building.properties.id ?? building.id ?? '')
+      if (buildingId) buildingsById.set(buildingId, building)
+    }
+    parcelBuildingFeatures = [...buildingsById.values()]
+    setSelectedShapes()
+    if (fitAfterLoad) {
+      fitSelection([...selectedParcelFeatures, ...parcelBuildingFeatures])
+    }
+  } catch (error) {
+    if (!(error instanceof DOMException && error.name === 'AbortError')) {
+      // A building without a linked parcel is still a valid selection.
+    }
+  }
 }
 
 function hoverFeature(event: MapLayerMouseEvent) {
@@ -183,8 +465,11 @@ function hoverFeature(event: MapLayerMouseEvent) {
   if (hovered) map.setFeatureState(hovered, { hover: false })
   const source = feature.source
   const sourceLayer = feature.sourceLayer
-  if (!sourceLayer) return
-  hovered = { source, sourceLayer, id: feature.id }
+  hovered = {
+    source,
+    ...(sourceLayer ? { sourceLayer } : {}),
+    id: feature.id,
+  }
   map.setFeatureState(hovered, { hover: true })
   map.getCanvas().style.cursor = 'pointer'
 }
@@ -242,11 +527,20 @@ onMounted(async () => {
       }),
       'bottom-right',
     )
-    map.on('load', () => {
+    map.on('load', async () => {
       container.dataset.mapState = 'ready'
       map?.resize()
       flattenBasemap()
-      addDataLayers()
+      try {
+        await addDataLayers()
+      } catch (error) {
+        emit(
+          'error',
+          error instanceof Error
+            ? error.message
+            : 'Stavb ni bilo mogoče naložiti.',
+        )
+      }
       requestAnimationFrame(() => {
         map?.resize()
         emit('loading', false)
@@ -256,6 +550,9 @@ onMounted(async () => {
       emit('loading', false)
       emit('error', '')
       updateFeatureCount()
+    })
+    map.on('sourcedata', (event) => {
+      if (event.sourceId === 'gurs-buildings') fitFetchedBuildings()
     })
     map.on('moveend', () => {
       if (!map) return
@@ -273,34 +570,48 @@ onMounted(async () => {
       if (event.error) emit('error', event.error.message)
     })
 
-    for (const layerId of ['parcels-fill', 'buildings-fill'] as const) {
-      map.on('mousemove', layerId, hoverFeature)
-      map.on('mouseleave', layerId, clearHover)
-      map.on('click', layerId, (event) => {
-        if (props.measureMode) return
-        const feature = event.features?.[0]
-        const id =
-          feature?.properties?.id ??
-          feature?.properties?.gurs_id ??
-          feature?.properties?.record_id ??
-          feature?.id
-        if (id !== undefined) {
-          const entityType = String(
-            feature?.properties?.type ??
-              feature?.properties?.kind ??
-              feature?.properties?.entity_type ??
-              '',
-          ).toLowerCase()
-          const kind =
-            layerId === 'parcels-fill'
-              ? 'parcel'
-              : entityType.includes('part')
-                ? 'building-part'
-                : 'building'
-          emit('select', `${kind}:${String(id)}`)
-        }
+    map.on('mousemove', 'building-markers', hoverFeature)
+    map.on('mouseleave', 'building-markers', clearHover)
+    map.on('click', 'building-markers', (event) => {
+      if (props.measureMode) return
+      const feature = event.features?.[0]
+      if (feature) void selectBuildingFeature(feature)
+    })
+    map.on('mouseenter', 'house-clusters', () => {
+      if (map) map.getCanvas().style.cursor = 'pointer'
+    })
+    map.on('mouseleave', 'house-clusters', () => {
+      if (map)
+        map.getCanvas().style.cursor = props.measureMode ? 'crosshair' : ''
+    })
+    map.on('click', 'house-clusters', async (event) => {
+      if (props.measureMode) return
+      const feature = event.features?.[0]
+      const clusterId = feature?.properties?.cluster_id
+      if (
+        !map ||
+        typeof clusterId !== 'number' ||
+        feature?.geometry.type !== 'Point'
+      )
+        return
+      const source = map.getSource('gurs-buildings') as GeoJSONSource
+      const zoom = await source.getClusterExpansionZoom(clusterId)
+      map.easeTo({
+        center: feature.geometry.coordinates as Position,
+        zoom,
+        duration: 320,
       })
-    }
+    })
+    map.on('mousemove', 'selected-building-fill', hoverFeature)
+    map.on('mouseleave', 'selected-building-fill', clearHover)
+    map.on('click', 'selected-building-fill', (event) => {
+      if (props.measureMode) return
+      const feature = event.features?.[0]
+      const id = String(feature?.properties?.id ?? feature?.id ?? '')
+      if (feature && id && id !== activeBuildingId) {
+        void selectBuildingFeature(feature, true, false)
+      }
+    })
 
     for (const layerId of ['transaction-points']) {
       map.on('mouseenter', layerId, () => {
@@ -369,7 +680,26 @@ watch(
   },
 )
 
-watch(() => props.selectedId, setSelectionFilters)
+watch(
+  () => props.selectedId,
+  (selectedId) => {
+    if (!map?.isStyleLoaded()) return
+    if (!selectedId?.startsWith('building:')) {
+      activeBuildingId = ''
+      detailController?.abort()
+      selectedParcelFeatures = []
+      parcelBuildingFeatures = []
+      setSelectedShapes()
+      return
+    }
+    const id = selectedId.slice('building:'.length)
+    if (id === activeBuildingId) return
+    const feature = map
+      .querySourceFeatures('gurs-buildings')
+      .find((item) => String(item.properties?.id ?? item.id) === id)
+    if (feature) void selectBuildingFeature(feature, false)
+  },
+)
 watch(() => props.layers, syncLayerVisibility, { deep: true })
 watch(
   () => props.filters,
@@ -386,6 +716,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  detailController?.abort()
   map?.remove()
 })
 
@@ -427,8 +758,8 @@ defineExpose({
 }
 
 .property-map :deep(.maplibregl-ctrl-bottom-right) {
-  right: 72px;
-  bottom: 18px;
+  right: 0;
+  bottom: 0;
 }
 
 .property-map :deep(.maplibregl-ctrl-group) {
@@ -445,8 +776,8 @@ defineExpose({
 
 @media (max-width: 720px), (max-height: 560px) and (max-width: 1024px) {
   .property-map :deep(.maplibregl-ctrl-bottom-right) {
-    right: 10px;
-    bottom: 68px;
+    right: 0;
+    bottom: 0;
   }
 }
 </style>

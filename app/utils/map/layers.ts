@@ -1,25 +1,117 @@
-import type { Map, SymbolLayerSpecification } from 'maplibre-gl'
+import type {
+  ExpressionSpecification,
+  GeoJSONSourceSpecification,
+  Map,
+  SymbolLayerSpecification,
+} from 'maplibre-gl'
 
 const emptyFeatureCollection = {
   type: 'FeatureCollection' as const,
   features: [],
 }
 
-/** Registers the Property Scraper API vector-tile sources and app styling. */
-export function addPropertyMapLayers(map: Map) {
-  map.addSource('gurs-parcels', {
-    type: 'vector',
-    tiles: ['/api/map/tiles/parcels/{z}/{x}/{y}.mvt'],
-    minzoom: 0,
-    maxzoom: 22,
+function addBuildingMarkerImages(map: Map) {
+  const colors = {
+    purple: { fill: '#5758d9', stroke: '#4547c2' },
+    teal: { fill: '#0b879d', stroke: '#087084' },
+  }
+
+  for (const [name, color] of Object.entries(colors)) {
+    const canvas = document.createElement('canvas')
+    canvas.width = 176
+    canvas.height = 152
+    const context = canvas.getContext('2d')
+    if (!context) continue
+
+    context.scale(2, 2)
+    context.shadowColor = 'rgb(31 35 106 / 24%)'
+    context.shadowBlur = 2.5
+    context.shadowOffsetY = 1.5
+    context.beginPath()
+    context.moveTo(44, 3)
+    context.lineTo(82, 18)
+    context.lineTo(76, 18)
+    context.lineTo(76, 57)
+    context.lineTo(53, 57)
+    context.lineTo(44, 73)
+    context.lineTo(35, 57)
+    context.lineTo(12, 57)
+    context.lineTo(12, 18)
+    context.lineTo(6, 18)
+    context.closePath()
+    context.fillStyle = color.fill
+    context.fill()
+    context.shadowColor = 'transparent'
+    context.lineWidth = 1
+    context.strokeStyle = color.stroke
+    context.stroke()
+    map.addImage(
+      `building-house-marker-${name}`,
+      context.getImageData(0, 0, 176, 152),
+      { pixelRatio: 2 },
+    )
+
+    const summaryCanvas = document.createElement('canvas')
+    summaryCanvas.width = 264
+    summaryCanvas.height = 164
+    const summary = summaryCanvas.getContext('2d')
+    if (!summary) continue
+    summary.scale(2, 2)
+    summary.shadowColor = 'rgb(31 35 106 / 28%)'
+    summary.shadowBlur = 5
+    summary.shadowOffsetY = 2
+    summary.beginPath()
+    summary.roundRect(6, 4, 120, 72, 6)
+    summary.fillStyle = color.fill
+    summary.fill()
+    summary.shadowColor = 'transparent'
+    summary.lineWidth = 1.5
+    summary.strokeStyle = color.stroke
+    summary.stroke()
+    map.addImage(
+      `building-summary-marker-${name}`,
+      summary.getImageData(0, 0, 264, 164),
+      { pixelRatio: 2 },
+    )
+  }
+}
+
+const clusterIsPurple: ExpressionSpecification = [
+  'any',
+  ['==', ['get', 'value_count'], 0],
+  ['>=', ['/', ['get', 'value_sum'], ['get', 'value_count']], 500_000],
+]
+
+const buildingIsPurple: ExpressionSpecification = [
+  'any',
+  ['<=', ['coalesce', ['get', 'displayValue'], 0], 0],
+  ['>=', ['get', 'displayValue'], 500_000],
+]
+
+/** Registers the Property Scraper API map sources and app styling. */
+export function addPropertyMapLayers(
+  map: Map,
+  buildings: GeoJSONSourceSpecification['data'] = '/gurs/buildings',
+) {
+  map.addSource('gurs-buildings', {
+    type: 'geojson',
+    data: buildings,
     promoteId: 'id',
-  })
-  map.addSource('gurs-properties', {
-    type: 'vector',
-    tiles: ['/api/map/tiles/properties/{z}/{x}/{y}.mvt'],
-    minzoom: 0,
-    maxzoom: 22,
-    promoteId: 'id',
+    cluster: true,
+    clusterMaxZoom: 14,
+    clusterRadius: 58,
+    clusterProperties: {
+      value_sum: ['+', ['coalesce', ['get', 'displayValue'], 0]],
+      value_count: [
+        '+',
+        ['case', ['>', ['coalesce', ['get', 'displayValue'], 0], 0], 1, 0],
+      ],
+      area_sum: ['+', ['coalesce', ['get', 'displayAreaM2'], 0]],
+      area_count: [
+        '+',
+        ['case', ['>', ['coalesce', ['get', 'displayAreaM2'], 0], 0], 1, 0],
+      ],
+    },
   })
   map.addSource('gurs-sales', {
     type: 'vector',
@@ -32,78 +124,175 @@ export function addPropertyMapLayers(map: Map) {
     type: 'geojson',
     data: emptyFeatureCollection,
   })
+  map.addSource('selected-parcel-shapes', {
+    type: 'geojson',
+    data: emptyFeatureCollection,
+    promoteId: 'id',
+  })
 
   map.addLayer({
-    id: 'parcels-fill',
-    type: 'fill',
-    source: 'gurs-parcels',
-    'source-layer': 'parcels',
+    id: 'parcel-selected-line',
+    type: 'line',
+    source: 'selected-parcel-shapes',
+    filter: ['==', ['get', 'kind'], 'parcel'],
     paint: {
-      'fill-color': [
+      'line-color': '#4f52d5',
+      'line-width': 4,
+      'line-opacity': 0.95,
+    },
+  })
+  map.addLayer({
+    id: 'selected-building-fill',
+    type: 'fill',
+    source: 'selected-parcel-shapes',
+    filter: ['==', ['get', 'kind'], 'building'],
+    paint: {
+      'fill-color': '#7773df',
+      'fill-opacity': [
         'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        '#43a796',
-        '#f4d6a8',
+        ['boolean', ['get', 'active'], false],
+        0.55,
+        0.2,
       ],
-      'fill-opacity': 0.18,
     },
   })
   map.addLayer({
-    id: 'parcels-line',
+    id: 'selected-building-line',
     type: 'line',
-    source: 'gurs-parcels',
-    'source-layer': 'parcels',
+    source: 'selected-parcel-shapes',
+    filter: ['==', ['get', 'kind'], 'building'],
     paint: {
-      'line-color': '#ba772b',
-      'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.7, 17, 1.5],
-      'line-opacity': 0.78,
-    },
-  })
-  map.addLayer({
-    id: 'parcel-official-fill',
-    type: 'fill',
-    source: 'gurs-parcels',
-    'source-layer': 'parcels',
-    layout: { visibility: 'none' },
-    paint: { 'fill-color': '#2865a8', 'fill-opacity': 0.32 },
-  })
-  map.addLayer({
-    id: 'buildings-fill',
-    type: 'fill',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    paint: {
-      'fill-color': [
+      'line-color': '#3437b6',
+      'line-width': 3,
+      'line-opacity': [
         'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        '#087f70',
-        '#8ba8a0',
+        ['boolean', ['get', 'active'], false],
+        0.95,
+        0.45,
       ],
-      'fill-opacity': 0.46,
+    },
+  })
+  addBuildingMarkerImages(map)
+  map.addLayer({
+    id: 'house-clusters',
+    type: 'symbol',
+    source: 'gurs-buildings',
+    filter: ['has', 'point_count'],
+    layout: {
+      'icon-image': [
+        'case',
+        clusterIsPurple,
+        'building-summary-marker-purple',
+        'building-summary-marker-teal',
+      ],
+      'icon-anchor': 'center',
+      'icon-allow-overlap': false,
+      'icon-padding': 8,
+      'text-field': [
+        'format',
+        ['concat', ['get', 'point_count_abbreviated'], ' stavb'],
+        {
+          'font-scale': 0.72,
+          'text-color': 'rgba(255, 255, 255, 0.72)',
+        },
+        '\n',
+        {},
+        [
+          'case',
+          ['>', ['get', 'area_sum'], 0],
+          [
+            'concat',
+            [
+              'number-format',
+              ['get', 'area_sum'],
+              { locale: 'sl-SI', 'max-fraction-digits': 0 },
+            ],
+            ' m²',
+          ],
+          '— m²',
+        ],
+        { 'font-scale': 1.08, 'text-color': '#ffffff' },
+      ],
+      'text-size': 17,
+      'text-font': ['Noto Sans Regular'],
+      'text-allow-overlap': false,
+      'text-anchor': 'center',
+      'text-offset': [0, -0.08],
+      'text-line-height': 1.2,
+    },
+    paint: {
+      'text-color': '#ffffff',
+      'text-halo-color': [
+        'case',
+        clusterIsPurple,
+        '#4547c2',
+        '#087084',
+      ],
+      'text-halo-width': 0.25,
     },
   })
   map.addLayer({
-    id: 'buildings-line',
-    type: 'line',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    paint: { 'line-color': '#315f56', 'line-width': 1.1 },
-  })
-  map.addLayer({
-    id: 'parcel-selected',
-    type: 'line',
-    source: 'gurs-parcels',
-    'source-layer': 'parcels',
-    filter: ['==', ['get', 'id'], '__none__'],
-    paint: { 'line-color': '#d87918', 'line-width': 4 },
-  })
-  map.addLayer({
-    id: 'building-selected',
-    type: 'line',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    filter: ['==', ['get', 'id'], '__none__'],
-    paint: { 'line-color': '#f0a44b', 'line-width': 4 },
+    id: 'building-markers',
+    type: 'symbol',
+    source: 'gurs-buildings',
+    filter: ['!', ['has', 'point_count']],
+    layout: {
+      'icon-image': [
+        'case',
+        buildingIsPurple,
+        'building-house-marker-purple',
+        'building-house-marker-teal',
+      ],
+      'icon-anchor': 'bottom',
+      'icon-size': 1,
+      'icon-allow-overlap': false,
+      'text-field': [
+        'format',
+        [
+          'case',
+          ['>', ['coalesce', ['get', 'displayAreaM2'], 0], 0],
+          [
+            'concat',
+            [
+              'number-format',
+              ['get', 'displayAreaM2'],
+              { locale: 'sl-SI', 'max-fraction-digits': 0 },
+            ],
+            ' m²',
+          ],
+          '— m²',
+        ],
+        {
+          'font-scale': 0.7,
+          'text-color': 'rgba(255, 255, 255, 0.66)',
+        },
+        '\n',
+        {},
+        [
+          'case',
+          ['>', ['coalesce', ['get', 'displayValue'], 0], 0],
+          ['get', 'displayValueLabel'],
+          '0 €',
+        ],
+        { 'font-scale': 1.04, 'text-color': 'rgba(255, 255, 255, 0.96)' },
+      ],
+      'text-anchor': 'center',
+      'text-offset': [0, -3.05],
+      'text-size': 14,
+      'text-line-height': 1.15,
+      'text-font': ['Noto Sans Regular'],
+      'text-allow-overlap': false,
+    },
+    paint: {
+      'text-color': '#ffffff',
+      'text-halo-color': [
+        'case',
+        buildingIsPurple,
+        '#4547c2',
+        '#087084',
+      ],
+      'text-halo-width': 0,
+    },
   })
   map.addLayer({
     id: 'point-clusters',

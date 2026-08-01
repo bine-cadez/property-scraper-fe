@@ -10,7 +10,9 @@ export default defineNuxtConfig({
   },
   typescript: {
     strict: true,
-    typeCheck: true,
+    // The long-running Vite checker can retain stale Nitro route unions and
+    // hit TypeScript's recursion limit. `pnpm typecheck` remains authoritative.
+    typeCheck: false,
   },
   runtimeConfig: {
     gursApiBaseUrl: 'http://localhost:3001',
