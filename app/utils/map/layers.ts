@@ -5,29 +5,28 @@ const emptyFeatureCollection = {
   features: [],
 }
 
-/**
- * Registers the application-owned sources and presentation layers.
- * Keeping this declarative setup outside the Vue component makes MapLibre
- * lifecycle code easier to audit and keeps visual layer changes isolated.
- */
+/** Registers the Property Scraper API vector-tile sources and app styling. */
 export function addPropertyMapLayers(map: Map) {
-  map.addSource('parcels', {
-    type: 'geojson',
-    data: emptyFeatureCollection,
+  map.addSource('gurs-parcels', {
+    type: 'vector',
+    tiles: ['/api/map/tiles/parcels/{z}/{x}/{y}.mvt'],
+    minzoom: 0,
+    maxzoom: 22,
     promoteId: 'id',
   })
-  map.addSource('buildings', {
-    type: 'geojson',
-    data: emptyFeatureCollection,
+  map.addSource('gurs-properties', {
+    type: 'vector',
+    tiles: ['/api/map/tiles/properties/{z}/{x}/{y}.mvt'],
+    minzoom: 0,
+    maxzoom: 22,
     promoteId: 'id',
   })
-  map.addSource('market-points', {
-    type: 'geojson',
-    data: emptyFeatureCollection,
+  map.addSource('gurs-sales', {
+    type: 'vector',
+    tiles: ['/api/map/tiles/sales/{z}/{x}/{y}.mvt'],
+    minzoom: 0,
+    maxzoom: 22,
     promoteId: 'id',
-    cluster: true,
-    clusterMaxZoom: 14,
-    clusterRadius: 48,
   })
   map.addSource('measurement', {
     type: 'geojson',
@@ -37,7 +36,8 @@ export function addPropertyMapLayers(map: Map) {
   map.addLayer({
     id: 'parcels-fill',
     type: 'fill',
-    source: 'parcels',
+    source: 'gurs-parcels',
+    'source-layer': 'parcels',
     paint: {
       'fill-color': [
         'case',
@@ -45,18 +45,14 @@ export function addPropertyMapLayers(map: Map) {
         '#43a796',
         '#f4d6a8',
       ],
-      'fill-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        0.28,
-        0.16,
-      ],
+      'fill-opacity': 0.18,
     },
   })
   map.addLayer({
     id: 'parcels-line',
     type: 'line',
-    source: 'parcels',
+    source: 'gurs-parcels',
+    'source-layer': 'parcels',
     paint: {
       'line-color': '#ba772b',
       'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.7, 17, 1.5],
@@ -66,26 +62,16 @@ export function addPropertyMapLayers(map: Map) {
   map.addLayer({
     id: 'parcel-official-fill',
     type: 'fill',
-    source: 'parcels',
-    filter: ['has', 'officialValue'],
+    source: 'gurs-parcels',
+    'source-layer': 'parcels',
     layout: { visibility: 'none' },
-    paint: {
-      'fill-color': [
-        'interpolate',
-        ['linear'],
-        ['get', 'officialValue'],
-        400000,
-        '#d8e8f6',
-        550000,
-        '#2865a8',
-      ],
-      'fill-opacity': 0.44,
-    },
+    paint: { 'fill-color': '#2865a8', 'fill-opacity': 0.32 },
   })
   map.addLayer({
     id: 'buildings-fill',
     type: 'fill',
-    source: 'buildings',
+    source: 'gurs-properties',
+    'source-layer': 'properties',
     paint: {
       'fill-color': [
         'case',
@@ -93,64 +79,64 @@ export function addPropertyMapLayers(map: Map) {
         '#087f70',
         '#8ba8a0',
       ],
-      'fill-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        0.58,
-        0.44,
-      ],
+      'fill-opacity': 0.46,
     },
   })
   map.addLayer({
     id: 'buildings-line',
     type: 'line',
-    source: 'buildings',
-    paint: {
-      'line-color': '#315f56',
-      'line-width': 1.1,
-    },
+    source: 'gurs-properties',
+    'source-layer': 'properties',
+    paint: { 'line-color': '#315f56', 'line-width': 1.1 },
   })
   map.addLayer({
     id: 'parcel-selected',
     type: 'line',
-    source: 'parcels',
+    source: 'gurs-parcels',
+    'source-layer': 'parcels',
     filter: ['==', ['get', 'id'], '__none__'],
-    paint: {
-      'line-color': '#d87918',
-      'line-width': 4,
-      'line-opacity': 1,
-    },
+    paint: { 'line-color': '#d87918', 'line-width': 4 },
   })
   map.addLayer({
     id: 'building-selected',
     type: 'line',
-    source: 'buildings',
+    source: 'gurs-properties',
+    'source-layer': 'properties',
     filter: ['==', ['get', 'id'], '__none__'],
-    paint: {
-      'line-color': '#f0a44b',
-      'line-width': 4,
-    },
+    paint: { 'line-color': '#f0a44b', 'line-width': 4 },
   })
   map.addLayer({
     id: 'point-clusters',
     type: 'circle',
-    source: 'market-points',
-    filter: ['has', 'point_count'],
+    source: 'gurs-sales',
+    'source-layer': 'sales',
+    filter: ['any', ['has', 'point_count'], ['==', ['get', 'cluster'], true]],
     paint: {
       'circle-color': '#34364a',
-      'circle-radius': ['step', ['get', 'point_count'], 19, 10, 23, 30, 27],
+      'circle-radius': [
+        'step',
+        ['coalesce', ['get', 'point_count'], 1],
+        19,
+        10,
+        23,
+        30,
+        27,
+      ],
       'circle-stroke-color': '#ffffff',
       'circle-stroke-width': 3,
-      'circle-opacity': 0.94,
     },
   })
   map.addLayer({
     id: 'cluster-count',
     type: 'symbol',
-    source: 'market-points',
-    filter: ['has', 'point_count'],
+    source: 'gurs-sales',
+    'source-layer': 'sales',
+    filter: ['any', ['has', 'point_count'], ['==', ['get', 'cluster'], true]],
     layout: {
-      'text-field': ['get', 'point_count_abbreviated'],
+      'text-field': [
+        'to-string',
+        ['coalesce', ['get', 'point_count'], ['get', 'count'], 1],
+      ],
       'text-size': 11,
       'text-font': ['Open Sans Bold'],
     },
@@ -159,88 +145,67 @@ export function addPropertyMapLayers(map: Map) {
   map.addLayer({
     id: 'transaction-points',
     type: 'circle',
-    source: 'market-points',
+    source: 'gurs-sales',
+    'source-layer': 'sales',
     filter: [
       'all',
       ['!', ['has', 'point_count']],
-      ['==', ['get', 'kind'], 'transaction'],
+      ['!=', ['get', 'cluster'], true],
     ],
     paint: {
       'circle-color': '#5b52e8',
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 18, 16, 27],
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 6, 16, 10],
       'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 3,
-      'circle-opacity': 0.92,
-    },
-  })
-  map.addLayer({
-    id: 'listing-points',
-    type: 'circle',
-    source: 'market-points',
-    filter: [
-      'all',
-      ['!', ['has', 'point_count']],
-      ['==', ['get', 'kind'], 'listing'],
-    ],
-    paint: {
-      'circle-color': '#0e9fba',
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 18, 16, 27],
-      'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 3,
+      'circle-stroke-width': 2,
       'circle-opacity': 0.92,
     },
   })
 
   const labelLayout: SymbolLayerSpecification['layout'] = {
     'text-field': [
-      'concat',
-      '€',
+      'case',
+      ['has', 'price_per_m2'],
       [
-        'number-format',
-        ['/', ['get', 'pricePerM2'], 1000],
-        {
-          locale: 'sl-SI',
-          'min-fraction-digits': 1,
-          'max-fraction-digits': 1,
-        },
+        'concat',
+        [
+          'number-format',
+          ['get', 'price_per_m2'],
+          { locale: 'sl-SI', 'max-fraction-digits': 0 },
+        ],
+        ' €/m²',
       ],
-      'k',
+      ['has', 'pricePerM2'],
+      [
+        'concat',
+        [
+          'number-format',
+          ['get', 'pricePerM2'],
+          { locale: 'sl-SI', 'max-fraction-digits': 0 },
+        ],
+        ' €/m²',
+      ],
+      '',
     ],
-    'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 16, 12],
+    'text-size': 10,
     'text-font': ['Open Sans Bold'],
-    'text-anchor': 'center',
-    'text-allow-overlap': true,
-    'text-ignore-placement': true,
+    'text-offset': [0, 1.5],
   }
-  const labelPaint: SymbolLayerSpecification['paint'] = {
-    'text-color': '#ffffff',
-    'text-halo-color': 'rgba(35, 31, 111, 0.25)',
-    'text-halo-width': 1,
-  }
-
   map.addLayer({
     id: 'transaction-labels',
     type: 'symbol',
-    source: 'market-points',
+    source: 'gurs-sales',
+    'source-layer': 'sales',
     filter: [
       'all',
       ['!', ['has', 'point_count']],
-      ['==', ['get', 'kind'], 'transaction'],
+      ['!=', ['get', 'cluster'], true],
     ],
     layout: labelLayout,
-    paint: labelPaint,
-  })
-  map.addLayer({
-    id: 'listing-labels',
-    type: 'symbol',
-    source: 'market-points',
-    filter: [
-      'all',
-      ['!', ['has', 'point_count']],
-      ['==', ['get', 'kind'], 'listing'],
-    ],
-    layout: labelLayout,
-    paint: labelPaint,
+    paint: {
+      'text-color': '#34364a',
+      'text-halo-color': '#ffffff',
+      'text-halo-width': 1.5,
+    },
   })
   map.addLayer({
     id: 'measurement-line',

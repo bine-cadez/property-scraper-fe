@@ -4,12 +4,9 @@ import type {
   Map as MapLibreMap,
   MapLayerMouseEvent,
 } from 'maplibre-gl'
-import type { ViewportResponse } from '#shared/types/geojson'
 import type { MapFilters, MapLayerId, Position } from '#shared/types/property'
-import { filterViewportFeatures } from '~/utils/map/filter-features'
 import { addPropertyMapLayers } from '~/utils/map/layers'
 import { formatMeasuredDistance } from '~/utils/map/measurement'
-import { isAbortError } from '~/utils/request'
 
 const props = defineProps<{
   center: Position
@@ -32,11 +29,9 @@ const emit = defineEmits<{
 const config = useRuntimeConfig()
 const mapContainer = ref<HTMLDivElement>()
 let map: MapLibreMap | undefined
-let controller: AbortController | undefined
-let fetchTimer: ReturnType<typeof setTimeout> | undefined
-let hovered: { source: string; id: string | number } | undefined
+let hovered:
+  { source: string; sourceLayer: string; id: string | number } | undefined
 let syncingFromProps = false
-let viewportData: ViewportResponse | undefined
 let measurePoints: Position[] = []
 
 const localStyle = {
@@ -56,8 +51,8 @@ const visibilityByLayer: Record<MapLayerId, string[]> = {
   parcels: ['parcels-fill', 'parcels-line', 'parcel-selected'],
   buildings: ['buildings-fill', 'buildings-line', 'building-selected'],
   transactions: ['point-clusters', 'cluster-count', 'transaction-points'],
-  listings: ['point-clusters', 'cluster-count', 'listing-points'],
-  priceM2: ['transaction-labels', 'listing-labels'],
+  listings: [],
+  priceM2: ['transaction-labels'],
   officialValue: ['parcel-official-fill'],
 }
 
@@ -100,7 +95,9 @@ function flattenBasemap() {
 
 function setSelectionFilters() {
   if (!map?.isStyleLoaded()) return
-  const id = props.selectedId ?? '__none__'
+  const id = props.selectedId?.includes(':')
+    ? props.selectedId.slice(props.selectedId.indexOf(':') + 1)
+    : (props.selectedId ?? '__none__')
   for (const layerId of ['parcel-selected', 'building-selected']) {
     if (map.getLayer(layerId)) {
       map.setFilter(layerId, ['==', ['get', 'id'], id])
@@ -154,20 +151,18 @@ function syncLayerVisibility() {
   }
 }
 
-function applyMapFilters() {
-  if (!map?.isStyleLoaded() || !viewportData) return
-  const filtered = filterViewportFeatures(viewportData, props.filters)
-
-  ;(map.getSource('parcels') as GeoJSONSource | undefined)?.setData({
-    ...filtered.parcels,
+function updateFeatureCount() {
+  if (!map?.isStyleLoaded()) return
+  const features = map.queryRenderedFeatures(undefined, {
+    layers: ['parcels-fill', 'buildings-fill', 'transaction-points'],
   })
-  ;(map.getSource('buildings') as GeoJSONSource | undefined)?.setData({
-    ...filtered.buildings,
-  })
-  ;(map.getSource('market-points') as GeoJSONSource | undefined)?.setData({
-    ...filtered.points,
-  })
-  emit('count', filtered.count)
+  const unique = new Set(
+    features.map(
+      (feature, index) =>
+        `${feature.source}:${String(feature.id ?? feature.properties?.id ?? index)}`,
+    ),
+  )
+  emit('count', unique.size)
 }
 
 function addDataLayers() {
@@ -175,48 +170,6 @@ function addDataLayers() {
   addPropertyMapLayers(map)
   setSelectionFilters()
   syncLayerVisibility()
-  applyMapFilters()
-}
-
-async function fetchViewport() {
-  if (!map) return
-  controller?.abort()
-  const requestController = new AbortController()
-  controller = requestController
-  const bounds = map.getBounds()
-  const bbox = [
-    bounds.getWest(),
-    bounds.getSouth(),
-    bounds.getEast(),
-    bounds.getNorth(),
-  ]
-    .map((value) => value.toFixed(6))
-    .join(',')
-  emit('loading', true)
-  try {
-    const data = await $fetch<ViewportResponse>('/api/map/features', {
-      query: { bbox, limit: 500 },
-      signal: requestController.signal,
-    })
-    if (controller === requestController) {
-      viewportData = data
-      emit('error', '')
-      applyMapFilters()
-    }
-  } catch (error) {
-    if (!isAbortError(error) && controller === requestController) {
-      emit('error', 'Prostorskih podatkov ni bilo mogoče pridobiti.')
-    }
-  } finally {
-    if (controller === requestController) {
-      emit('loading', false)
-    }
-  }
-}
-
-function scheduleViewportFetch() {
-  clearTimeout(fetchTimer)
-  fetchTimer = setTimeout(fetchViewport, 280)
 }
 
 function hoverFeature(event: MapLayerMouseEvent) {
@@ -229,7 +182,9 @@ function hoverFeature(event: MapLayerMouseEvent) {
   if (!feature || feature.id === undefined) return
   if (hovered) map.setFeatureState(hovered, { hover: false })
   const source = feature.source
-  hovered = { source, id: feature.id }
+  const sourceLayer = feature.sourceLayer
+  if (!sourceLayer) return
+  hovered = { source, sourceLayer, id: feature.id }
   map.setFeatureState(hovered, { hover: true })
   map.getCanvas().style.cursor = 'pointer'
 }
@@ -294,12 +249,17 @@ onMounted(async () => {
       addDataLayers()
       requestAnimationFrame(() => {
         map?.resize()
-        fetchViewport()
+        emit('loading', false)
       })
+    })
+    map.on('idle', () => {
+      emit('loading', false)
+      emit('error', '')
+      updateFeatureCount()
     })
     map.on('moveend', () => {
       if (!map) return
-      scheduleViewportFetch()
+      updateFeatureCount()
       if (!syncingFromProps) {
         const center = map.getCenter()
         emit('move', {
@@ -313,17 +273,36 @@ onMounted(async () => {
       if (event.error) emit('error', event.error.message)
     })
 
-    for (const layerId of ['parcels-fill', 'buildings-fill']) {
+    for (const layerId of ['parcels-fill', 'buildings-fill'] as const) {
       map.on('mousemove', layerId, hoverFeature)
       map.on('mouseleave', layerId, clearHover)
       map.on('click', layerId, (event) => {
         if (props.measureMode) return
-        const id = event.features?.[0]?.properties?.id
-        if (typeof id === 'string') emit('select', id)
+        const feature = event.features?.[0]
+        const id =
+          feature?.properties?.id ??
+          feature?.properties?.gurs_id ??
+          feature?.properties?.record_id ??
+          feature?.id
+        if (id !== undefined) {
+          const entityType = String(
+            feature?.properties?.type ??
+              feature?.properties?.kind ??
+              feature?.properties?.entity_type ??
+              '',
+          ).toLowerCase()
+          const kind =
+            layerId === 'parcels-fill'
+              ? 'parcel'
+              : entityType.includes('part')
+                ? 'building-part'
+                : 'building'
+          emit('select', `${kind}:${String(id)}`)
+        }
       })
     }
 
-    for (const layerId of ['transaction-points', 'listing-points']) {
+    for (const layerId of ['transaction-points']) {
       map.on('mouseenter', layerId, () => {
         if (map)
           map.getCanvas().style.cursor = props.measureMode
@@ -336,26 +315,23 @@ onMounted(async () => {
       })
       map.on('click', layerId, (event) => {
         if (props.measureMode) return
-        const id = event.features?.[0]?.properties?.id
-        if (typeof id === 'string') emit('select', id)
+        const feature = event.features?.[0]
+        const id =
+          feature?.properties?.id ??
+          feature?.properties?.transaction_id ??
+          feature?.properties?.record_id ??
+          feature?.id
+        if (id !== undefined) emit('select', `transaction:${String(id)}`)
       })
     }
 
-    map.on('click', 'point-clusters', async (event) => {
+    map.on('click', 'point-clusters', (event) => {
       if (props.measureMode) return
       const feature = event.features?.[0]
-      const clusterId = feature?.properties?.cluster_id
-      if (
-        !map ||
-        typeof clusterId !== 'number' ||
-        feature?.geometry.type !== 'Point'
-      )
-        return
-      const source = map.getSource('market-points') as GeoJSONSource
-      const zoom = await source.getClusterExpansionZoom(clusterId)
+      if (!map || feature?.geometry.type !== 'Point') return
       map.easeTo({
         center: feature.geometry.coordinates as Position,
-        zoom,
+        zoom: Math.min(map.getZoom() + 2, 20),
         duration: 320,
       })
     })
@@ -395,7 +371,11 @@ watch(
 
 watch(() => props.selectedId, setSelectionFilters)
 watch(() => props.layers, syncLayerVisibility, { deep: true })
-watch(() => props.filters, applyMapFilters, { deep: true })
+watch(
+  () => props.filters,
+  () => updateFeatureCount(),
+  { deep: true },
+)
 watch(
   () => props.measureMode,
   (enabled) => {
@@ -406,13 +386,11 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  controller?.abort()
-  clearTimeout(fetchTimer)
   map?.remove()
 })
 
 defineExpose({
-  retry: fetchViewport,
+  retry: updateFeatureCount,
 })
 </script>
 

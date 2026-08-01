@@ -1,4 +1,4 @@
-import { geocodingRepository } from '../repositories/fixture-repositories'
+import { searchProperties } from '../repositories/gurs-repository'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -10,5 +10,5 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Iskalni niz je predolg.',
     })
   }
-  return { results: await geocodingRepository.search(value, { limit: 8 }) }
+  return { results: await searchProperties(event, value, 8) }
 })

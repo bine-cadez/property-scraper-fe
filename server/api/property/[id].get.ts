@@ -1,4 +1,4 @@
-import { propertyRepository } from '../../repositories/fixture-repositories'
+import { findProperty } from '../../repositories/gurs-repository'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
@@ -8,13 +8,7 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Manjka identifikator.',
     })
   }
-  const property = await propertyRepository.findById(id)
-  if (!property) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Nepremičnina ni najdena.',
-    })
-  }
+  const property = await findProperty(event, id)
   setHeader(
     event,
     'Cache-Control',

@@ -1,5 +1,3 @@
-import { properties } from '../fixtures/property-data'
-
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig(event)
   const base = String(config.public.siteUrl).replace(/\/$/, '')
@@ -11,10 +9,7 @@ export default defineEventHandler((event) => {
     '/viri-podatkov',
     '/o-projektu',
   ]
-  const urls = [
-    ...staticPaths,
-    ...properties.map((property) => `/nepremicnina/${property.id}`),
-  ]
+  const urls = staticPaths
     .map((path) => `  <url><loc>${base}${path}</loc></url>`)
     .join('\n')
 

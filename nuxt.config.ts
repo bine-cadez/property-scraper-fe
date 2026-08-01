@@ -1,4 +1,4 @@
-import tailwindcss from '@tailwindcss/vite';
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-30',
@@ -13,18 +13,20 @@ export default defineNuxtConfig({
     typeCheck: true,
   },
   runtimeConfig: {
+    gursApiBaseUrl: 'http://localhost:3001',
+    gursApiKey: '',
     mapProviderToken: '',
     public: {
       mapStyleUrl: 'https://tiles.openfreemap.org/styles/liberty',
       map3dStyleUrl: 'https://tiles.openfreemap.org/styles/liberty',
-      mapAttribution: 'Vzorčni nepremičninski podatki © Prostor na dlani',
+      mapAttribution: 'Podatki GURS © Prostor na dlani',
       siteUrl: 'http://localhost:3000',
     },
   },
   routeRules: {
     '/': { redirect: '/zemljevid' },
     '/metodologija': { prerender: true },
-    '/viri-podatkov': { prerender: true },
+    '/viri-podatkov': { ssr: true },
     '/o-projektu': { prerender: true },
     '/zemljevid': { ssr: true },
     '/nepremicnina/**': { ssr: true },
@@ -43,4 +45,4 @@ export default defineNuxtConfig({
       nodeCompat: true,
     },
   },
-});
+})

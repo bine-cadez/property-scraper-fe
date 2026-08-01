@@ -1,6 +1,6 @@
 # Prostor na dlani
 
-Production-oriented frontend MVP for a Slovenian property intelligence platform. It provides a map-first Nuxt 4 experience with typed fixture repositories, transparent value categories, shareable map state, and server-rendered property pages.
+Production-oriented Nuxt 4 frontend for the Property Scraper API. It provides a map-first view of GURS parcels, buildings, modelled values, and recorded sales with server-rendered property pages.
 
 ## Setup
 
@@ -16,9 +16,9 @@ Open:
 
 - `http://localhost:3000/` for the indexable product introduction
 - `http://localhost:3000/zemljevid` for map exploration
-- `http://localhost:3000/nepremicnina/lj-center-trubarjeva-47-12` for the SSR detail route
+- `http://localhost:3000/viri-podatkov` for live GURS source and coverage metadata
 
-When `NUXT_PUBLIC_MAP_STYLE_URL` is empty, MapLibre uses a neutral, tile-free local style so the fixture geometries remain usable without an external provider. For production, configure a licensed MapLibre-compatible style and set its required attribution. Private provider credentials belong in server-only runtime configuration; never expose them through a `NUXT_PUBLIC_` variable. A provider needing a secret token should be proxied or signed by a server adapter.
+Set `NUXT_GURS_API_BASE_URL` and `NUXT_GURS_API_KEY` for the backend. API keys remain server-only: Nuxt proxies JSON requests and MVT tiles to the Property Scraper API. When `NUXT_PUBLIC_MAP_STYLE_URL` is empty, MapLibre uses a neutral local base style.
 
 ## Commands
 
@@ -35,9 +35,9 @@ pnpm format
 
 - `shared/types` contains strict domain and GeoJSON contracts.
 - `shared/repositories/contracts.ts` defines the source-independent data boundary.
-- `server/repositories` contains the current fixture adapters.
+- `server/repositories/gurs-repository.ts` adapts backend records to UI domain contracts.
 - `server/api` is the browser-facing backend-for-frontend boundary.
-- `server/utils/map-features.ts` produces limited, viewport-specific GeoJSON.
+- `server/utils/gurs-api.ts` owns authenticated Property Scraper API transport.
 - `shared/utils/coordinates.ts` isolates EPSG:3794 → WGS84 normalization.
 - `app/composables/useMapWorkspace.ts` owns map-page state, URL
   synchronization, selection loading, and browser-tool lifecycles.
@@ -47,7 +47,7 @@ pnpm format
   for MapLibre/WebGL; it delegates business rules and layer definitions.
 - `app/pages/nepremicnina/[id].vue` is the main SSR and SEO surface.
 
-The browser requests only the current bounding box. Requests are debounced, previous requests are aborted, results are capped, and cache headers permit short stale-while-revalidate reuse. The UI consumes server contracts and does not import fixtures.
+The map consumes backend vector tiles through a same-origin authenticated proxy. Search requests are debounced and abortable, while detail and source responses use short stale-while-revalidate caching.
 
 When adding map behavior, keep domain calculations in `app/utils/map`, shared
 page orchestration in `useMapWorkspace`, and imperative MapLibre calls inside
@@ -64,13 +64,13 @@ See `.env.example`.
 | `NUXT_PUBLIC_MAP3D_STYLE_URL` | browser-safe | MapLibre-compatible 3D preview style |
 | `NUXT_PUBLIC_MAP_ATTRIBUTION` | browser-safe | required map/data attribution        |
 | `NUXT_PUBLIC_SITE_URL`        | browser-safe | canonical and sitemap base URL       |
+| `NUXT_GURS_API_BASE_URL`      | server-only  | Property Scraper API base URL        |
+| `NUXT_GURS_API_KEY`           | server-only  | Property Scraper API `x-api-key`     |
 | `NUXT_MAP_PROVIDER_TOKEN`     | server-only  | optional private provider credential |
 
 ## Data status
 
-All property records, parcels, buildings, valuations, sales, listings, and search results are currently realistic typed fixtures. No live GURS, ETN, listing, cadastral, WFS, OGC Features, WMS, or WMTS integration is enabled. No HTML or internal behavior from GURS Javni vpogled is scraped.
-
-See [`docs/data-source-architecture.md`](docs/data-source-architecture.md) for the integration plan and backend replacement path.
+Runtime data comes from the configured Property Scraper API. The frontend uses its GURS search, record detail, valuation-unit, transaction, source/statistics, health/readiness, and MVT endpoints. Active property listings are not supplied by this backend and therefore remain empty.
 
 ## Accessibility and SEO
 
