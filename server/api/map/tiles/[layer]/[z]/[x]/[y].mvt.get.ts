@@ -7,6 +7,27 @@ const layers = new Set<GursTileLayer>([
   'cadastral',
 ])
 
+const filtersByLayer: Record<GursTileLayer, Set<string>> = {
+  properties: new Set([
+    'koId',
+    'buildingTypeCode',
+    'constructionYearMin',
+    'constructionYearMax',
+  ]),
+  sales: new Set([
+    'itemKind',
+    'transactionId',
+    'propertyType',
+    'landType',
+    'priceMin',
+    'priceMax',
+    'contractDateMin',
+    'contractDateMax',
+  ]),
+  parcels: new Set(['koId', 'areaMin', 'areaMax']),
+  cadastral: new Set(['koId']),
+}
+
 export default defineEventHandler(async (event) => {
   const layer = getRouterParam(event, 'layer') as GursTileLayer
   const z = Number(getRouterParam(event, 'z'))
@@ -21,8 +42,10 @@ export default defineEventHandler(async (event) => {
     z > 22 ||
     !Number.isInteger(x) ||
     x < 0 ||
+    x >= 2 ** z ||
     !Number.isInteger(y) ||
-    y < 0
+    y < 0 ||
+    y >= 2 ** z
   ) {
     throw createError({
       statusCode: 400,
@@ -30,7 +53,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const tile = await gursTile(event, layer, z, x, y)
+  const allowedFilters = filtersByLayer[layer]
+  const query = Object.fromEntries(
+    Object.entries(getQuery(event)).flatMap(([key, value]) =>
+      allowedFilters.has(key) && typeof value === 'string'
+        ? [[key, value]]
+        : [],
+    ),
+  )
+  const tile = await gursTile(event, layer, z, x, y, query)
   setHeader(event, 'Content-Type', 'application/vnd.mapbox-vector-tile')
   setHeader(
     event,

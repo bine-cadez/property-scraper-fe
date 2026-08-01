@@ -33,49 +33,47 @@ const marketTabs: {
 }[] = [
   {
     label: 'Vse',
-    activeLayers: ['transactions', 'listings', 'priceM2'],
+    activeLayers: ['transactions', 'priceM2'],
   },
-  { label: 'Prodaje', activeLayers: ['transactions', 'priceM2'] },
-  { label: 'Oglasi', activeLayers: ['listings', 'priceM2'] },
+  { label: 'Stavbe', activeLayers: [] },
 ]
 
-const quickTypes: {
+const quickPrices: {
   label: string
-  value: MapFilters['propertyTypes'][number] | 'all'
+  minPrice?: number
+  maxPrice?: number
 }[] = [
-  { label: 'Vse', value: 'all' },
-  { label: 'Stanovanja', value: 'apartment' },
-  { label: 'Hiše', value: 'house' },
-  { label: 'Poslovno', value: 'office' },
+  { label: 'Vse cene' },
+  { label: 'do 200.000 €', maxPrice: 200_000 },
+  { label: '200–500k €', minPrice: 200_000, maxPrice: 500_000 },
+  { label: 'nad 500.000 €', minPrice: 500_000 },
 ]
 
 function showMarket(activeLayers: MapLayerId[]) {
   const structuralLayers = props.layers.filter((layer) =>
-    ['parcels', 'buildings', 'officialValue'].includes(layer),
+    ['parcels', 'buildings'].includes(layer),
   )
   emit('layersChange', [...new Set([...structuralLayers, ...activeLayers])])
 }
 
-function setPropertyType(
-  propertyType: MapFilters['propertyTypes'][number] | 'all',
-) {
-  emit('filtersChange', {
-    ...props.filters,
-    propertyTypes: propertyType === 'all' ? [] : [propertyType],
-  })
+function setPriceRange(minPrice?: number, maxPrice?: number) {
+  const filters = { ...props.filters }
+  delete filters.minPrice
+  delete filters.maxPrice
+  if (minPrice !== undefined) filters.minPrice = minPrice
+  if (maxPrice !== undefined) filters.maxPrice = maxPrice
+  emit('filtersChange', filters)
 }
 
-function typeIsActive(
-  propertyType: MapFilters['propertyTypes'][number] | 'all',
-) {
-  return propertyType === 'all'
-    ? props.filters.propertyTypes.length === 0
-    : props.filters.propertyTypes.includes(propertyType)
+function priceRangeIsActive(minPrice?: number, maxPrice?: number) {
+  return (
+    props.filters.minPrice === minPrice && props.filters.maxPrice === maxPrice
+  )
 }
 
 function marketIsActive(activeLayers: MapLayerId[]) {
   const visibleMarketLayers = props.layers.filter((layer) =>
-    ['transactions', 'listings', 'priceM2'].includes(layer),
+    ['transactions', 'priceM2'].includes(layer),
   )
   return (
     visibleMarketLayers.length === activeLayers.length &&
@@ -160,17 +158,17 @@ function marketIsActive(activeLayers: MapLayerId[]) {
 
     <div
       class="quick-filter-row flex items-center gap-[7px] border-y border-[#e9eaf1] px-[15px] py-[11px] max-[760px]:gap-1.5 max-[760px]:overflow-x-auto max-[760px]:px-2.5 max-[760px]:pt-[9px] max-[760px]:pb-2.5 [@media_(max-height:560px)_and_(max-width:1024px)]:gap-1.5 [@media_(max-height:560px)_and_(max-width:1024px)]:overflow-x-auto [@media_(max-height:560px)_and_(max-width:1024px)]:rounded-b-[14px] [@media_(max-height:560px)_and_(max-width:1024px)]:px-[9px] [@media_(max-height:560px)_and_(max-width:1024px)]:pt-2 [@media_(max-height:560px)_and_(max-width:1024px)]:pb-[9px]"
-      aria-label="Hitri filtri"
+      aria-label="Hitri filtri cen prodaj"
     >
       <button
-        v-for="type in quickTypes"
-        :key="type.value"
+        v-for="price in quickPrices"
+        :key="price.label"
         type="button"
         class="min-h-[34px] rounded-[9px] border border-[#dfe1eb] bg-white px-2.5 text-[10px] font-bold text-[#4d5363] hover:border-[#aaa6f5] hover:bg-[#f0efff] hover:text-[#4d45d2] max-[760px]:shrink-0 [@media_(max-height:560px)_and_(max-width:1024px)]:min-h-8 [@media_(max-height:560px)_and_(max-width:1024px)]:shrink-0"
-        :class="{ active: typeIsActive(type.value) }"
-        @click="setPropertyType(type.value)"
+        :class="{ active: priceRangeIsActive(price.minPrice, price.maxPrice) }"
+        @click="setPriceRange(price.minPrice, price.maxPrice)"
       >
-        {{ type.label }}
+        {{ price.label }}
       </button>
     </div>
 
@@ -284,8 +282,7 @@ function marketIsActive(activeLayers: MapLayerId[]) {
   border-radius: 0;
   box-shadow: none;
   transform: translate(0, 0);
-  transition:
-    transform 340ms cubic-bezier(0.645, 0.045, 0.355, 1);
+  transition: transform 340ms cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
 .browse-panel.embedded.is-expanded .panel-brand {

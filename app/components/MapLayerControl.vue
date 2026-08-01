@@ -13,11 +13,9 @@ const expanded = ref(false)
 
 const options: { id: MapLayerId; label: string; swatch: string }[] = [
   { id: 'parcels', label: 'Parcele', swatch: '#e9a14a' },
-  { id: 'buildings', label: 'Stavbe', swatch: '#087f70' },
-  { id: 'transactions', label: 'Prodaje', swatch: '#b55d18' },
-  { id: 'listings', label: 'Oglasi', swatch: '#7b55a3' },
-  { id: 'priceM2', label: 'Cena na m²', swatch: '#d0832d' },
-  { id: 'officialValue', label: 'Uradne vrednosti', swatch: '#2865a8' },
+  { id: 'buildings', label: 'Stavbe', swatch: '#5b52e8' },
+  { id: 'transactions', label: 'Prodaje', swatch: '#d77d2a' },
+  { id: 'priceM2', label: 'Cene prodaj', swatch: '#8d4914' },
 ]
 
 function toggle(id: MapLayerId) {

@@ -5,12 +5,11 @@ import type {
   Map as MapLibreMap,
   MapLayerMouseEvent,
 } from 'maplibre-gl'
-import type {
-  MapFilters,
-  MapLayerId,
-  Position,
-} from '#shared/types/property'
-import { addPropertyMapLayers } from '~/utils/map/layers'
+import type { MapFilters, MapLayerId, Position } from '#shared/types/property'
+import {
+  addPropertyMapLayers,
+  updatePropertyMapTiles,
+} from '~/utils/map/layers'
 import { formatMeasuredDistance } from '~/utils/map/measurement'
 
 const props = defineProps<{
@@ -32,8 +31,6 @@ const emit = defineEmits<{
 }>()
 
 const config = useRuntimeConfig()
-const route = useRoute()
-const shouldFitInitialBuildings = typeof route.query.c !== 'string'
 type ShapeFeature = {
   type: 'Feature'
   id?: string | number
@@ -46,7 +43,6 @@ let hovered:
   { source: string; sourceLayer?: string; id: string | number } | undefined
 let syncingFromProps = false
 let measurePoints: Position[] = []
-let fittedBuildingSource = false
 let selectedParcelFeatures: ShapeFeature[] = []
 let parcelBuildingFeatures: ShapeFeature[] = []
 let activeBuildingId = ''
@@ -66,18 +62,33 @@ const localStyle = {
 }
 
 const visibilityByLayer: Record<MapLayerId, string[]> = {
-  parcels: [],
-  buildings: [
-    'house-clusters',
-    'house-cluster-count',
-    'building-markers',
-    'parcel-selected-line',
-    'selected-building-fill',
-    'selected-building-line',
+  parcels: [
+    'cadastral-fill',
+    'cadastral-line',
+    'cadastral-label',
+    'parcel-fill',
+    'parcel-line',
+    'parcel-label',
   ],
-  transactions: ['point-clusters', 'cluster-count', 'transaction-points'],
+  buildings: [
+    'property-cluster-halo',
+    'property-cluster',
+    'property-cluster-count',
+    'property-footprint-fill',
+    'property-footprint-line',
+    'property-point-halo',
+    'property-point',
+    'property-address-label',
+  ],
+  transactions: [
+    'sale-cluster-halo',
+    'sale-cluster',
+    'sale-cluster-count',
+    'sale-point-halo',
+    'sale-point',
+  ],
   listings: [],
-  priceM2: ['transaction-labels'],
+  priceM2: ['sale-price-label'],
   officialValue: [],
 }
 
@@ -124,177 +135,39 @@ function syncLayerVisibility() {
   for (const [logicalLayer, mapLayers] of Object.entries(visibilityByLayer)) {
     for (const layerId of mapLayers) {
       if (!map.getLayer(layerId)) continue
-      if (layerId.endsWith('-labels')) {
-        const kindVisible = layerId.startsWith('transaction')
-          ? configured.has('transactions')
-          : configured.has('listings')
-        map.setLayoutProperty(
-          layerId,
-          'visibility',
-          configured.has('priceM2') && kindVisible ? 'visible' : 'none',
-        )
-      } else if (layerId.includes('transaction')) {
-        map.setLayoutProperty(
-          layerId,
-          'visibility',
-          configured.has('transactions') ? 'visible' : 'none',
-        )
-      } else if (layerId.includes('listing')) {
-        map.setLayoutProperty(
-          layerId,
-          'visibility',
-          configured.has('listings') ? 'visible' : 'none',
-        )
-      } else if (layerId.startsWith('house-cluster')) {
-        map.setLayoutProperty(
-          layerId,
-          'visibility',
-          configured.has('buildings') ? 'visible' : 'none',
-        )
-      } else if (layerId.includes('cluster')) {
-        map.setLayoutProperty(
-          layerId,
-          'visibility',
-          configured.has('transactions') || configured.has('listings')
-            ? 'visible'
-            : 'none',
-        )
-      } else {
-        map.setLayoutProperty(
-          layerId,
-          'visibility',
-          configured.has(logicalLayer as MapLayerId) ? 'visible' : 'none',
-        )
-      }
+      const visible =
+        configured.has(logicalLayer as MapLayerId) &&
+        (layerId !== 'sale-price-label' || configured.has('transactions'))
+      map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none')
     }
   }
 }
 
 function updateFeatureCount() {
   if (!map?.isStyleLoaded()) return
-  const buildingFeatures = map.queryRenderedFeatures(undefined, {
-    layers: ['house-clusters', 'building-markers'],
-  })
-  const seen = new Set<string>()
-  const buildingCount = buildingFeatures.reduce((total, feature, index) => {
-    const key = `${feature.layer.id}:${String(
-      feature.properties?.cluster_id ??
-        feature.id ??
-        feature.properties?.id ??
-        index,
-    )}`
-    if (seen.has(key)) return total
-    seen.add(key)
-    return total + Number(feature.properties?.point_count ?? 1)
-  }, 0)
-  const transactionFeatures = map.queryRenderedFeatures(undefined, {
-    layers: ['transaction-points'],
-  })
-  const transactionIds = new Set(
-    transactionFeatures.map((feature, index) =>
-      String(feature.id ?? feature.properties?.id ?? index),
-    ),
-  )
-  emit('count', buildingCount + transactionIds.size)
-}
-
-function geometryCenter(
-  geometry: GeoJSONFeature['geometry'],
-): Position | undefined {
-  if (!('coordinates' in geometry)) return undefined
-  const positions: Position[] = []
-  function collect(value: unknown) {
-    if (!Array.isArray(value)) return
-    if (
-      value.length >= 2 &&
-      Number.isFinite(Number(value[0])) &&
-      Number.isFinite(Number(value[1]))
-    ) {
-      positions.push([Number(value[0]), Number(value[1])])
-      return
-    }
-    for (const nested of value) collect(nested)
+  const countLayers = (layers: string[]) => {
+    const seen = new Set<string>()
+    return map!
+      .queryRenderedFeatures(undefined, { layers })
+      .reduce((total, feature, index) => {
+        const id = String(feature.properties?.id ?? feature.id ?? index)
+        const key = `${feature.source}:${id}`
+        if (seen.has(key)) return total
+        seen.add(key)
+        return total + Number(feature.properties?.cluster_count ?? 1)
+      }, 0)
   }
-  collect(geometry.coordinates)
-  if (!positions.length) return undefined
-  const lngs = positions.map(([lng]) => lng)
-  const lats = positions.map(([, lat]) => lat)
-  return [
-    (Math.min(...lngs) + Math.max(...lngs)) / 2,
-    (Math.min(...lats) + Math.max(...lats)) / 2,
-  ]
+  emit(
+    'count',
+    countLayers(['property-cluster', 'property-point']) +
+      countLayers(['sale-cluster', 'sale-point']),
+  )
 }
 
-async function addDataLayers() {
+function addDataLayers() {
   if (!map) return
-  const response = await fetch('/gurs/buildings')
-  if (!response.ok) throw new Error('Stavb ni bilo mogoče naložiti.')
-  const buildings = (await response.json()) as {
-    type: 'FeatureCollection'
-    features: ShapeFeature[]
-  }
-  const buildingMarkers = {
-    type: 'FeatureCollection' as const,
-    features: buildings.features.flatMap((feature) => {
-      const center = geometryCenter(feature.geometry)
-      if (!center) return []
-      return [
-        {
-          ...feature,
-          geometry: {
-            type: 'Point' as const,
-            coordinates: center,
-          },
-        },
-      ]
-    }),
-  }
-  addPropertyMapLayers(map, buildingMarkers)
+  addPropertyMapLayers(map, props.filters)
   syncLayerVisibility()
-  if (shouldFitInitialBuildings) fitFetchedBuildings(buildings.features)
-}
-
-function fitFetchedBuildings(sourceFeatures?: ShapeFeature[]) {
-  if (!map || fittedBuildingSource) return
-  const features = sourceFeatures ?? map.querySourceFeatures('gurs-buildings')
-  if (!features.length) return
-  fittedBuildingSource = true
-
-  if (
-    !sourceFeatures &&
-    map.queryRenderedFeatures(undefined, { layers: ['building-markers'] })
-      .length
-  ) {
-    return
-  }
-
-  const positions: Position[] = []
-  function collect(value: unknown) {
-    if (!Array.isArray(value)) return
-    if (
-      value.length >= 2 &&
-      Number.isFinite(Number(value[0])) &&
-      Number.isFinite(Number(value[1]))
-    ) {
-      positions.push([Number(value[0]), Number(value[1])])
-      return
-    }
-    for (const nested of value) collect(nested)
-  }
-  for (const feature of features) {
-    if ('coordinates' in feature.geometry) collect(feature.geometry.coordinates)
-  }
-  if (!positions.length) return
-
-  const lngs = positions.map(([lng]) => lng)
-  const lats = positions.map(([, lat]) => lat)
-  map.fitBounds(
-    [
-      [Math.min(...lngs), Math.min(...lats)],
-      [Math.max(...lngs), Math.max(...lats)],
-    ],
-    { padding: 64, maxZoom: 17, duration: 450 },
-  )
 }
 
 function setSelectedShapes() {
@@ -527,18 +400,18 @@ onMounted(async () => {
       }),
       'bottom-right',
     )
-    map.on('load', async () => {
+    map.on('load', () => {
       container.dataset.mapState = 'ready'
       map?.resize()
       flattenBasemap()
       try {
-        await addDataLayers()
+        addDataLayers()
       } catch (error) {
         emit(
           'error',
           error instanceof Error
             ? error.message
-            : 'Stavb ni bilo mogoče naložiti.',
+            : 'Prostorskih slojev ni bilo mogoče naložiti.',
         )
       }
       requestAnimationFrame(() => {
@@ -550,9 +423,6 @@ onMounted(async () => {
       emit('loading', false)
       emit('error', '')
       updateFeatureCount()
-    })
-    map.on('sourcedata', (event) => {
-      if (event.sourceId === 'gurs-buildings') fitFetchedBuildings()
     })
     map.on('moveend', () => {
       if (!map) return
@@ -570,37 +440,40 @@ onMounted(async () => {
       if (event.error) emit('error', event.error.message)
     })
 
-    map.on('mousemove', 'building-markers', hoverFeature)
-    map.on('mouseleave', 'building-markers', clearHover)
-    map.on('click', 'building-markers', (event) => {
+    map.on('mousemove', 'property-point', hoverFeature)
+    map.on('mouseleave', 'property-point', clearHover)
+    map.on('click', 'property-point', (event) => {
       if (props.measureMode) return
       const feature = event.features?.[0]
       if (feature) void selectBuildingFeature(feature)
     })
-    map.on('mouseenter', 'house-clusters', () => {
+    map.on('mouseenter', 'property-cluster', () => {
       if (map) map.getCanvas().style.cursor = 'pointer'
     })
-    map.on('mouseleave', 'house-clusters', () => {
+    map.on('mouseleave', 'property-cluster', () => {
       if (map)
         map.getCanvas().style.cursor = props.measureMode ? 'crosshair' : ''
     })
-    map.on('click', 'house-clusters', async (event) => {
+    map.on('click', 'property-cluster', (event) => {
       if (props.measureMode) return
       const feature = event.features?.[0]
-      const clusterId = feature?.properties?.cluster_id
-      if (
-        !map ||
-        typeof clusterId !== 'number' ||
-        feature?.geometry.type !== 'Point'
-      )
-        return
-      const source = map.getSource('gurs-buildings') as GeoJSONSource
-      const zoom = await source.getClusterExpansionZoom(clusterId)
+      if (!map || feature?.geometry.type !== 'Point') return
       map.easeTo({
         center: feature.geometry.coordinates as Position,
-        zoom,
-        duration: 320,
+        zoom: Math.min(map.getZoom() + 2, 20),
+        duration: 360,
       })
+    })
+    map.on('mousemove', 'property-footprint-fill', hoverFeature)
+    map.on('mouseleave', 'property-footprint-fill', clearHover)
+
+    map.on('mousemove', 'parcel-fill', hoverFeature)
+    map.on('mouseleave', 'parcel-fill', clearHover)
+    map.on('click', 'parcel-fill', (event) => {
+      if (props.measureMode) return
+      const feature = event.features?.[0]
+      const id = feature?.properties?.id ?? feature?.id
+      if (id !== undefined) emit('select', `parcel:${String(id)}`)
     })
     map.on('mousemove', 'selected-building-fill', hoverFeature)
     map.on('mouseleave', 'selected-building-fill', clearHover)
@@ -613,37 +486,27 @@ onMounted(async () => {
       }
     })
 
-    for (const layerId of ['transaction-points']) {
-      map.on('mouseenter', layerId, () => {
-        if (map)
-          map.getCanvas().style.cursor = props.measureMode
-            ? 'crosshair'
-            : 'pointer'
-      })
-      map.on('mouseleave', layerId, () => {
-        if (map)
-          map.getCanvas().style.cursor = props.measureMode ? 'crosshair' : ''
-      })
-      map.on('click', layerId, (event) => {
-        if (props.measureMode) return
-        const feature = event.features?.[0]
-        const id =
-          feature?.properties?.id ??
-          feature?.properties?.transaction_id ??
-          feature?.properties?.record_id ??
-          feature?.id
-        if (id !== undefined) emit('select', `transaction:${String(id)}`)
-      })
-    }
+    map.on('mousemove', 'sale-point', hoverFeature)
+    map.on('mouseleave', 'sale-point', clearHover)
+    map.on('click', 'sale-point', (event) => {
+      if (props.measureMode) return
+      const feature = event.features?.[0]
+      const id =
+        feature?.properties?.transaction_id ??
+        feature?.properties?.id ??
+        feature?.properties?.record_id ??
+        feature?.id
+      if (id !== undefined) emit('select', `transaction:${String(id)}`)
+    })
 
-    map.on('click', 'point-clusters', (event) => {
+    map.on('click', 'sale-cluster', (event) => {
       if (props.measureMode) return
       const feature = event.features?.[0]
       if (!map || feature?.geometry.type !== 'Point') return
       map.easeTo({
         center: feature.geometry.coordinates as Position,
         zoom: Math.min(map.getZoom() + 2, 20),
-        duration: 320,
+        duration: 360,
       })
     })
     map.on('click', (event) => {
@@ -695,7 +558,7 @@ watch(
     const id = selectedId.slice('building:'.length)
     if (id === activeBuildingId) return
     const feature = map
-      .querySourceFeatures('gurs-buildings')
+      .querySourceFeatures('gurs-properties', { sourceLayer: 'properties' })
       .find((item) => String(item.properties?.id ?? item.id) === id)
     if (feature) void selectBuildingFeature(feature, false)
   },
@@ -703,7 +566,11 @@ watch(
 watch(() => props.layers, syncLayerVisibility, { deep: true })
 watch(
   () => props.filters,
-  () => updateFeatureCount(),
+  (filters) => {
+    if (!map?.isStyleLoaded()) return
+    updatePropertyMapTiles(map, filters)
+    emit('loading', true)
+  },
   { deep: true },
 )
 watch(

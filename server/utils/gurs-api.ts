@@ -99,12 +99,14 @@ export async function gursTile(
   z: number,
   x: number,
   y: number,
+  query: GursRequestOptions['query'] = {},
 ): Promise<ArrayBuffer> {
   const { baseURL, headers } = connection(event)
   try {
     return (await $fetch(`/map/tiles/${layer}/${z}/${x}/${y}.mvt`, {
       baseURL,
       headers,
+      query,
       responseType: 'arrayBuffer',
       retry: 1,
       timeout: 12_000,

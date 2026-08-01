@@ -23,7 +23,6 @@ const {
   selectResult,
   sidebarExpanded,
   toggleMapData,
-  toggleOfficialValues,
   toolMessage,
   zoom,
 } = useMapWorkspace()
@@ -31,11 +30,11 @@ const {
 useSeoMeta({
   title: 'Zemljevid nepremičnin Slovenije | Prostor na dlani',
   description:
-    'Raziščite parcele, stavbe, uradne vrednosti, tržne ocene in primerljive prodaje na preglednem zemljevidu Slovenije.',
+    'Raziščite katastrske občine, parcele, stavbe in zaključene prodaje na preglednem zemljevidu Slovenije.',
   robots: 'noindex, follow',
   ogTitle: 'Zemljevid nepremičnin Slovenije',
   ogDescription:
-    'Map-first pregled parcel, stavb, vrednosti in zaključenih prodaj.',
+    'Map-first pregled parcel, stavb in zaključenih prodaj iz GURS in ETN.',
 })
 
 useHead({
@@ -227,32 +226,6 @@ useHead({
             </button>
             <button
               type="button"
-              class="tool-button tool-policy"
-              :class="{ active: layers.includes('officialValue') }"
-              :aria-pressed="layers.includes('officialValue')"
-              title="Prikaži uradne vrednosti"
-              @click="toggleOfficialValues"
-            >
-              <i v-if="!layers.includes('officialValue')" aria-hidden="true" />
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M7 3h7l4 4v14H7V3Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M14 3v5h4M10 12h5M10 16h5"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <span class="tool-label">Uradne vrednosti</span>
-            </button>
-            <button
-              type="button"
               class="tool-button"
               :class="{ active: layers.length === 0 }"
               :aria-pressed="layers.length === 0"
@@ -346,19 +319,23 @@ useHead({
             'max-[720px]:invisible max-[720px]:pointer-events-none max-[720px]:opacity-0 [@media_(max-height:560px)_and_(max-width:1024px)]:invisible [@media_(max-height:560px)_and_(max-width:1024px)]:pointer-events-none [@media_(max-height:560px)_and_(max-width:1024px)]:opacity-0':
               sidebarExpanded,
           }"
-          aria-label="Legenda cenovnih kategorij"
+          aria-label="Legenda prostorskih slojev"
         >
           <span
-            ><i class="size-2 rounded-full border-2 border-sale" /> Zaključene
-            prodaje</span
+            ><i class="size-2 rounded-full bg-[#5b52e8] ring-2 ring-white" />
+            Stavbe</span
           >
           <span
-            ><i class="size-2 rotate-45 rounded-sm border-2 border-listing" />
-            Aktivni oglasi</span
+            ><i class="size-2 rounded-full bg-[#d77d2a] ring-2 ring-white" />
+            Prodaje</span
+          >
+          <span
+            ><i class="size-2 rounded-[2px] border-2 border-[#dc8e34]" />
+            Parcele</span
           >
           <small
             class="border-l border-line pl-2.5 text-[9px] text-ink-muted max-[720px]:hidden [@media_(max-height:560px)_and_(max-width:1024px)]:hidden"
-            >Cena prikazuje vrednost na m²</small
+            >Podrobnosti se pokažejo s približevanjem</small
           >
         </div>
 
@@ -572,17 +549,6 @@ useHead({
 
 .tool-profile svg {
   width: 30px;
-}
-
-.tool-policy i {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 8px;
-  height: 8px;
-  border: 2px solid white;
-  border-radius: 999px;
-  background: #e94b52;
 }
 
 .tool-reset {

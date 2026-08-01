@@ -16,7 +16,6 @@ const DEFAULT_VISIBLE_LAYERS: MapLayerId[] = [
   'parcels',
   'buildings',
   'transactions',
-  'listings',
   'priceM2',
 ]
 
@@ -192,12 +191,6 @@ export function useMapWorkspace() {
     )
   }
 
-  function toggleOfficialValues() {
-    layers.value = layers.value.includes('officialValue')
-      ? layers.value.filter((layer) => layer !== 'officialValue')
-      : [...layers.value, 'officialValue']
-  }
-
   function toggleMapData() {
     if (layers.value.length) {
       visibleLayersBeforeHide = [...layers.value]
@@ -251,7 +244,6 @@ export function useMapWorkspace() {
     selectResult,
     sidebarExpanded,
     toggleMapData,
-    toggleOfficialValues,
     toolMessage,
     zoom,
   }

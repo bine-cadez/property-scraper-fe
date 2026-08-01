@@ -182,7 +182,7 @@ useHead({
             query: {
               c: `${record.coordinates[0]},${record.coordinates[1]}`,
               z: '17',
-              l: 'parcels,buildings,transactions,listings,priceM2',
+              l: 'parcels,buildings,transactions,priceM2',
               izbor: record.id,
             },
           }"

@@ -3,7 +3,7 @@ import type { MapLayerId, MapState, Position } from '../types/property'
 export const DEFAULT_MAP_STATE: MapState = {
   center: [14.5038, 46.0568],
   zoom: 14.9,
-  layers: ['parcels', 'buildings', 'transactions', 'listings', 'priceM2'],
+  layers: ['parcels', 'buildings', 'transactions', 'priceM2'],
 }
 
 const validLayers = new Set<MapLayerId>([

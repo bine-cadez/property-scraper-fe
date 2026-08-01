@@ -13,13 +13,9 @@ const open = ref(false)
 
 function createDraft(filters: MapFilters) {
   return {
-    propertyType: filters.propertyTypes[0] ?? '',
     minPrice: filters.minPrice?.toString() ?? '',
     maxPrice: filters.maxPrice?.toString() ?? '',
-    minPriceM2: filters.minPricePerM2?.toString() ?? '',
-    maxPriceM2: filters.maxPricePerM2?.toString() ?? '',
     transactionFrom: filters.transactionFrom ?? '',
-    minArea: filters.minAreaM2?.toString() ?? '',
     minParcelArea: filters.minParcelAreaM2?.toString() ?? '',
     year: filters.constructionYearFrom?.toString() ?? '',
   }
@@ -42,17 +38,12 @@ watch(
 
 function apply() {
   emit('change', {
-    propertyTypes: draft.propertyType
-      ? [draft.propertyType as MapFilters['propertyTypes'][number]]
-      : [],
+    propertyTypes: [],
     ...(draft.minPrice ? { minPrice: Number(draft.minPrice) } : {}),
     ...(draft.maxPrice ? { maxPrice: Number(draft.maxPrice) } : {}),
-    ...(draft.minPriceM2 ? { minPricePerM2: Number(draft.minPriceM2) } : {}),
-    ...(draft.maxPriceM2 ? { maxPricePerM2: Number(draft.maxPriceM2) } : {}),
     ...(draft.transactionFrom
       ? { transactionFrom: draft.transactionFrom }
       : {}),
-    ...(draft.minArea ? { minAreaM2: Number(draft.minArea) } : {}),
     ...(draft.minParcelArea
       ? { minParcelAreaM2: Number(draft.minParcelArea) }
       : {}),
@@ -103,17 +94,8 @@ function apply() {
           ×
         </button>
       </div>
-      <label>
-        Vrsta nepremičnine
-        <select v-model="draft.propertyType">
-          <option value="">Vse vrste</option>
-          <option value="apartment">Stanovanje</option>
-          <option value="house">Hiša</option>
-          <option value="office">Poslovni prostor</option>
-        </select>
-      </label>
       <fieldset>
-        <legend>Cena</legend>
+        <legend>Skupna cena prodaje</legend>
         <input
           v-model="draft.minPrice"
           type="number"
@@ -132,33 +114,14 @@ function apply() {
         />
       </fieldset>
       <fieldset>
-        <legend>Cena na m²</legend>
+        <legend>Prostorski podatki</legend>
         <input
-          v-model="draft.minPriceM2"
+          v-model="draft.minParcelArea"
           type="number"
           min="0"
           inputmode="numeric"
-          placeholder="Od €/m²"
-          aria-label="Najnižja cena na kvadratni meter"
-        />
-        <input
-          v-model="draft.maxPriceM2"
-          type="number"
-          min="0"
-          inputmode="numeric"
-          placeholder="Do €/m²"
-          aria-label="Najvišja cena na kvadratni meter"
-        />
-      </fieldset>
-      <fieldset>
-        <legend>Površina in leto</legend>
-        <input
-          v-model="draft.minArea"
-          type="number"
-          min="0"
-          inputmode="numeric"
-          placeholder="Najmanj m²"
-          aria-label="Najmanjša površina"
+          placeholder="Parcela od m²"
+          aria-label="Najmanjša površina parcele"
         />
         <input
           v-model="draft.year"
@@ -170,22 +133,14 @@ function apply() {
           aria-label="Najzgodnejše leto gradnje"
         />
       </fieldset>
-      <fieldset>
-        <legend>Parcela in transakcije</legend>
-        <input
-          v-model="draft.minParcelArea"
-          type="number"
-          min="0"
-          inputmode="numeric"
-          placeholder="Parcela od m²"
-          aria-label="Najmanjša površina parcele"
-        />
+      <label>
+        Prodaje od datuma
         <input
           v-model="draft.transactionFrom"
           type="date"
           aria-label="Transakcije od datuma"
         />
-      </fieldset>
+      </label>
       <button
         class="apply min-h-11 rounded-[7px] bg-accent text-xs font-[750] text-white transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
         type="submit"
