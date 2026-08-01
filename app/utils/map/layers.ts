@@ -6,6 +6,72 @@ const emptyFeatureCollection = {
   features: [],
 }
 
+function addBuildingMarkerImages(map: Map) {
+  const colors = {
+    purple: { fill: '#5758d9', stroke: '#4547c2' },
+    teal: { fill: '#0b879d', stroke: '#087084' },
+  }
+
+  for (const [name, color] of Object.entries(colors)) {
+    const houseCanvas = document.createElement('canvas')
+    houseCanvas.width = 176
+    houseCanvas.height = 152
+    const house = houseCanvas.getContext('2d')
+    if (!house) continue
+
+    house.scale(2, 2)
+    house.shadowColor = 'rgb(31 35 106 / 24%)'
+    house.shadowBlur = 2.5
+    house.shadowOffsetY = 1.5
+    house.beginPath()
+    house.moveTo(44, 3)
+    house.lineTo(82, 18)
+    house.lineTo(76, 18)
+    house.lineTo(76, 57)
+    house.lineTo(53, 57)
+    house.lineTo(44, 73)
+    house.lineTo(35, 57)
+    house.lineTo(12, 57)
+    house.lineTo(12, 18)
+    house.lineTo(6, 18)
+    house.closePath()
+    house.fillStyle = color.fill
+    house.fill()
+    house.shadowColor = 'transparent'
+    house.lineWidth = 1
+    house.strokeStyle = color.stroke
+    house.stroke()
+    map.addImage(
+      `building-house-marker-${name}`,
+      house.getImageData(0, 0, 176, 152),
+      { pixelRatio: 2 },
+    )
+
+    const summaryCanvas = document.createElement('canvas')
+    summaryCanvas.width = 264
+    summaryCanvas.height = 164
+    const summary = summaryCanvas.getContext('2d')
+    if (!summary) continue
+    summary.scale(2, 2)
+    summary.shadowColor = 'rgb(31 35 106 / 28%)'
+    summary.shadowBlur = 5
+    summary.shadowOffsetY = 2
+    summary.beginPath()
+    summary.roundRect(6, 4, 120, 72, 6)
+    summary.fillStyle = color.fill
+    summary.fill()
+    summary.shadowColor = 'transparent'
+    summary.lineWidth = 1.5
+    summary.strokeStyle = color.stroke
+    summary.stroke()
+    map.addImage(
+      `building-summary-marker-${name}`,
+      summary.getImageData(0, 0, 264, 164),
+      { pixelRatio: 2 },
+    )
+  }
+}
+
 type PropertyMapLayer = 'properties' | 'sales' | 'parcels' | 'cadastral'
 export type PropertyMapSourceId =
   'gurs-properties' | 'gurs-sales' | 'gurs-parcels' | 'gurs-cadastral'
@@ -77,6 +143,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     data: emptyFeatureCollection,
     promoteId: 'id',
   })
+  addBuildingMarkerImages(map)
 
   // Cadastral context appears first and stays intentionally quiet beneath data.
   map.addLayer({
@@ -247,67 +314,45 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     },
   })
 
-  // Property clusters are calculated by PostGIS, not in the browser.
-  map.addLayer({
-    id: 'property-cluster-halo',
-    type: 'circle',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    maxzoom: 12,
-    filter: ['==', ['get', 'feature_type'], 'cluster'],
-    paint: {
-      'circle-color': 'rgba(91,82,232,0.13)',
-      'circle-radius': ['step', ['get', 'cluster_count'], 23, 25, 29, 100, 34],
-      'circle-blur': 0.45,
-    },
-  })
+  // Reuse main's rectangular cluster cards with the server-provided count.
   map.addLayer({
     id: 'property-cluster',
-    type: 'circle',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    maxzoom: 12,
-    filter: ['==', ['get', 'feature_type'], 'cluster'],
-    paint: {
-      'circle-color': [
-        'interpolate',
-        ['linear'],
-        ['get', 'cluster_count'],
-        1,
-        '#178d87',
-        40,
-        '#5b52e8',
-        250,
-        '#3f36ba',
-      ],
-      'circle-radius': ['step', ['get', 'cluster_count'], 17, 25, 21, 100, 25],
-      'circle-stroke-color': 'rgba(255,255,255,0.95)',
-      'circle-stroke-width': 2.5,
-    },
-  })
-  map.addLayer({
-    id: 'property-cluster-count',
     type: 'symbol',
     source: 'gurs-properties',
     'source-layer': 'properties',
     maxzoom: 12,
     filter: ['==', ['get', 'feature_type'], 'cluster'],
     layout: {
+      'icon-image': [
+        'step',
+        ['get', 'cluster_count'],
+        'building-summary-marker-teal',
+        40,
+        'building-summary-marker-purple',
+      ],
+      'icon-anchor': 'center',
+      'icon-allow-overlap': false,
+      'icon-padding': 8,
       'text-field': [
         'format',
         ['number-format', ['get', 'cluster_count'], { locale: 'sl-SI' }],
-        { 'font-scale': 1.04 },
+        { 'font-scale': 1.12, 'text-color': '#ffffff' },
         '\n',
         {},
         'stavb',
-        { 'font-scale': 0.58 },
+        { 'font-scale': 0.7, 'text-color': 'rgba(255,255,255,0.74)' },
       ],
-      'text-size': 12,
+      'text-size': 16,
       'text-font': ['Open Sans Bold'],
-      'text-line-height': 0.92,
+      'text-line-height': 1.1,
+      'text-anchor': 'center',
+      'text-offset': [0, -0.05],
+      'text-allow-overlap': false,
     },
     paint: {
       'text-color': '#ffffff',
+      'text-halo-color': 'rgba(52,55,182,0.7)',
+      'text-halo-width': 0.25,
     },
   })
 
@@ -326,37 +371,55 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
   })
   map.addLayer({
     id: 'property-point',
-    type: 'circle',
+    type: 'symbol',
     source: 'gurs-properties',
     'source-layer': 'properties',
     minzoom: 12,
     filter: ['==', ['get', 'feature_type'], 'pin'],
+    layout: {
+      'icon-image': [
+        'case',
+        ['>=', ['coalesce', ['get', 'construction_year'], 0], 2010],
+        'building-house-marker-teal',
+        'building-house-marker-purple',
+      ],
+      'icon-anchor': 'bottom',
+      'icon-size': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        12,
+        0.58,
+        15,
+        0.78,
+        18,
+        1,
+      ],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+      'icon-padding': 4,
+      'text-field': [
+        'case',
+        ['has', 'building_number'],
+        ['to-string', ['get', 'building_number']],
+        '',
+      ],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 12, 8, 18, 11],
+      'text-font': ['Open Sans Bold'],
+      'text-anchor': 'center',
+      'text-offset': [0, -2.5],
+      'text-optional': true,
+    },
     paint: {
-      'circle-color': [
+      'icon-opacity': [
         'case',
         ['boolean', ['feature-state', 'hover'], false],
-        '#3f36ba',
-        [
-          'step',
-          ['coalesce', ['get', 'construction_year'], 0],
-          '#7f8896',
-          1900,
-          '#b77936',
-          1970,
-          '#6259dc',
-          2010,
-          '#0d8b80',
-        ],
+        1,
+        0.96,
       ],
-      'circle-radius': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        ['interpolate', ['linear'], ['zoom'], 12, 7, 18, 11],
-        ['interpolate', ['linear'], ['zoom'], 12, 5, 18, 8],
-      ],
-      'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 2.2,
-      'circle-opacity': 0.96,
+      'text-color': '#ffffff',
+      'text-halo-color': 'rgba(52,55,182,0.72)',
+      'text-halo-width': 0.5,
     },
   })
   map.addLayer({
