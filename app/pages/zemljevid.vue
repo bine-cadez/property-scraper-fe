@@ -322,14 +322,17 @@ useHead({
           aria-label="Legenda prostorskih slojev"
         >
           <span
+            v-if="layers.includes('buildings')"
             ><i class="size-2 rounded-full bg-[#5b52e8] ring-2 ring-white" />
             Stavbe</span
           >
           <span
+            v-if="layers.includes('transactions')"
             ><i class="size-2 rounded-full bg-[#d77d2a] ring-2 ring-white" />
             Prodaje</span
           >
           <span
+            v-if="layers.includes('parcels')"
             ><i class="size-2 rounded-[2px] border-2 border-[#dc8e34]" />
             Parcele</span
           >

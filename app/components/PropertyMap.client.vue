@@ -47,6 +47,7 @@ let selectedParcelFeatures: ShapeFeature[] = []
 let parcelBuildingFeatures: ShapeFeature[] = []
 let activeBuildingId = ''
 let detailController: AbortController | undefined
+let propertySummarySignature = ''
 
 const localStyle = {
   version: 8 as const,
@@ -71,14 +72,10 @@ const visibilityByLayer: Record<MapLayerId, string[]> = {
     'parcel-label',
   ],
   buildings: [
-    'property-cluster-halo',
     'property-cluster',
-    'property-cluster-count',
-    'property-footprint-fill',
-    'property-footprint-line',
+    'property-summary',
     'property-point-halo',
     'property-point',
-    'property-address-label',
   ],
   transactions: [
     'sale-cluster-halo',
@@ -130,7 +127,7 @@ function flattenBasemap() {
 }
 
 function syncLayerVisibility() {
-  if (!map?.isStyleLoaded()) return
+  if (!map) return
   const configured = new Set(props.layers)
   for (const [logicalLayer, mapLayers] of Object.entries(visibilityByLayer)) {
     for (const layerId of mapLayers) {
@@ -159,7 +156,7 @@ function updateFeatureCount() {
   }
   emit(
     'count',
-    countLayers(['property-cluster', 'property-point']) +
+    countLayers(['property-cluster', 'property-summary', 'property-point']) +
       countLayers(['sale-cluster', 'sale-point']),
   )
 }
@@ -168,6 +165,113 @@ function addDataLayers() {
   if (!map) return
   addPropertyMapLayers(map, props.filters)
   syncLayerVisibility()
+}
+
+function featureAddress(properties: Record<string, unknown>) {
+  for (const key of ['full_address', 'address', 'label']) {
+    const value = properties[key]
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+  return ''
+}
+
+function summaryAddress(address: string) {
+  const words = address.split(/\s+/).slice(0, 2)
+  const numberIndex = words.findIndex((word) => /\d/.test(word))
+  return words.slice(0, numberIndex < 0 ? words.length : numberIndex).join(' ')
+}
+
+function syncPropertySummaries() {
+  if (!map?.isStyleLoaded()) return
+  const source = map.getSource('property-summaries') as
+    GeoJSONSource | undefined
+  if (!source) return
+
+  const featuresById = new Map<string, ShapeFeature>()
+  for (const feature of map.querySourceFeatures('gurs-properties', {
+    sourceLayer: 'properties',
+    filter: ['==', ['get', 'feature_type'], 'pin'],
+  })) {
+    if (feature.geometry.type !== 'Point') continue
+    const id = String(feature.properties?.id ?? feature.id ?? '')
+    if (!id) continue
+    const candidate: ShapeFeature = {
+      type: 'Feature',
+      id,
+      geometry: feature.geometry,
+      properties: { ...feature.properties, id },
+    }
+    const existing = featuresById.get(id)
+    if (
+      !existing ||
+      (!featureAddress(existing.properties) &&
+        featureAddress(candidate.properties))
+    ) {
+      featuresById.set(id, candidate)
+    }
+  }
+
+  const features = [...featuresById.values()]
+  const addressed = features.flatMap((feature) => {
+    const address = featureAddress(feature.properties)
+    return address && feature.geometry.type === 'Point'
+      ? [{ address, coordinates: feature.geometry.coordinates as Position }]
+      : []
+  })
+  const summaries = features.map((feature) => {
+    if (
+      featureAddress(feature.properties) ||
+      feature.geometry.type !== 'Point'
+    ) {
+      const address = featureAddress(feature.properties)
+      const title = summaryAddress(address)
+      return title
+        ? {
+            ...feature,
+            properties: { ...feature.properties, summary_address: title },
+          }
+        : feature
+    }
+    const [lng, lat] = feature.geometry.coordinates as Position
+    let nearest: (typeof addressed)[number] | undefined
+    let nearestDistance = Number.POSITIVE_INFINITY
+    for (const candidate of addressed) {
+      const distance =
+        (candidate.coordinates[0] - lng) ** 2 +
+        (candidate.coordinates[1] - lat) ** 2
+      if (distance < nearestDistance) {
+        nearest = candidate
+        nearestDistance = distance
+      }
+    }
+    const summary = nearest
+      ? {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            full_address: nearest.address,
+            inherited_address: true,
+          },
+        }
+      : feature
+    const title = summaryAddress(featureAddress(summary.properties))
+    return title
+      ? {
+          ...summary,
+          properties: { ...summary.properties, summary_address: title },
+        }
+      : summary
+  })
+  const signature = summaries
+    .map(
+      (feature) =>
+        `${String(feature.id)}:${featureAddress(feature.properties)}`,
+    )
+    .sort()
+    .join('|')
+  if (signature === propertySummarySignature) return
+  propertySummarySignature = signature
+  source.setData({ type: 'FeatureCollection', features: summaries })
 }
 
 function setSelectedShapes() {
@@ -388,6 +492,7 @@ onMounted(async () => {
       bearing: 0,
       dragRotate: false,
       touchPitch: false,
+      crossSourceCollisions: false,
     })
     map.addControl(
       new maplibregl.AttributionControl({
@@ -430,10 +535,12 @@ onMounted(async () => {
     map.on('idle', () => {
       emit('loading', false)
       emit('error', '')
+      syncPropertySummaries()
       updateFeatureCount()
     })
     map.on('moveend', () => {
       if (!map) return
+      syncPropertySummaries()
       updateFeatureCount()
       if (!syncingFromProps) {
         const center = map.getCenter()
@@ -455,6 +562,13 @@ onMounted(async () => {
       const feature = event.features?.[0]
       if (feature) void selectBuildingFeature(feature)
     })
+    map.on('mousemove', 'property-summary', hoverFeature)
+    map.on('mouseleave', 'property-summary', clearHover)
+    map.on('click', 'property-summary', (event) => {
+      if (props.measureMode) return
+      const feature = event.features?.[0]
+      if (feature) void selectBuildingFeature(feature)
+    })
     map.on('mouseenter', 'property-cluster', () => {
       if (map) map.getCanvas().style.cursor = 'pointer'
     })
@@ -472,14 +586,6 @@ onMounted(async () => {
         duration: 360,
       })
     })
-    map.on('mousemove', 'property-footprint-fill', hoverFeature)
-    map.on('mouseleave', 'property-footprint-fill', clearHover)
-    map.on('click', 'property-footprint-fill', (event) => {
-      if (props.measureMode) return
-      const feature = event.features?.[0]
-      if (feature) void selectBuildingFeature(feature)
-    })
-
     map.on('mousemove', 'parcel-fill', hoverFeature)
     map.on('mouseleave', 'parcel-fill', clearHover)
     map.on('click', 'parcel-fill', (event) => {
@@ -581,6 +687,7 @@ watch(
   () => props.filters,
   (filters) => {
     if (!map?.isStyleLoaded()) return
+    propertySummarySignature = '__stale__'
     updatePropertyMapTiles(map, filters)
     emit('loading', true)
   },

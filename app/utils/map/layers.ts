@@ -1,5 +1,9 @@
 import type { MapFilters } from '#shared/types/property'
-import type { Map, VectorTileSource } from 'maplibre-gl'
+import type {
+  ExpressionSpecification,
+  Map,
+  VectorTileSource,
+} from 'maplibre-gl'
 
 const emptyFeatureCollection = {
   type: 'FeatureCollection' as const,
@@ -48,16 +52,16 @@ function addBuildingMarkerImages(map: Map) {
     )
 
     const summaryCanvas = document.createElement('canvas')
-    summaryCanvas.width = 264
-    summaryCanvas.height = 164
+    summaryCanvas.width = 240
+    summaryCanvas.height = 120
     const summary = summaryCanvas.getContext('2d')
     if (!summary) continue
     summary.scale(2, 2)
     summary.shadowColor = 'rgb(31 35 106 / 28%)'
-    summary.shadowBlur = 5
-    summary.shadowOffsetY = 2
+    summary.shadowBlur = 3
+    summary.shadowOffsetY = 1.5
     summary.beginPath()
-    summary.roundRect(6, 4, 120, 72, 6)
+    summary.roundRect(4, 4, 112, 50, 5)
     summary.fillStyle = color.fill
     summary.fill()
     summary.shadowColor = 'transparent'
@@ -66,13 +70,246 @@ function addBuildingMarkerImages(map: Map) {
     summary.stroke()
     map.addImage(
       `building-summary-marker-${name}`,
-      summary.getImageData(0, 0, 264, 164),
+      summary.getImageData(0, 0, 240, 120),
       { pixelRatio: 2 },
     )
   }
 }
 
 type PropertyMapLayer = 'properties' | 'sales' | 'parcels' | 'cadastral'
+// The tiny offset keeps summary cards visible at exactly z15.5.
+const HOUSE_MARKER_MIN_ZOOM = 15.51
+
+const buildingValue: ExpressionSpecification = [
+  'coalesce',
+  ['get', 'combined_value'],
+  ['get', 'combinedValue'],
+  ['get', 'total_value'],
+  ['get', 'totalValue'],
+  ['get', 'official_value'],
+  ['get', 'officialValue'],
+  ['get', 'estimated_market_value'],
+  ['get', 'market_value'],
+  ['get', 'value'],
+]
+
+const buildingValueLabel: ExpressionSpecification = [
+  'case',
+  ['==', buildingValue, null],
+  '—',
+  ['>=', ['to-number', buildingValue, 0], 1_000_000_000],
+  [
+    'concat',
+    [
+      'number-format',
+      ['/', ['to-number', buildingValue, 0], 1_000_000_000],
+      { locale: 'sl-SI', 'max-fraction-digits': 1 },
+    ],
+    ' mrd €',
+  ],
+  ['>=', ['to-number', buildingValue, 0], 1_000_000],
+  [
+    'concat',
+    [
+      'number-format',
+      ['/', ['to-number', buildingValue, 0], 1_000_000],
+      { locale: 'sl-SI', 'max-fraction-digits': 1 },
+    ],
+    ' mio €',
+  ],
+  ['>=', ['to-number', buildingValue, 0], 1_000],
+  [
+    'concat',
+    [
+      'number-format',
+      ['/', ['to-number', buildingValue, 0], 1_000],
+      { locale: 'sl-SI', 'max-fraction-digits': 0 },
+    ],
+    ' tis €',
+  ],
+  [
+    'concat',
+    [
+      'number-format',
+      ['to-number', buildingValue, 0],
+      { locale: 'sl-SI', 'max-fraction-digits': 0 },
+    ],
+    ' €',
+  ],
+]
+
+const buildingAddress: ExpressionSpecification = [
+  'to-string',
+  [
+    'coalesce',
+    ['get', 'full_address'],
+    ['get', 'address'],
+    ['get', 'label'],
+    '',
+  ],
+]
+
+const buildingAddressFirstSpace: ExpressionSpecification = [
+  'index-of',
+  ' ',
+  buildingAddress,
+]
+
+const buildingAddressAfterFirstWord: ExpressionSpecification = [
+  'slice',
+  buildingAddress,
+  ['+', buildingAddressFirstSpace, 1],
+]
+
+const buildingAddressSecondSpace: ExpressionSpecification = [
+  'index-of',
+  ' ',
+  buildingAddressAfterFirstWord,
+]
+
+const buildingAddressFirstTwoWords: ExpressionSpecification = [
+  'case',
+  [
+    'all',
+    ['>', buildingAddressFirstSpace, 0],
+    ['>', buildingAddressSecondSpace, 0],
+  ],
+  [
+    'slice',
+    buildingAddress,
+    0,
+    ['+', buildingAddressFirstSpace, buildingAddressSecondSpace, 1],
+  ],
+  buildingAddress,
+]
+
+const buildingAddressComma: ExpressionSpecification = [
+  'index-of',
+  ',',
+  buildingAddress,
+]
+
+// Slovenian addresses end with `, 1234 Locality`; remove that prefix at low zoom.
+const buildingAddressLocality: ExpressionSpecification = [
+  'case',
+  ['>=', buildingAddressComma, 0],
+  ['slice', buildingAddress, ['+', buildingAddressComma, 7]],
+  ['!=', buildingAddress, ''],
+  buildingAddressFirstTwoWords,
+  ['==', ['get', 'feature_type'], 'cluster'],
+  ['concat', ['to-string', ['get', 'cluster_count']], ' stavb'],
+  '',
+]
+
+const buildingAddressFirstWord: ExpressionSpecification = [
+  'case',
+  ['>', buildingAddressFirstSpace, 0],
+  ['slice', buildingAddress, 0, buildingAddressFirstSpace],
+  buildingAddress,
+]
+
+const buildingArea: ExpressionSpecification = [
+  'coalesce',
+  ['get', 'usable_area_m2'],
+  ['get', 'usableAreaM2'],
+  ['get', 'gross_floor_area'],
+  ['get', 'grossFloorArea'],
+  ['get', 'gross_area_m2'],
+  ['get', 'grossAreaM2'],
+  ['get', 'area_m2'],
+  ['get', 'areaM2'],
+  ['get', 'area'],
+  ['get', 'footprint_area_m2'],
+  ['get', 'footprintAreaM2'],
+  ['get', 'footprint_area'],
+  ['get', 'footprintArea'],
+]
+
+const buildingAreaLabel: ExpressionSpecification = [
+  'concat',
+  [
+    'number-format',
+    ['to-number', buildingArea, 0],
+    { locale: 'en-US', 'max-fraction-digits': 1 },
+  ],
+  'm²',
+]
+
+const houseMarkerTitle: ExpressionSpecification = [
+  'case',
+  ['!=', buildingAddressFirstWord, ''],
+  [
+    'upcase',
+    [
+      'case',
+      ['>', ['length', buildingAddressFirstWord], 10],
+      ['concat', ['slice', buildingAddressFirstWord, 0, 9], '…'],
+      buildingAddressFirstWord,
+    ],
+  ],
+  ['>', ['to-number', buildingArea, 0], 0],
+  buildingAreaLabel,
+  '',
+]
+
+const houseMarkerText: ExpressionSpecification = [
+  'format',
+  houseMarkerTitle,
+  { 'font-scale': 0.68, 'text-color': 'rgba(255,255,255,0.62)' },
+  '\n',
+  {},
+  ['case', ['==', buildingValue, null], '—', buildingValueLabel],
+  { 'font-scale': 0.9, 'text-color': '#ffffff' },
+]
+
+const buildingCity: ExpressionSpecification = [
+  'coalesce',
+  ['get', 'city_name'],
+  ['get', 'cityName'],
+  ['get', 'city'],
+  ['get', 'municipality_name'],
+  ['get', 'municipalityName'],
+  ['get', 'municipality'],
+  ['get', 'settlement'],
+  ['get', 'region'],
+  buildingAddressLocality,
+]
+
+const buildingLocalArea: ExpressionSpecification = [
+  'coalesce',
+  ['get', 'neighborhood'],
+  ['get', 'neighbourhood'],
+  ['get', 'district'],
+  ['get', 'quarter'],
+  ['get', 'subregion'],
+  ['get', 'region'],
+  ['get', 'settlement'],
+  ['get', 'summary_address'],
+  buildingAddressFirstTwoWords,
+  buildingCity,
+]
+
+function buildingSummary(title: ExpressionSpecification) {
+  return [
+    'format',
+    title,
+    { 'font-scale': 0.82, 'text-color': 'rgba(255,255,255,0.78)' },
+    '\n',
+    {},
+    buildingValueLabel,
+    { 'font-scale': 1.05, 'text-color': '#ffffff' },
+  ] satisfies ExpressionSpecification
+}
+
+// MapLibre only permits `zoom` as the input of a top-level step/interpolate.
+const buildingSummaryText: ExpressionSpecification = [
+  'step',
+  ['zoom'],
+  buildingSummary(buildingCity),
+  13.5,
+  buildingSummary(buildingLocalArea),
+]
+
 export type PropertyMapSourceId =
   'gurs-properties' | 'gurs-sales' | 'gurs-parcels' | 'gurs-cadastral'
 
@@ -139,6 +376,11 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     data: emptyFeatureCollection,
   })
   map.addSource('selected-parcel-shapes', {
+    type: 'geojson',
+    data: emptyFeatureCollection,
+    promoteId: 'id',
+  })
+  map.addSource('property-summaries', {
     type: 'geojson',
     data: emptyFeatureCollection,
     promoteId: 'id',
@@ -210,12 +452,8 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     minzoom: 15,
     paint: {
       'fill-color': '#f0a44b',
-      'fill-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        0.2,
-        ['interpolate', ['linear'], ['zoom'], 15, 0.055, 19, 0.11],
-      ],
+      // Keep the polygon as a hit target without tinting the map beneath it.
+      'fill-opacity': 0,
     },
   })
   map.addLayer({
@@ -277,50 +515,13 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     },
   })
 
-  // At z16 the same property source adds true building footprints.
-  map.addLayer({
-    id: 'property-footprint-fill',
-    type: 'fill',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    minzoom: 16,
-    filter: ['==', ['get', 'feature_type'], 'footprint'],
-    paint: {
-      'fill-color': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        '#4238c6',
-        '#655ce1',
-      ],
-      'fill-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        0.48,
-        0.22,
-      ],
-    },
-  })
-  map.addLayer({
-    id: 'property-footprint-line',
-    type: 'line',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    minzoom: 16,
-    filter: ['==', ['get', 'feature_type'], 'footprint'],
-    paint: {
-      'line-color': '#4a42c5',
-      'line-width': ['interpolate', ['linear'], ['zoom'], 16, 1, 20, 2],
-      'line-opacity': 0.86,
-    },
-  })
-
-  // Reuse main's rectangular cluster cards with the server-provided count.
+  // Keep property groups as summary cards until individual house markers take over.
   map.addLayer({
     id: 'property-cluster',
     type: 'symbol',
     source: 'gurs-properties',
     'source-layer': 'properties',
-    maxzoom: 12,
+    maxzoom: HOUSE_MARKER_MIN_ZOOM,
     filter: ['==', ['get', 'feature_type'], 'cluster'],
     layout: {
       'icon-image': [
@@ -332,19 +533,43 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       ],
       'icon-anchor': 'center',
       'icon-allow-overlap': false,
-      'icon-padding': 8,
-      'text-field': [
-        'format',
-        ['number-format', ['get', 'cluster_count'], { locale: 'sl-SI' }],
-        { 'font-scale': 1.12, 'text-color': '#ffffff' },
-        '\n',
-        {},
-        'stavb',
-        { 'font-scale': 0.7, 'text-color': 'rgba(255,255,255,0.74)' },
-      ],
-      'text-size': 16,
+      'icon-padding': 6,
+      'text-field': buildingSummaryText,
+      'text-size': 14,
       'text-font': ['Open Sans Bold'],
-      'text-line-height': 1.1,
+      'text-line-height': 1.12,
+      'text-anchor': 'center',
+      'text-offset': [0, -0.05],
+      'text-allow-overlap': false,
+    },
+    paint: {
+      'text-color': '#ffffff',
+      'text-halo-color': 'rgba(52,55,182,0.7)',
+      'text-halo-width': 0.25,
+    },
+  })
+
+  map.addLayer({
+    id: 'property-summary',
+    type: 'symbol',
+    source: 'property-summaries',
+    minzoom: 12,
+    maxzoom: HOUSE_MARKER_MIN_ZOOM,
+    filter: ['==', ['get', 'feature_type'], 'pin'],
+    layout: {
+      'icon-image': [
+        'case',
+        ['>=', ['coalesce', ['get', 'construction_year'], 0], 2010],
+        'building-summary-marker-teal',
+        'building-summary-marker-purple',
+      ],
+      'icon-anchor': 'center',
+      'icon-allow-overlap': false,
+      'icon-padding': 6,
+      'text-field': buildingSummaryText,
+      'text-size': 14,
+      'text-font': ['Open Sans Bold'],
+      'text-line-height': 1.12,
       'text-anchor': 'center',
       'text-offset': [0, -0.05],
       'text-allow-overlap': false,
@@ -361,11 +586,19 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     type: 'circle',
     source: 'gurs-properties',
     'source-layer': 'properties',
-    minzoom: 12,
+    minzoom: HOUSE_MARKER_MIN_ZOOM,
     filter: ['==', ['get', 'feature_type'], 'pin'],
     paint: {
       'circle-color': 'rgba(91,82,232,0.14)',
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 9, 18, 15],
+      'circle-radius': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        HOUSE_MARKER_MIN_ZOOM,
+        12,
+        18,
+        15,
+      ],
       'circle-blur': 0.45,
     },
   })
@@ -374,7 +607,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     type: 'symbol',
     source: 'gurs-properties',
     'source-layer': 'properties',
-    minzoom: 12,
+    minzoom: HOUSE_MARKER_MIN_ZOOM,
     filter: ['==', ['get', 'feature_type'], 'pin'],
     layout: {
       'icon-image': [
@@ -388,9 +621,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
         'interpolate',
         ['linear'],
         ['zoom'],
-        12,
-        0.58,
-        15,
+        HOUSE_MARKER_MIN_ZOOM,
         0.78,
         18,
         1,
@@ -398,16 +629,20 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
       'icon-padding': 4,
-      'text-field': [
-        'case',
-        ['has', 'building_number'],
-        ['to-string', ['get', 'building_number']],
-        '',
+      'text-field': houseMarkerText,
+      'text-size': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        HOUSE_MARKER_MIN_ZOOM,
+        10.5,
+        18,
+        12,
       ],
-      'text-size': ['interpolate', ['linear'], ['zoom'], 12, 8, 18, 11],
       'text-font': ['Open Sans Bold'],
+      'text-line-height': 1.02,
       'text-anchor': 'center',
-      'text-offset': [0, -2.5],
+      'text-offset': [0, -3.25],
       'text-optional': true,
     },
     paint: {
@@ -422,34 +657,6 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'text-halo-width': 0.5,
     },
   })
-  map.addLayer({
-    id: 'property-address-label',
-    type: 'symbol',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    minzoom: 15,
-    filter: [
-      'all',
-      ['==', ['get', 'feature_type'], 'pin'],
-      ['has', 'full_address'],
-    ],
-    layout: {
-      'text-field': ['get', 'full_address'],
-      'text-size': ['interpolate', ['linear'], ['zoom'], 15, 10, 18, 11.5],
-      'text-font': ['Open Sans Bold'],
-      'text-offset': [0, 1.45],
-      'text-anchor': 'top',
-      'text-max-width': 16,
-      'text-optional': true,
-      'text-padding': 5,
-    },
-    paint: {
-      'text-color': '#2f3152',
-      'text-halo-color': 'rgba(255,255,255,0.94)',
-      'text-halo-width': 1.8,
-    },
-  })
-
   // Sales use a warm contrasting palette and server-side clusters.
   map.addLayer({
     id: 'sale-cluster-halo',
@@ -587,7 +794,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'fill-opacity': [
         'case',
         ['boolean', ['get', 'active'], false],
-        0.56,
+        0.68,
         0.2,
       ],
     },
@@ -599,7 +806,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     filter: ['==', ['get', 'kind'], 'building'],
     paint: {
       'line-color': '#3437b6',
-      'line-width': 3,
+      'line-width': ['case', ['boolean', ['get', 'active'], false], 3, 1.5],
       'line-opacity': [
         'case',
         ['boolean', ['get', 'active'], false],
@@ -608,6 +815,18 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       ],
     },
   })
+
+  // Keep house tags above selected parcel/building geometry. These symbol
+  // layers are registered earlier because they use the streamed MVT source.
+  for (const layerId of [
+    'property-point-halo',
+    'property-cluster',
+    'property-summary',
+    'property-point',
+  ]) {
+    if (map.getLayer(layerId)) map.moveLayer(layerId)
+  }
+
   map.addLayer({
     id: 'measurement-line',
     type: 'line',

@@ -6,6 +6,10 @@ import {
 } from '../../shared/utils/map-state'
 
 describe('shareable map state', () => {
+  it('shows buildings by default', () => {
+    expect(parseMapState({}).layers).toEqual(['buildings'])
+  })
+
   it('round-trips center, zoom, layers and selection', () => {
     const serialized = serializeMapState({
       center: [14.50361, 46.05623],

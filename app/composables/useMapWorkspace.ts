@@ -12,12 +12,7 @@ import {
 } from '#shared/utils/map-state'
 import { isAbortError } from '~/utils/request'
 
-const DEFAULT_VISIBLE_LAYERS: MapLayerId[] = [
-  'parcels',
-  'buildings',
-  'transactions',
-  'priceM2',
-]
+const DEFAULT_VISIBLE_LAYERS: MapLayerId[] = ['buildings']
 
 export function useMapWorkspace() {
   const route = useRoute()

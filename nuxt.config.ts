@@ -1,4 +1,4 @@
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-30',
@@ -19,8 +19,8 @@ export default defineNuxtConfig({
     gursApiKey: '',
     mapProviderToken: '',
     public: {
-      mapStyleUrl: 'https://tiles.openfreemap.org/styles/liberty',
-      map3dStyleUrl: 'https://tiles.openfreemap.org/styles/liberty',
+      mapStyleUrl: 'https://tiles.openfreemap.org/styles/bright',
+      map3dStyleUrl: 'https://tiles.openfreemap.org/styles/bright',
       mapAttribution: 'Podatki GURS © Prostor na dlani',
       siteUrl: 'http://localhost:3000',
     },
@@ -47,4 +47,4 @@ export default defineNuxtConfig({
       nodeCompat: true,
     },
   },
-})
+});

@@ -33,9 +33,9 @@ const marketTabs: {
 }[] = [
   {
     label: 'Vse',
-    activeLayers: ['transactions', 'priceM2'],
+    activeLayers: ['parcels', 'buildings', 'transactions', 'priceM2'],
   },
-  { label: 'Stavbe', activeLayers: [] },
+  { label: 'Stavbe', activeLayers: ['buildings'] },
 ]
 
 const quickPrices: {
@@ -50,10 +50,7 @@ const quickPrices: {
 ]
 
 function showMarket(activeLayers: MapLayerId[]) {
-  const structuralLayers = props.layers.filter((layer) =>
-    ['parcels', 'buildings'].includes(layer),
-  )
-  emit('layersChange', [...new Set([...structuralLayers, ...activeLayers])])
+  emit('layersChange', [...activeLayers])
 }
 
 function setPriceRange(minPrice?: number, maxPrice?: number) {
@@ -72,12 +69,9 @@ function priceRangeIsActive(minPrice?: number, maxPrice?: number) {
 }
 
 function marketIsActive(activeLayers: MapLayerId[]) {
-  const visibleMarketLayers = props.layers.filter((layer) =>
-    ['transactions', 'priceM2'].includes(layer),
-  )
   return (
-    visibleMarketLayers.length === activeLayers.length &&
-    activeLayers.every((layer) => visibleMarketLayers.includes(layer))
+    props.layers.length === activeLayers.length &&
+    activeLayers.every((layer) => props.layers.includes(layer))
   )
 }
 </script>
