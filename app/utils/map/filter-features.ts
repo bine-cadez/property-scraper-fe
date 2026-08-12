@@ -1,3 +1,6 @@
+//      _/\_     _/\_
+//  ___/    \___/    \___
+// <_o_  human fish (olm) _o_>
 import type { ViewportResponse } from '#shared/types/geojson'
 import type { MapFilters } from '#shared/types/property'
 

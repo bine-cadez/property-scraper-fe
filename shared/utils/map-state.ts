@@ -1,3 +1,6 @@
+//      _/\_     _/\_
+//  ___/    \___/    \___
+// <_o_  human fish (olm) _o_>
 import type { MapLayerId, MapState, Position } from '../types/property'
 
 export const DEFAULT_MAP_STATE: MapState = {

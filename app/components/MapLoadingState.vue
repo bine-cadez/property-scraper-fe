@@ -1,3 +1,8 @@
+<!--
+     _/\_     _/\_
+ ___/    \___/    \___
+<_o_  human fish (olm) _o_>
+-->
 <template>
   <div
     class="flex items-center gap-3 rounded-md border border-line bg-white px-4 py-3.5 shadow-overlay"

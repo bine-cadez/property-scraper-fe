@@ -1,3 +1,6 @@
+//      _/\_     _/\_
+//  ___/    \___/    \___
+// <_o_  human fish (olm) _o_>
 import type { Position } from '#shared/types/property'
 
 const EARTH_RADIUS_METERS = 6_371_000

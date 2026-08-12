@@ -1,3 +1,6 @@
+//      _/\_     _/\_
+//  ___/    \___/    \___
+// <_o_  human fish (olm) _o_>
 import { gursDetail, gursList } from '../utils/gurs-api'
 import {
   buildingFeatureCollection,
