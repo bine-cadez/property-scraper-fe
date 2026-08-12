@@ -1,3 +1,8 @@
+<!--
+     _/\_     _/\_
+ ___/    \___/    \___
+<_o_  human fish (olm) _o_>
+-->
 <template>
   <section class="px-7 py-11 text-center">
     <div class="relative mx-auto mb-6 h-24 w-32" aria-hidden="true">

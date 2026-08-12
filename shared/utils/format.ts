@@ -1,3 +1,6 @@
+//      _/\_     _/\_
+//  ___/    \___/    \___
+// <_o_  human fish (olm) _o_>
 const eurFormatter = new Intl.NumberFormat('sl-SI', {
   style: 'currency',
   currency: 'EUR',

@@ -1,3 +1,6 @@
+//      _/\_     _/\_
+//  ___/    \___/    \___
+// <_o_  human fish (olm) _o_>
 import proj4 from 'proj4'
 import type { Position } from '../types/property'
 

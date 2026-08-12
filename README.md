@@ -1,3 +1,8 @@
+<!--
+     _/\_     _/\_
+ ___/    \___/    \___
+<_o_  human fish (olm) _o_>
+-->
 # Prostor na dlani
 
 Production-oriented Nuxt 4 frontend for the Property Scraper API. It provides a map-first view of GURS parcels, buildings, modelled values, and recorded sales with server-rendered property pages.

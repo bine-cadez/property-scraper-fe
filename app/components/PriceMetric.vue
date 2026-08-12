@@ -1,3 +1,8 @@
+<!--
+     _/\_     _/\_
+ ___/    \___/    \___
+<_o_  human fish (olm) _o_>
+-->
 <script setup lang="ts">
 import type { MoneyValue } from '#shared/types/property'
 import { formatEur, formatPricePerM2 } from '#shared/utils/format'

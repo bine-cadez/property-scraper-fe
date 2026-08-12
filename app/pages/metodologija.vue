@@ -1,3 +1,8 @@
+<!--
+     _/\_     _/\_
+ ___/    \___/    \___
+<_o_  human fish (olm) _o_>
+-->
 <script setup lang="ts">
 useSeoMeta({
   title: 'Metodologija vrednotenja | Prostor na dlani',
