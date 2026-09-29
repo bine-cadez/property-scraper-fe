@@ -5,7 +5,12 @@ import type {
   Map as MapLibreMap,
   MapLayerMouseEvent,
 } from 'maplibre-gl'
-import type { MapFilters, MapLayerId, Position } from '#shared/types/property'
+import type {
+  MapFilters,
+  MapLayerId,
+  MapResultItem,
+  Position,
+} from '#shared/types/property'
 import {
   addPropertyMapLayers,
   updatePropertyMapTiles,
@@ -26,7 +31,9 @@ const emit = defineEmits<{
   move: [state: { center: Position; zoom: number }]
   loading: [value: boolean]
   error: [message: string]
+  dataError: [message: string]
   count: [value: number]
+  results: [value: MapResultItem[]]
   measure: [value: string | undefined]
 }>()
 
@@ -143,9 +150,11 @@ function syncLayerVisibility() {
 function updateFeatureCount() {
   if (!map?.isStyleLoaded()) return
   const countLayers = (layers: string[]) => {
+    const renderedLayers = layers.filter((layerId) => map!.getLayer(layerId))
+    if (!renderedLayers.length) return 0
     const seen = new Set<string>()
     return map!
-      .queryRenderedFeatures(undefined, { layers })
+      .queryRenderedFeatures(undefined, { layers: renderedLayers })
       .reduce((total, feature, index) => {
         const id = String(feature.properties?.id ?? feature.id ?? index)
         const key = `${feature.source}:${id}`
@@ -158,6 +167,144 @@ function updateFeatureCount() {
     'count',
     countLayers(['property-cluster', 'property-summary', 'property-point']) +
       countLayers(['sale-cluster', 'sale-point']),
+  )
+}
+
+function propertyValue(properties: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = properties[key]
+    if (value !== undefined && value !== null && value !== '') return value
+  }
+}
+
+function numberProperty(properties: Record<string, unknown>, keys: string[]) {
+  const value = Number(propertyValue(properties, keys))
+  return Number.isFinite(value) ? value : undefined
+}
+
+function stringProperty(properties: Record<string, unknown>, keys: string[]) {
+  const value = propertyValue(properties, keys)
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+/**
+ * Mirrors the individual sale pins that MapLibre has already chosen to render.
+ * Cluster features are intentionally excluded so the established zoom/grouping
+ * behaviour remains the single source of truth.
+ */
+function updateVisibleResults() {
+  if (!map?.isStyleLoaded() || !map.getLayer('sale-point')) {
+    emit('results', [])
+    return
+  }
+
+  const byId = new Map<string, MapResultItem>()
+  for (const feature of map.queryRenderedFeatures(undefined, {
+    layers: ['sale-point'],
+  })) {
+    const properties = (feature.properties ?? {}) as Record<string, unknown>
+    const id = String(
+      propertyValue(properties, ['transaction_id', 'id', 'record_id']) ??
+        feature.id ??
+        '',
+    )
+    if (!id || byId.has(id)) continue
+
+    const address =
+      stringProperty(properties, ['full_address', 'address', 'label']) ??
+      'Prodaja brez naslova'
+    const item: MapResultItem = {
+      id,
+      selectionId: `transaction:${id}`,
+      address,
+    }
+    const location = stringProperty(properties, [
+      'settlement',
+      'city_name',
+      'city',
+      'municipality_name',
+      'municipality',
+    ])
+    const propertyType = stringProperty(properties, [
+      'property_type',
+      'propertyType',
+      'type_name',
+    ])
+    const totalPrice = numberProperty(properties, [
+      'total_price',
+      'price',
+      'amount',
+    ])
+    const pricePerM2 = numberProperty(properties, [
+      'price_per_m2',
+      'pricePerM2',
+    ])
+    const areaM2 = numberProperty(properties, [
+      'area_m2',
+      'areaM2',
+      'usable_area_m2',
+      'usableAreaM2',
+      'area',
+    ])
+    const transactionDate = stringProperty(properties, [
+      'contract_date',
+      'transaction_date',
+      'transactionDate',
+      'date',
+    ])
+    const usableAreaM2 = numberProperty(properties, [
+      'usable_area_m2',
+      'usableAreaM2',
+    ])
+    const floor = numberProperty(properties, ['floor', 'floor_number'])
+    const constructionYear = numberProperty(properties, [
+      'construction_year',
+      'constructionYear',
+      'year_built',
+    ])
+    const officialValue = numberProperty(properties, [
+      'official_value',
+      'officialValue',
+      'assessed_value',
+    ])
+    const unitLabel = stringProperty(properties, [
+      'unit_label',
+      'unitLabel',
+      'unit_number',
+    ])
+    const status = stringProperty(properties, [
+      'status_label',
+      'status',
+      'transaction_status',
+    ])
+    const sourceLabel = stringProperty(properties, [
+      'source_name',
+      'sourceName',
+      'data_source',
+    ])
+    if (location) item.location = location
+    if (propertyType) item.propertyType = propertyType
+    if (totalPrice !== undefined) item.totalPrice = totalPrice
+    if (pricePerM2 !== undefined) item.pricePerM2 = pricePerM2
+    if (areaM2 !== undefined) item.areaM2 = areaM2
+    if (usableAreaM2 !== undefined) item.usableAreaM2 = usableAreaM2
+    if (floor !== undefined) item.floor = floor
+    if (constructionYear !== undefined) item.constructionYear = constructionYear
+    if (officialValue !== undefined) item.officialValue = officialValue
+    if (unitLabel) item.unitLabel = unitLabel
+    if (status) item.status = status
+    if (sourceLabel) item.sourceLabel = sourceLabel
+    if (transactionDate) item.transactionDate = transactionDate
+    byId.set(id, item)
+  }
+
+  emit(
+    'results',
+    [...byId.values()]
+      .sort((a, b) =>
+        (b.transactionDate ?? '').localeCompare(a.transactionDate ?? ''),
+      )
+      .slice(0, 50),
   )
 }
 
@@ -511,10 +658,11 @@ onMounted(async () => {
         showCompass: false,
         visualizePitch: false,
       }),
-      'bottom-right',
+      'top-right',
     )
     map.on('load', () => {
       container.dataset.mapState = 'ready'
+      emit('dataError', '')
       map?.resize()
       flattenBasemap()
       try {
@@ -537,11 +685,13 @@ onMounted(async () => {
       emit('error', '')
       syncPropertySummaries()
       updateFeatureCount()
+      updateVisibleResults()
     })
     map.on('moveend', () => {
       if (!map) return
       syncPropertySummaries()
       updateFeatureCount()
+      updateVisibleResults()
       if (!syncingFromProps) {
         const center = map.getCenter()
         emit('move', {
@@ -552,7 +702,23 @@ onMounted(async () => {
       syncingFromProps = false
     })
     map.on('error', (event) => {
-      if (event.error) emit('error', event.error.message)
+      if (!event.error) return
+      const sourceId =
+        'sourceId' in event && typeof event.sourceId === 'string'
+          ? event.sourceId
+          : ''
+      const isGursDataError =
+        sourceId.startsWith('gurs-') ||
+        event.error.message.includes('/api/map/tiles/')
+      if (isGursDataError) {
+        emit('loading', false)
+        emit(
+          'dataError',
+          'Podatki GURS trenutno niso dosegljivi. Zemljevid lahko še vedno uporabljate.',
+        )
+        return
+      }
+      emit('error', event.error.message)
     })
 
     map.on('mousemove', 'property-point', hoverFeature)

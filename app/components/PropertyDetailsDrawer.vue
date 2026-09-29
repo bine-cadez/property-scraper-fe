@@ -1,272 +1,234 @@
 <script setup lang="ts">
-import type { PropertyRecord } from '#shared/types/property'
+import type { MoneyValue, PropertyRecord } from "#shared/types/property";
 import {
   formatArea,
   formatDate,
   formatEur,
   formatPricePerM2,
-} from '#shared/utils/format'
+} from "#shared/utils/format";
 
 const props = withDefaults(
   defineProps<{
-    property: PropertyRecord
-    embedded?: boolean
+    property: PropertyRecord;
+    embedded?: boolean;
   }>(),
   { embedded: false },
-)
+);
 
 const emit = defineEmits<{
-  close: []
-}>()
+  close: [];
+  compare: [];
+}>();
 
-type TabId = 'overview' | 'value' | 'sales' | 'facts' | 'area'
-
-const tabs: { id: TabId; label: string }[] = [
-  { id: 'overview', label: 'Pregled' },
-  { id: 'value', label: 'Vrednost' },
-  { id: 'sales', label: 'Prodaje' },
-  { id: 'facts', label: 'Podatki' },
-  { id: 'area', label: 'Okolica' },
-]
-
-const activeTab = ref<TabId>('overview')
-
-async function shareCurrentUrl() {
-  if (!import.meta.client) return
-  if (navigator.share) {
-    await navigator.share({
-      title: props.property.address,
-      url: window.location.href,
-    })
-    return
-  }
-  await navigator.clipboard?.writeText(window.location.href)
-}
-
-watch(
-  () => props.property.id,
-  () => {
-    activeTab.value = 'overview'
-  },
-)
-
-function onTabKeydown(event: KeyboardEvent, index: number) {
-  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
-  event.preventDefault()
-  let next = index
-  if (event.key === 'ArrowRight') next = (index + 1) % tabs.length
-  if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length
-  if (event.key === 'Home') next = 0
-  if (event.key === 'End') next = tabs.length - 1
-  const tab = tabs[next]
-  if (tab) activeTab.value = tab.id
-}
+const transaction = computed(() => props.property.transactions[0]);
+const unit = computed(() => props.property.units[0]);
+const officialValue = computed<MoneyValue | undefined>(
+  () =>
+    unit.value?.officialValue ??
+    props.property.building?.officialValue ??
+    props.property.parcel.officialValue,
+);
+const primaryAmount = computed(
+  () =>
+    transaction.value?.price.amount ??
+    props.property.primaryValuation?.amount ??
+    officialValue.value?.amount,
+);
+const primaryPricePerM2 = computed(
+  () =>
+    transaction.value?.pricePerM2 ??
+    props.property.primaryValuation?.amountPerM2 ??
+    officialValue.value?.amountPerM2,
+);
+const primaryDate = computed(
+  () =>
+    transaction.value?.transactionDate ??
+    props.property.primaryValuation?.valuationDate ??
+    officialValue.value?.sourceUpdatedAt,
+);
 </script>
 
 <template>
   <aside
-    class="details flex h-full w-[420px] min-w-[380px] flex-col border-l border-line bg-white max-[1100px]:w-[390px] max-[1100px]:min-w-[360px]"
-    :class="{ embedded }"
+    class="flex h-full min-h-0 w-full flex-col bg-surface text-ink max-[720px]:min-h-dvh"
     aria-label="Podrobnosti izbrane nepremičnine"
-    @keydown.esc="$emit('close')"
+    @keydown.esc="emit('close')"
   >
-    <div
-      class="details-header flex min-h-[52px] items-center justify-between border-b border-line pr-3.5 pl-[18px]"
-      :class="{ 'pt-[7px]': embedded }"
-    >
-      <span
-        class="inline-flex items-center gap-[7px] text-[10px] font-[750] text-ink-muted uppercase"
-        ><i class="size-[7px] rounded-full bg-warm" aria-hidden="true" />
-        Izbrano na zemljevidu</span
-      >
-      <div class="flex">
-        <button
-          class="inline-grid size-[42px] place-items-center rounded-sm bg-transparent text-[22px] text-ink-muted transition-[background-color,color,border-color,transform] duration-150 ease-out-expo hover:bg-[#f3f6f5] active:scale-[0.97] motion-reduce:active:scale-100"
-          type="button"
-          aria-label="Deli povezavo"
-          @click="shareCurrentUrl"
-        >
-          <svg class="w-[18px]" viewBox="0 0 20 20" aria-hidden="true">
-            <circle cx="5" cy="10" r="2" fill="none" stroke="currentColor" />
-            <circle cx="15" cy="5" r="2" fill="none" stroke="currentColor" />
-            <circle cx="15" cy="15" r="2" fill="none" stroke="currentColor" />
-            <path d="m7 9 6-3M7 11l6 3" stroke="currentColor" />
-          </svg>
-        </button>
-        <button
-          class="inline-grid size-[42px] place-items-center rounded-sm bg-transparent text-[22px] text-ink-muted transition-[background-color,color,border-color,transform] duration-150 ease-out-expo hover:bg-[#f3f6f5] active:scale-[0.97] motion-reduce:active:scale-100"
-          type="button"
-          aria-label="Zapri podrobnosti"
-          @click="emit('close')"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-
-    <div
-      class="flex min-h-[46px] overflow-x-auto border-b border-line px-2.5"
-      role="tablist"
-      aria-label="Podrobnosti"
+    <header
+      class="flex min-h-[58px] items-center border-b border-[#edf0ed] bg-white px-4 max-[720px]:sticky max-[720px]:top-0 max-[720px]:z-3 [&_a]:min-h-9 [&_a]:items-center [&_a]:gap-2 [&_a]:border-0 [&_a]:bg-transparent [&_a]:text-[11px] [&_a]:font-[650] [&_a]:text-[#294d43] [&_a]:no-underline [&_button]:inline-flex [&_button]:min-h-9 [&_button]:items-center [&_button]:gap-2 [&_button]:border-0 [&_button]:bg-transparent [&_button]:text-[11px] [&_button]:font-[650] [&_button]:text-[#294d43]"
     >
       <button
-        v-for="(tab, index) in tabs"
-        :id="`tab-${tab.id}`"
-        :key="tab.id"
         type="button"
-        role="tab"
-        :aria-selected="activeTab === tab.id"
-        :aria-controls="`panel-${tab.id}`"
-        :tabindex="activeTab === tab.id ? 0 : -1"
-        class="relative min-w-fit flex-1 bg-transparent px-[9px] text-[11px] font-bold whitespace-nowrap text-ink-muted after:absolute after:right-[7px] after:bottom-0 after:left-[7px] after:h-0.5 after:bg-transparent after:content-[''] aria-selected:text-accent-strong aria-selected:after:bg-accent"
-        @click="activeTab = tab.id"
-        @keydown="onTabKeydown($event, index)"
+        aria-label="Nazaj na rezultate"
+        @click="emit('close')"
       >
-        {{ tab.label }}
+        <span aria-hidden="true">←</span>
+        <span class="max-[720px]:hidden">Nazaj na rezultate</span>
+        <span class="hidden text-[13px] max-[720px]:inline">Podrobnosti</span>
       </button>
-    </div>
+      <NuxtLink
+        to="/viri-podatkov"
+        class="ml-auto hidden max-[720px]:inline-flex"
+        aria-label="Podatki in viri"
+      >
+        <svg
+          class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="m4 7 8-4 8 4-8 4-8-4Z" />
+          <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
+        </svg>
+      </NuxtLink>
+    </header>
 
     <div
-      class="details-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
-      :class="{ 'pb-[env(safe-area-inset-bottom)]': embedded }"
+      class="min-h-0 flex-1 overflow-y-auto p-4 [overscroll-behavior:contain] max-[720px]:overflow-visible max-[720px]:px-3 max-[720px]:pt-4 max-[720px]:pb-[30px]"
     >
-      <div
-        v-if="activeTab === 'overview'"
-        id="panel-overview"
-        role="tabpanel"
-        aria-labelledby="tab-overview"
-        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
-      >
-        <PropertySummary :property="property" />
-        <PropertyPreview3D
-          v-if="property.building"
-          :key="property.id"
-          :property="property"
-        />
-        <div class="mx-[-22px] my-0.5 h-px bg-line" />
-        <ValuationSummary :property="property" />
-        <NuxtLink
-          class="flex min-h-[46px] items-center justify-between rounded-sm border border-accent bg-white px-3.5 text-xs font-[750] text-accent-strong no-underline transition-[background-color,color,border-color,transform] duration-150 ease-out-expo hover:bg-accent-soft active:scale-[0.97] motion-reduce:active:scale-100"
-          :to="`/nepremicnina/${property.id}`"
+      <section>
+        <h2
+          class="m-0 text-[21px] font-[730] tracking-[-0.03em] max-[720px]:text-xl"
         >
-          Odpri celoten pregled nepremičnine
-          <span aria-hidden="true">→</span>
-        </NuxtLink>
-      </div>
+          {{ property.address }}
+        </h2>
+        <p class="mt-[3px] mb-0 text-[10px] text-[#7a8581]">
+          {{ property.settlement }}, {{ property.municipality }}
+          <template v-if="unit"> · enota {{ unit.id }}</template>
+        </p>
+      </section>
 
-      <div
-        v-else-if="activeTab === 'value'"
-        id="panel-value"
-        role="tabpanel"
-        aria-labelledby="tab-value"
-        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
+      <section
+        class="mt-[17px] grid gap-1.5 rounded-[9px] bg-[#f3f6ee] p-[17px] shadow-[0_4px_16px_rgb(29_68_58_/_5%)] max-[720px]:bg-white"
       >
-        <ValuationSummary :property="property" />
-      </div>
-
-      <div
-        v-else-if="activeTab === 'sales'"
-        id="panel-sales"
-        role="tabpanel"
-        aria-labelledby="tab-sales"
-        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
-      >
-        <ComparableSales :transactions="property.transactions" />
-      </div>
-
-      <div
-        v-else-if="activeTab === 'facts'"
-        id="panel-facts"
-        role="tabpanel"
-        aria-labelledby="tab-facts"
-        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
-      >
-        <ParcelFacts :parcel="property.parcel" />
-        <div class="mx-[-22px] my-0.5 h-px bg-line" />
-        <BuildingFacts :building="property.building" />
-      </div>
-
-      <div
-        v-else
-        id="panel-area"
-        role="tabpanel"
-        aria-labelledby="tab-area"
-        class="grid gap-[22px] px-[22px] pt-[22px] pb-[26px]"
-      >
-        <section>
-          <span class="text-[10px] font-extrabold text-listing uppercase"
-            >Okolica in ponudba</span
-          >
-          <h3 class="mt-1 mb-[7px] text-[17px] font-bold">
-            {{ property.settlement }}, {{ property.municipality }}
-          </h3>
-          <p class="text-xs leading-[1.55] text-ink-muted">
-            Prikazani oglasi so ločeni od zaključenih prodaj. Oglaševana cena ne
-            pomeni, da je bila nepremičnina po tej ceni prodana.
-          </p>
-        </section>
-        <div v-if="property.listings.length" class="border-t border-line">
-          <article
-            v-for="listing in property.listings"
-            :key="listing.id"
-            class="grid grid-cols-[1fr_auto] gap-x-2.5 gap-y-[5px] border-b border-line py-[15px]"
-          >
-            <span
-              class="col-span-full text-[10px] font-extrabold text-listing uppercase"
-              >Oglaševana cena</span
-            >
-            <h4 class="col-span-full text-[13px] font-bold">
-              {{ listing.title }}
-            </h4>
-            <strong class="text-base">{{
-              formatEur(listing.askingPrice.amount)
-            }}</strong>
-            <p class="text-[11px] font-bold text-listing">
-              {{ formatArea(listing.areaM2) }} ·
-              {{ formatPricePerM2(listing.pricePerM2) }}
-            </p>
-            <small class="col-span-full text-[10px] text-ink-muted"
-              >Objavljeno {{ formatDate(listing.publishedAt) }} ·
-              {{ listing.sourceName }}</small
-            >
-          </article>
+        <span class="text-[9px] font-[650] text-[#77827e] uppercase">{{
+          transaction ? "Prodajna cena" : "Vrednost"
+        }}</span>
+        <strong class="text-[27px] font-[740] tracking-[-0.04em]">{{
+          primaryAmount !== undefined ? formatEur(primaryAmount) : "Ni podatka"
+        }}</strong>
+        <div class="flex items-center gap-[13px] text-[10px] text-[#697570]">
+          <b class="font-[650] text-accent">{{
+            primaryPricePerM2 !== undefined
+              ? formatPricePerM2(primaryPricePerM2)
+              : "€/m² ni podatka"
+          }}</b>
+          <time v-if="primaryDate" :datetime="primaryDate">{{
+            formatDate(primaryDate)
+          }}</time>
         </div>
-        <p
-          v-else
-          class="border border-dashed border-line p-5 text-center text-ink-muted"
+        <small
+          v-if="transaction"
+          class="w-max rounded-full bg-[#fff3d8] px-[7px] py-1 text-[9px] text-[#8a6524]"
+          >ⓘ V preverjanju</small
         >
-          V bližini ni preverjenih aktivnih oglasov.
-        </p>
-      </div>
+      </section>
 
-      <footer
-        class="mt-2.5 border-t border-line bg-[#f8faf9] px-[22px] pt-[18px] pb-7 text-ink-muted"
+      <dl class="my-2 grid grid-cols-2 gap-2">
+        <div class="rounded-[7px] bg-[#f0f4f0] p-[13px]">
+          <dt class="text-[9px] text-[#77827e]">Površina</dt>
+          <dd class="mt-1 mb-0 text-sm font-bold">
+            {{
+              transaction
+                ? formatArea(transaction.areaM2)
+                : formatArea(property.parcel.areaM2)
+            }}
+          </dd>
+        </div>
+        <div class="rounded-[7px] bg-[#f0f4f0] p-[13px]">
+          <dt class="text-[9px] text-[#77827e]">Uporabna</dt>
+          <dd class="mt-1 mb-0 text-sm font-bold">
+            {{ unit ? formatArea(unit.usableAreaM2) : "Ni podatka" }}
+          </dd>
+        </div>
+      </dl>
+
+      <section
+        class="grid grid-cols-[1fr_auto] gap-x-2.5 gap-y-[5px] rounded-lg bg-[#eef3fa] p-[15px] text-[#556d88]"
       >
-        <strong class="text-[11px] text-ink">Pomembno o podatkih</strong>
-        <p class="mt-[7px] mb-[9px] text-[10px] leading-[1.55]">
-          Ocene so informativne in se lahko razlikujejo od dosegljive tržne
-          cene. Uradna vrednost, tržna ocena, oglaševana cena in zaključena
-          prodajna cena niso enakovredne kategorije. Podatki so lahko zamaknjeni
-          ali nepopolni in ne nadomeščajo pravnega, geodetskega, cenilskega ali
-          investicijskega svetovanja.
-        </p>
-        <NuxtLink
-          class="text-[10px] font-[750] text-accent-strong"
-          to="/viri-podatkov"
-          >Viri in omejitve podatkov</NuxtLink
+        <span class="text-[9px] font-[650] text-[#77827e] uppercase"
+          >Ocena GURS</span
         >
+        <strong class="col-start-2 row-start-1 row-end-3 self-center text-lg">{{
+          officialValue !== undefined
+            ? formatEur(officialValue.amount)
+            : "Ni podatka"
+        }}</strong>
+        <p class="col-span-full m-0 text-[9px] leading-[1.4]">
+          Posplošena vrednost enote
+          <template v-if="officialValue">
+            · {{ formatDate(officialValue.sourceUpdatedAt) }}</template
+          >
+        </p>
+        <small class="col-span-full m-0 text-[9px] leading-[1.4]"
+          >Modelska ocena, ne prodajna cena.</small
+        >
+      </section>
+
+      <details
+        class="mt-2 overflow-hidden rounded-[7px] border border-[#e1e6e2] bg-white [&_section]:border-t [&_section]:border-[#e8ebe8] [&_section]:p-3.5"
+      >
+        <summary
+          class="flex min-h-[43px] cursor-pointer list-none items-center justify-between px-3 text-[10px] font-[670] [&::-webkit-details-marker]:hidden"
+        >
+          Prodaje v tej stavbi · {{ property.transactions.length }}
+          <span aria-hidden="true">⌄</span>
+        </summary>
+        <ComparableSales :transactions="property.transactions" />
+      </details>
+
+      <details
+        class="mt-2 overflow-hidden rounded-[7px] border border-[#e1e6e2] bg-white [&_section]:border-t [&_section]:border-[#e8ebe8] [&_section]:p-3.5"
+      >
+        <summary
+          class="flex min-h-[43px] cursor-pointer list-none items-center justify-between px-3 text-[10px] font-[670] [&::-webkit-details-marker]:hidden"
+        >
+          Stavba in katastrski podatki
+          <span aria-hidden="true">⌄</span>
+        </summary>
+        <BuildingFacts :building="property.building" />
+        <ParcelFacts :parcel="property.parcel" />
+      </details>
+
+      <button
+        type="button"
+        class="mt-2 min-h-11 w-full rounded-[7px] border-0 bg-accent text-[11px] font-bold text-white"
+        @click="emit('compare')"
+      >
+        Dodaj v primerjavo
+      </button>
+
+      <section
+        class="mt-2.5 hidden gap-[5px] rounded-lg bg-white p-[15px] max-[720px]:grid"
+      >
+        <strong class="text-[13px]"
+          >{{ property.settlement }}, {{ property.municipality }}</strong
+        >
+        <p class="m-0 text-[9px] text-[#7a8581]">
+          {{
+            property.propertyType === "apartment"
+              ? "Stanovanje"
+              : "Nepremičnina"
+          }}
+          <template v-if="property.building?.constructionYear">
+            · stavba iz leta {{ property.building.constructionYear }}
+          </template>
+        </p>
+        <button
+          type="button"
+          class="my-1.5 mb-0.5 min-h-9 rounded-md border-0 bg-[#f1f4f1] px-2.5 text-left text-[10px] font-[650] text-[#294d43]"
+          @click="emit('close')"
+        >
+          ▧ Poglej na zemljevidu
+        </button>
+        <small class="m-0 text-[9px] text-[#7a8581]">
+          {{ property.parcel.cadastralMunicipalityName }} · parcela
+          {{ property.parcel.parcelNumber }}
+        </small>
+      </section>
+
+      <footer class="px-0.5 pt-[18px] pb-2 text-[9px] text-[#7a8581]">
+        ⓘ GURS · ETN / KN / EV · podatki v preverjanju
       </footer>
     </div>
   </aside>
 </template>
-
-<style scoped>
-.details.embedded {
-  width: 100%;
-  min-width: 0;
-  height: auto;
-  min-height: 0;
-  flex: 1;
-  border-left: 0;
-}
-</style>

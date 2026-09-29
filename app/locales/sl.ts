@@ -10,7 +10,7 @@ export const sl = {
   },
   search: {
     label: 'Iskanje po prostoru',
-    placeholder: 'Naslov, parcela, stavba, kraj …',
+    placeholder: 'Naslov, kraj ali parcela',
     hint: 'Poskusite »Trubarjeva«, »1492/7« ali »Ljubljana«',
     noResults: 'Za ta izraz nismo našli rezultatov.',
     loading: 'Iščemo …',

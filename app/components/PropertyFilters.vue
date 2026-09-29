@@ -1,152 +1,267 @@
 <script setup lang="ts">
-import type { MapFilters } from '#shared/types/property'
+import type { MapFilters, PropertyUnit } from "#shared/types/property";
 
 const props = defineProps<{
-  filters: MapFilters
-}>()
+  filters: MapFilters;
+  resultCount?: number;
+}>();
 
 const emit = defineEmits<{
-  change: [filters: MapFilters]
-}>()
+  change: [filters: MapFilters];
+}>();
 
-const open = ref(false)
+const open = ref(false);
 
 function createDraft(filters: MapFilters) {
   return {
-    minPrice: filters.minPrice?.toString() ?? '',
-    maxPrice: filters.maxPrice?.toString() ?? '',
-    transactionFrom: filters.transactionFrom ?? '',
-    minParcelArea: filters.minParcelAreaM2?.toString() ?? '',
-    year: filters.constructionYearFrom?.toString() ?? '',
-  }
+    propertyType: filters.propertyTypes[0] ?? "",
+    minPrice: filters.minPrice?.toString() ?? "",
+    maxPrice: filters.maxPrice?.toString() ?? "",
+    minParcelArea: filters.minParcelAreaM2?.toString() ?? "",
+    maxArea: "",
+    year: filters.transactionFrom?.slice(0, 4) ?? "",
+  };
 }
 
-const draft = reactive(createDraft(props.filters))
+const draft = reactive(createDraft(props.filters));
 const activeFilterCount = computed(
   () =>
     props.filters.propertyTypes.length +
     Object.entries(props.filters).filter(
-      ([key, value]) => key !== 'propertyTypes' && value !== undefined,
+      ([key, value]) => key !== "propertyTypes" && value !== undefined,
     ).length,
-)
+);
 
 watch(
   () => props.filters,
   (filters) => Object.assign(draft, createDraft(filters)),
   { deep: true },
-)
+);
 
 function apply() {
-  emit('change', {
-    propertyTypes: [],
+  emit("change", {
+    propertyTypes: draft.propertyType
+      ? [draft.propertyType as PropertyUnit["type"]]
+      : [],
     ...(draft.minPrice ? { minPrice: Number(draft.minPrice) } : {}),
     ...(draft.maxPrice ? { maxPrice: Number(draft.maxPrice) } : {}),
-    ...(draft.transactionFrom
-      ? { transactionFrom: draft.transactionFrom }
-      : {}),
     ...(draft.minParcelArea
       ? { minParcelAreaM2: Number(draft.minParcelArea) }
       : {}),
-    ...(draft.year ? { constructionYearFrom: Number(draft.year) } : {}),
-  })
-  open.value = false
+    ...(draft.year ? { transactionFrom: `${draft.year}-01-01` } : {}),
+  });
+  open.value = false;
+}
+
+function reset() {
+  Object.assign(draft, createDraft({ propertyTypes: [] }));
+  emit("change", { propertyTypes: [] });
 }
 </script>
 
 <template>
-  <div class="filter-shell relative">
+  <div class="relative">
     <button
       type="button"
-      class="filter-trigger relative flex size-12 items-center justify-center gap-2 rounded-[10px] border border-[#6259dc] bg-[#5b52c8] px-1 text-[12px] font-[750] text-white shadow-[0_4px_14px_rgb(72_64_209_/_20%)] backdrop-blur-[12px] transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
+      class="relative inline-flex min-h-[42px] items-center gap-2 rounded-[7px] border border-transparent bg-[#f1f3f1] px-[13px] text-[11px] font-[680] text-[#294d43] [&_svg]:w-[17px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-width:1.7]"
       :aria-expanded="open"
-      @click="open = !open"
+      @click="open = true"
     >
-      <svg class="w-5 text-current" viewBox="0 0 20 20" aria-hidden="true">
-        <path
-          d="M3 5h14M6 10h8M8.5 15h3"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        />
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M3 5h14M6 10h8M8.5 15h3" />
       </svg>
-      <span class="filter-label">Filtri</span>
-      <span
-        v-if="activeFilterCount > 0"
-        class="absolute top-1.5 right-2 text-[#ffc267]"
-        :aria-label="`${activeFilterCount} aktivnih filtrov`"
-        >•</span
+      <span>Filtri</span>
+      <b
+        v-if="activeFilterCount"
+        class="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#e5ebdf] text-[9px]"
+        >{{ activeFilterCount }}</b
       >
     </button>
-    <form
+
+    <div
       v-if="open"
-      class="filter-panel absolute top-[calc(100%+8px)] left-0 grid max-h-[min(620px,calc(100dvh-150px))] w-[290px] gap-3.5 overflow-y-auto rounded-md border border-line/92 bg-white/96 p-4 shadow-overlay backdrop-blur-[14px] [&_fieldset]:grid [&_fieldset]:grid-cols-2 [&_fieldset]:gap-2 [&_fieldset]:border-0 [&_fieldset]:p-0 [&_input]:min-h-[42px] [&_input]:w-full [&_input]:rounded-[7px] [&_input]:border [&_input]:border-line [&_input]:bg-white [&_input]:px-2.5 [&_input]:text-xs [&_input]:text-ink [&_label]:grid [&_label]:gap-1.5 [&_label]:text-[11px] [&_label]:font-bold [&_label]:text-ink-muted [&_legend]:col-span-full [&_legend]:mb-1.5 [&_legend]:w-full [&_legend]:text-[11px] [&_legend]:font-bold [&_legend]:text-ink-muted [&_select]:min-h-[42px] [&_select]:w-full [&_select]:rounded-[7px] [&_select]:border [&_select]:border-line [&_select]:bg-white [&_select]:px-2.5 [&_select]:text-xs [&_select]:text-ink"
-      @submit.prevent="apply"
+      class="fixed inset-0 z-100 grid place-items-center bg-[rgb(25_61_53_/_22%)] p-6 max-[720px]:block max-[720px]:overflow-y-auto max-[720px]:bg-surface max-[720px]:p-0"
+      @click.self="open = false"
     >
-      <div class="flex items-center justify-between">
-        <strong class="text-sm">Filtriraj prikaz</strong>
-        <button
-          class="size-9 bg-transparent text-xl text-ink-muted"
-          type="button"
-          aria-label="Zapri filtre"
-          @click="open = false"
-        >
-          ×
-        </button>
-      </div>
-      <fieldset>
-        <legend>Skupna cena prodaje</legend>
-        <input
-          v-model="draft.minPrice"
-          type="number"
-          min="0"
-          inputmode="numeric"
-          placeholder="Od €"
-          aria-label="Najnižja cena"
-        />
-        <input
-          v-model="draft.maxPrice"
-          type="number"
-          min="0"
-          inputmode="numeric"
-          placeholder="Do €"
-          aria-label="Najvišja cena"
-        />
-      </fieldset>
-      <fieldset>
-        <legend>Prostorski podatki</legend>
-        <input
-          v-model="draft.minParcelArea"
-          type="number"
-          min="0"
-          inputmode="numeric"
-          placeholder="Parcela od m²"
-          aria-label="Najmanjša površina parcele"
-        />
-        <input
-          v-model="draft.year"
-          type="number"
-          min="1800"
-          max="2030"
-          inputmode="numeric"
-          placeholder="Zgrajeno po"
-          aria-label="Najzgodnejše leto gradnje"
-        />
-      </fieldset>
-      <label>
-        Prodaje od datuma
-        <input
-          v-model="draft.transactionFrom"
-          type="date"
-          aria-label="Transakcije od datuma"
-        />
-      </label>
-      <button
-        class="apply min-h-11 rounded-[7px] bg-accent text-xs font-[750] text-white transition-[background-color,color,border-color,transform] duration-150 ease-out-expo active:scale-[0.97] motion-reduce:active:scale-100"
-        type="submit"
+      <form
+        class="grid w-[min(590px,calc(100vw-32px))] gap-4 rounded-[10px] bg-white p-6 shadow-[0_26px_70px_rgb(25_61_53_/_18%)] max-[720px]:min-h-dvh max-[720px]:w-full max-[720px]:content-start max-[720px]:rounded-none max-[720px]:bg-surface max-[720px]:px-4 max-[720px]:pt-0 max-[720px]:pb-7 max-[720px]:shadow-none"
+        @submit.prevent="apply"
       >
-        Uporabi filtre
-      </button>
-    </form>
+        <div
+          class="flex min-h-10 items-center justify-between border-b border-[#e9ece9] pb-3 max-[720px]:hidden"
+        >
+          <strong class="text-[15px]">Filtri</strong>
+          <button
+            type="button"
+            class="grid size-8 place-items-center border-0 bg-transparent text-xl text-[#53645e]"
+            aria-label="Zapri filtre"
+            @click="open = false"
+          >
+            ×
+          </button>
+        </div>
+
+        <header
+          class="hidden max-[720px]:sticky max-[720px]:top-0 max-[720px]:z-2 max-[720px]:-mx-4 max-[720px]:mb-2 max-[720px]:grid max-[720px]:min-h-[58px] max-[720px]:grid-cols-[1fr_auto_1fr] max-[720px]:items-center max-[720px]:border-b max-[720px]:border-[#e9ece9] max-[720px]:bg-white max-[720px]:px-4 max-[720px]:[&_a]:justify-self-end max-[720px]:[&_a]:text-[#294d43] max-[720px]:[&_a]:no-underline max-[720px]:[&_button]:border-0 max-[720px]:[&_button]:bg-transparent max-[720px]:[&_button]:text-[#294d43]"
+        >
+          <button type="button" aria-label="Nazaj" @click="open = false">
+            ←
+          </button>
+          <strong>Filtri</strong>
+          <NuxtLink to="/viri-podatkov" aria-label="Podatki in viri">
+            <svg
+              class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="m4 7 8-4 8 4-8 4-8-4Z" />
+              <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
+            </svg>
+          </NuxtLink>
+        </header>
+
+        <div class="flex items-start justify-between gap-5">
+          <div>
+            <h2
+              class="m-0 text-xl tracking-[-0.025em] text-ink max-[720px]:text-[19px]"
+            >
+              Zožite iskanje
+            </h2>
+            <p class="mt-[5px] mb-0 text-[10px] text-[#7a8581]">
+              Spremembe se uporabijo ob potrditvi.
+            </p>
+          </div>
+        </div>
+
+        <label class="grid gap-1.5">
+          <span class="text-[9px] text-[#7a8581]">Vrsta nepremičnine</span>
+          <select
+            v-model="draft.propertyType"
+            class="min-h-[46px] w-full rounded-[7px] border border-[#829b7f] bg-accent-soft px-3 text-xs font-[650] text-[#294d43]"
+          >
+            <option value="">Vse nepremičnine</option>
+            <option value="apartment">Stanovanja</option>
+            <option value="house">Hiše</option>
+            <option value="office">Poslovni prostori</option>
+            <option value="retail">Trgovski prostori</option>
+            <option value="other">Drugo</option>
+          </select>
+        </label>
+
+        <div
+          class="grid grid-cols-2 gap-3.5 max-[720px]:gap-x-[9px] max-[720px]:gap-y-3"
+        >
+          <label class="grid gap-1.5">
+            <span class="text-[9px] text-[#7a8581]">Cena od</span>
+            <input
+              v-model="draft.minPrice"
+              class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
+              type="number"
+              min="0"
+              inputmode="numeric"
+              placeholder="Brez omejitve"
+            />
+          </label>
+          <label class="grid gap-1.5">
+            <span class="text-[9px] text-[#7a8581]">Cena do</span>
+            <input
+              v-model="draft.maxPrice"
+              class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
+              type="number"
+              min="0"
+              inputmode="numeric"
+              placeholder="Brez omejitve"
+            />
+          </label>
+          <label class="grid gap-1.5">
+            <span class="text-[9px] text-[#7a8581]">Površina od</span>
+            <input
+              v-model="draft.minParcelArea"
+              class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
+              type="number"
+              min="0"
+              inputmode="numeric"
+              placeholder="Min. m²"
+            />
+          </label>
+          <label class="grid gap-1.5">
+            <span class="text-[9px] text-[#7a8581]">Površina do</span>
+            <input
+              v-model="draft.maxArea"
+              class="min-h-[46px] w-full cursor-not-allowed rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43] opacity-55"
+              type="number"
+              min="0"
+              inputmode="numeric"
+              placeholder="Maks. m²"
+              disabled
+              title="Na voljo po podpori v podatkovnem viru"
+            />
+          </label>
+        </div>
+
+        <label class="grid gap-1.5">
+          <span class="text-[9px] text-[#7a8581]">Leto prodaje</span>
+          <input
+            v-model="draft.year"
+            class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
+            type="number"
+            min="1900"
+            max="2030"
+            inputmode="numeric"
+            placeholder="Vsa leta"
+          />
+        </label>
+
+        <aside
+          class="flex gap-[9px] rounded-[7px] bg-[#f2f4f1] p-[13px] text-[10px] leading-[1.45] text-[#73807b]"
+        >
+          <span aria-hidden="true">ⓘ</span>
+          Prikazujemo evidentirane prodaje. Status posla je naveden pri
+          podatkih.
+        </aside>
+
+        <div
+          v-if="activeFilterCount"
+          class="hidden max-[720px]:grid max-[720px]:gap-1 max-[720px]:rounded-[7px] max-[720px]:bg-[#f3f5f2] max-[720px]:p-[13px] max-[720px]:text-[9px] max-[720px]:text-[#7a8581]"
+        >
+          <strong class="text-[10px] text-[#294d43]"
+            >{{ activeFilterCount }} aktivna filtra</strong
+          >
+          <span>
+            {{ draft.propertyType ? "Vrsta nepremičnine" : "Prodajne cene" }}
+            <template v-if="draft.year"> · {{ draft.year }}</template>
+          </span>
+        </div>
+
+        <div
+          class="grid grid-cols-[1fr_2fr] gap-[9px] max-[720px]:flex max-[720px]:flex-col-reverse"
+        >
+          <button
+            type="button"
+            class="min-h-11 rounded-[7px] border border-[#e0e5e1] bg-white text-[11px] font-[680] text-[#294d43] max-[720px]:w-full"
+            @click="reset"
+          >
+            Počisti vse
+          </button>
+          <button
+            type="submit"
+            class="min-h-11 rounded-[7px] border border-accent bg-accent text-[11px] font-[680] text-white max-[720px]:w-full"
+          >
+            Pokaži {{ resultCount ?? "" }} posle
+          </button>
+        </div>
+
+        <p
+          v-if="activeFilterCount"
+          class="m-0 text-[9px] text-[#7a8581] max-[720px]:hidden"
+        >
+          {{ activeFilterCount }} aktivna filtra ·
+          {{
+            draft.propertyType === "apartment" ? "Stanovanja" : "Izbrani filtri"
+          }}
+          <template v-if="draft.year"> · {{ draft.year }}</template>
+        </p>
+      </form>
+    </div>
   </div>
 </template>

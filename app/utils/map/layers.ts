@@ -707,9 +707,9 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     minzoom: 12,
     filter: ['==', ['get', 'feature_type'], 'pin'],
     paint: {
-      'circle-color': 'rgba(224,135,53,0.18)',
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 8, 18, 13],
-      'circle-blur': 0.42,
+      'circle-color': 'rgba(41,77,67,0.16)',
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 5, 18, 7],
+      'circle-blur': 0.55,
     },
   })
   map.addLayer({
@@ -723,17 +723,20 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'circle-color': [
         'case',
         ['boolean', ['feature-state', 'hover'], false],
-        '#b65d13',
-        '#df8735',
+        '#193d35',
+        '#315f52',
       ],
       'circle-radius': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        ['interpolate', ['linear'], ['zoom'], 12, 6.5, 18, 9],
-        ['interpolate', ['linear'], ['zoom'], 12, 4.5, 18, 7],
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        12,
+        ['case', ['boolean', ['feature-state', 'hover'], false], 5, 3.5],
+        18,
+        ['case', ['boolean', ['feature-state', 'hover'], false], 6, 4],
       ],
       'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 2,
+      'circle-stroke-width': 1.5,
       'circle-opacity': 0.96,
     },
   })
@@ -742,7 +745,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     type: 'symbol',
     source: 'gurs-sales',
     'source-layer': 'sales',
-    minzoom: 14,
+    minzoom: 12,
     filter: [
       'all',
       ['==', ['get', 'feature_type'], 'pin'],
@@ -758,17 +761,18 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
         ],
         ' €',
       ],
-      'text-size': 10.5,
+      'text-size': 11,
       'text-font': ['Open Sans Bold'],
-      'text-offset': [0, -1.35],
+      'text-offset': [0, -1.5],
       'text-anchor': 'bottom',
       'text-padding': 8,
       'text-optional': true,
     },
     paint: {
-      'text-color': '#8d4914',
-      'text-halo-color': 'rgba(255,255,255,0.96)',
-      'text-halo-width': 2.1,
+      'text-color': '#193d35',
+      'text-halo-color': 'rgba(255,255,255,0.98)',
+      'text-halo-width': 8,
+      'text-halo-blur': 0.4,
     },
   })
 

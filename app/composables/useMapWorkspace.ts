@@ -1,6 +1,7 @@
 import type {
   MapFilters,
   MapLayerId,
+  MapResultItem,
   Position,
   PropertyRecord,
   SearchResult,
@@ -32,6 +33,7 @@ export function useMapWorkspace() {
   const mapLoading = ref(true)
   const mapError = ref('')
   const featureCount = ref(0)
+  const visibleResults = ref<MapResultItem[]>([])
   const filters = ref<MapFilters>({ propertyTypes: [] })
   const measureMode = ref(false)
   const measuredDistance = ref<string>()
@@ -240,6 +242,7 @@ export function useMapWorkspace() {
     sidebarExpanded,
     toggleMapData,
     toolMessage,
+    visibleResults,
     zoom,
   }
 }

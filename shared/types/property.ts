@@ -153,6 +153,30 @@ export interface SearchResult {
   selectionId?: string
 }
 
+/**
+ * A lightweight record projected from the map's already-rendered vector
+ * features. It powers the V2 results list without introducing a second data
+ * source or changing the server-side clustering contract.
+ */
+export interface MapResultItem {
+  id: string
+  selectionId: string
+  address: string
+  location?: string
+  unitLabel?: string
+  propertyType?: string
+  totalPrice?: number
+  pricePerM2?: number
+  areaM2?: number
+  usableAreaM2?: number
+  floor?: number
+  constructionYear?: number
+  officialValue?: number
+  status?: string
+  sourceLabel?: string
+  transactionDate?: string
+}
+
 export interface MapFilters {
   propertyTypes: PropertyUnit['type'][]
   minPrice?: number

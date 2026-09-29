@@ -39,11 +39,15 @@ function toggle(id: MapLayerId) {
       aria-controls="layer-options"
       @click="expanded = !expanded"
     >
-      <span
-        class="layer-icon hidden w-[18px] grid-cols-2 gap-0.5 [&_i]:aspect-square [&_i]:rounded-[1px] [&_i]:border-[1.5px] [&_i]:border-accent"
-        aria-hidden="true"
-        ><i /><i /><i /><i
-      /></span>
+      <span class="layer-icon hidden w-[18px]" aria-hidden="true">
+        <svg
+          class="w-[18px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
+          viewBox="0 0 24 24"
+        >
+          <path d="m4 7 8-4 8 4-8 4-8-4Z" />
+          <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
+        </svg>
+      </span>
       <span class="layer-label">Karta</span>
       <small
         class="layer-count absolute top-1.5 right-1.5 hidden size-[21px] place-items-center rounded-full bg-accent-soft text-[10px] text-accent-strong"
