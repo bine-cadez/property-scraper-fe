@@ -46,6 +46,7 @@ export function useMapWorkspace() {
   let closeTimer: ReturnType<typeof setTimeout> | undefined
   let toolMessageTimer: ReturnType<typeof setTimeout> | undefined
   let visibleLayersBeforeHide: MapLayerId[] = []
+  let pendingSearchSelectionId: string | undefined
 
   function updateUrl() {
     clearTimeout(urlTimer)
@@ -93,11 +94,20 @@ export function useMapWorkspace() {
       propertyController = controller
 
       try {
-        selectedProperty.value = await $fetch<PropertyRecord>(
+        const property = await $fetch<PropertyRecord>(
           `/api/property/${encodeURIComponent(id)}`,
           { signal: controller.signal },
         )
+        selectedProperty.value = property
+        if (pendingSearchSelectionId === id) {
+          center.value = property.coordinates
+          zoom.value = 17
+          pendingSearchSelectionId = undefined
+        }
       } catch (error) {
+        if (pendingSearchSelectionId === id) {
+          pendingSearchSelectionId = undefined
+        }
         if (!isAbortError(error)) {
           selectionError.value =
             'Podrobnosti izbranega zapisa trenutno niso na voljo.'
@@ -117,17 +127,31 @@ export function useMapWorkspace() {
   }
 
   function selectResult(result: SearchResult) {
-    center.value = result.coordinates
+    if (result.coordinates) center.value = result.coordinates
     zoom.value =
       result.type === 'municipality'
         ? 11.5
         : result.type === 'settlement'
           ? 13
           : 17
-    if (result.selectionId) openSelection(result.selectionId)
+    if (result.selectionId) {
+      if (
+        selectedId.value === result.selectionId &&
+        selectedProperty.value
+      ) {
+        center.value = selectedProperty.value.coordinates
+        pendingSearchSelectionId = undefined
+      } else {
+        pendingSearchSelectionId = result.selectionId
+      }
+      clearTimeout(closeTimer)
+      selectedId.value = result.selectionId
+      sidebarExpanded.value = true
+    }
   }
 
   function openSelection(id: string) {
+    pendingSearchSelectionId = undefined
     clearTimeout(closeTimer)
     selectedId.value = id
     sidebarExpanded.value = true

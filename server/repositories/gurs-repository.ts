@@ -12,6 +12,7 @@ import type {
   Transaction,
 } from '../../shared/types/property'
 import type { GursValuationResource } from '../utils/gurs-endpoints'
+import { siD96TmToWgs84 } from '../../shared/utils/coordinates'
 import {
   gursDetail,
   gursList,
@@ -103,24 +104,54 @@ function geometryCenter(coordinates: unknown): Position | undefined {
   ]
 }
 
-function position(raw: Raw): Position {
+function normalizedPosition(
+  first: unknown,
+  second: unknown,
+): Position | undefined {
+  const x = Number(first)
+  const y = Number(second)
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return undefined
+
+  if (x >= -180 && x <= 180 && y >= -90 && y <= 90) return [x, y]
+
+  try {
+    const converted = siD96TmToWgs84([x, y])
+    return converted[0] >= 13 &&
+      converted[0] <= 17 &&
+      converted[1] >= 45 &&
+      converted[1] <= 47
+      ? converted
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+export function positionFromGursRecord(raw: Raw): Position | undefined {
   const geometry = object(pick(raw, 'geometry', 'geom', 'location'))
   const coordinates = pick(geometry, 'coordinates') ?? pick(raw, 'coordinates')
-  if (
-    Array.isArray(coordinates) &&
-    coordinates.length >= 2 &&
-    Number.isFinite(Number(coordinates[0])) &&
-    Number.isFinite(Number(coordinates[1]))
-  ) {
-    return [Number(coordinates[0]), Number(coordinates[1])]
+  if (Array.isArray(coordinates) && coordinates.length >= 2) {
+    const direct = normalizedPosition(coordinates[0], coordinates[1])
+    if (direct) return direct
   }
   const center = geometryCenter(coordinates)
-  if (center) return center
+  if (center) {
+    const normalizedCenter = normalizedPosition(center[0], center[1])
+    if (normalizedCenter) return normalizedCenter
+  }
   const longitude = number(raw, 'longitude', 'lng', 'lon', 'x_wgs84')
   const latitude = number(raw, 'latitude', 'lat', 'y_wgs84')
-  return longitude !== undefined && latitude !== undefined
-    ? [longitude, latitude]
-    : EMPTY_POSITION
+  const geographic = normalizedPosition(longitude, latitude)
+  if (geographic) return geographic
+
+  return normalizedPosition(
+    pick(raw, 'centroidE', 'centroid_e', 'easting', 'x'),
+    pick(raw, 'centroidN', 'centroid_n', 'northing', 'y'),
+  )
+}
+
+function position(raw: Raw): Position {
+  return positionFromGursRecord(raw) ?? EMPTY_POSITION
 }
 
 function polygon(raw: Raw, center: Position): PolygonGeometry {
@@ -506,6 +537,7 @@ export async function findProperty(
     const addressRaw = record(await gursDetail(event, 'addresses', selected.id))
     const buildingId = relationId(
       addressRaw,
+      'eidStavba',
       'buildingId',
       'building_id',
       'building',
@@ -688,6 +720,7 @@ export async function searchProperties(
       const recordId =
         id(raw) || text(raw, 'targetId', 'target_id') || String(index)
       const kind = selectionKind(raw, type)
+      const coordinates = positionFromGursRecord(raw)
       return {
         id: recordId,
         type,
@@ -712,7 +745,7 @@ export async function searchProperties(
               building: 'Stavba',
             } as const
           )[type],
-        coordinates: position(raw),
+        ...(coordinates ? { coordinates } : {}),
         ...(kind ? { selectionId: `${kind}:${recordId}` } : {}),
       }
     })

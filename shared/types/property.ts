@@ -149,7 +149,7 @@ export interface SearchResult {
   type: SearchResultType
   primaryLabel: string
   secondaryLabel: string
-  coordinates: Position
+  coordinates?: Position
   selectionId?: string
 }
 
