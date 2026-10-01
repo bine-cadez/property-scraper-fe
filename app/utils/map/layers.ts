@@ -79,18 +79,28 @@ function addBuildingMarkerImages(map: Map) {
 
 type PropertyMapLayer = 'properties' | 'sales' | 'parcels' | 'cadastral'
 
-const buildingValue: ExpressionSpecification = [
+export const BUILDING_VALUE_PROPERTY_KEYS = [
+  'combined_modelled_value',
+  'combinedModelledValue',
+  'combined_value',
+  'combinedValue',
+  'total_modelled_value',
+  'totalModelledValue',
+  'total_value',
+  'totalValue',
+  'modelled_value',
+  'modelledValue',
+  'official_value',
+  'officialValue',
+  'estimated_market_value',
+  'market_value',
+  'value',
+] as const
+
+const buildingValue = [
   'coalesce',
-  ['get', 'combined_value'],
-  ['get', 'combinedValue'],
-  ['get', 'total_value'],
-  ['get', 'totalValue'],
-  ['get', 'official_value'],
-  ['get', 'officialValue'],
-  ['get', 'estimated_market_value'],
-  ['get', 'market_value'],
-  ['get', 'value'],
-]
+  ...BUILDING_VALUE_PROPERTY_KEYS.map((key) => ['get', key]),
+] as ExpressionSpecification
 
 const buildingValueLabel: ExpressionSpecification = [
   'case',
@@ -314,7 +324,7 @@ export type PropertyMapSourceId =
 
 function tileUrl(layer: PropertyMapLayer) {
   // Bust browser/MapLibre caches when the tile transport contract changes.
-  const parameters = new URLSearchParams({ v: '3' })
+  const parameters = new URLSearchParams({ v: '4' })
   const path = `/api/map/tiles/${layer}/{z}/{x}/{y}.mvt?${parameters.toString()}`
   // MapLibre requires an absolute URL here. Concatenation intentionally keeps
   // the template braces intact (URL() percent-encodes them).

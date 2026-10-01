@@ -11,6 +11,7 @@ import type {
   SearchResult,
   Transaction,
 } from '../../shared/types/property'
+import type { GursValuationResource } from '../utils/gurs-endpoints'
 import {
   gursDetail,
   gursList,
@@ -188,11 +189,62 @@ function money(raw: Raw, area?: number): MoneyValue | undefined {
   }
 }
 
-function unwrapValuation(value: unknown): Raw | undefined {
-  return (
-    records(value)[0] ??
-    (Object.keys(record(value)).length ? record(value) : undefined)
-  )
+export function aggregateValuationRecords(value: unknown): Raw | undefined {
+  const items = records(value)
+  if (!items.length) {
+    const single = record(value)
+    return Object.keys(single).length ? single : undefined
+  }
+
+  let amount = 0
+  let valuedRecords = 0
+  for (const item of items) {
+    const itemAmount = number(
+      item,
+      'modelledValue',
+      'modelled_value',
+      'value',
+      'amount',
+      'officialValue',
+      'official_value',
+    )
+    if (itemAmount === undefined) continue
+    amount += itemAmount
+    valuedRecords += 1
+  }
+
+  if (!valuedRecords) return items[0]
+  return { ...items[0], modelledValue: amount }
+}
+
+async function allValuationUnits(
+  event: H3Event,
+  resource: GursValuationResource,
+  resourceId: string,
+): Promise<Raw[]> {
+  const items: Raw[] = []
+  const seenCursors = new Set<string>()
+  let cursor = ''
+
+  for (let pageNumber = 0; pageNumber < 100; pageNumber += 1) {
+    const payload = await gursValuationUnits(
+      event,
+      resource,
+      resourceId,
+      cursor ? { cursor } : undefined,
+    )
+    items.push(...records(payload))
+
+    const page = object(object(payload).page)
+    const nextCursor = text(page, 'nextCursor', 'next_cursor')
+    const hasMore = page.hasMore === true || page.has_more === true
+    if (!hasMore || !nextCursor || seenCursors.has(nextCursor)) break
+
+    seenCursors.add(nextCursor)
+    cursor = nextCursor
+  }
+
+  return items
 }
 
 function cadastral(raw: Raw) {
@@ -509,13 +561,13 @@ export async function findProperty(
   const [buildingValues, partValues, parcelValues, transactionPayload] =
     await Promise.all([
       buildingId
-        ? optional(gursValuationUnits(event, 'buildings', buildingId))
+        ? optional(allValuationUnits(event, 'buildings', buildingId))
         : undefined,
       partId
-        ? optional(gursValuationUnits(event, 'building-parts', partId))
+        ? optional(allValuationUnits(event, 'building-parts', partId))
         : undefined,
       parcelId
-        ? optional(gursValuationUnits(event, 'parcels', parcelId))
+        ? optional(allValuationUnits(event, 'parcels', parcelId))
         : undefined,
       optional(
         gursList(event, 'transactions', {
@@ -527,9 +579,9 @@ export async function findProperty(
       ),
     ])
 
-  const buildingValue = unwrapValuation(buildingValues)
-  const partValue = unwrapValuation(partValues)
-  const parcelValue = unwrapValuation(parcelValues)
+  const buildingValue = aggregateValuationRecords(buildingValues)
+  const partValue = aggregateValuationRecords(partValues)
+  const parcelValue = aggregateValuationRecords(parcelValues)
   const building = Object.keys(buildingRaw).length
     ? asBuilding(buildingRaw, buildingValue)
     : undefined

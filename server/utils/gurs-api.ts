@@ -127,8 +127,13 @@ export function gursValuationUnits(
   event: H3Event,
   resource: GursValuationResource,
   id: string,
+  query?: GursRequestOptions['query'],
 ) {
-  return gursGet(event, gursEndpoints.valuationUnits(resource, id))
+  return gursGet(
+    event,
+    gursEndpoints.valuationUnits(resource, id),
+    query ? { query } : {},
+  )
 }
 
 export async function gursTile(
