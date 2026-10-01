@@ -7,27 +7,6 @@ const layers = new Set<GursTileLayer>([
   'cadastral',
 ])
 
-const filtersByLayer: Record<GursTileLayer, Set<string>> = {
-  properties: new Set([
-    'koId',
-    'buildingTypeCode',
-    'constructionYearMin',
-    'constructionYearMax',
-  ]),
-  sales: new Set([
-    'itemKind',
-    'transactionId',
-    'propertyType',
-    'landType',
-    'priceMin',
-    'priceMax',
-    'contractDateMin',
-    'contractDateMax',
-  ]),
-  parcels: new Set(['koId', 'areaMin', 'areaMax']),
-  cadastral: new Set(['koId']),
-}
-
 export default defineEventHandler(async (event) => {
   const layer = getRouterParam(event, 'layer') as GursTileLayer
   const z = Number(getRouterParam(event, 'z'))
@@ -54,15 +33,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const allowedFilters = filtersByLayer[layer]
-  const query = Object.fromEntries(
-    Object.entries(getQuery(event)).flatMap(([key, value]) =>
-      allowedFilters.has(key) && typeof value === 'string'
-        ? [[key, value]]
-        : [],
-    ),
-  )
-  const tile = await gursTile(event, layer, z, x, y, query)
+  const tile = await gursTile(event, layer, z, x, y)
   return new Response(tile.body, {
     headers: {
       'Content-Type': 'application/vnd.mapbox-vector-tile',

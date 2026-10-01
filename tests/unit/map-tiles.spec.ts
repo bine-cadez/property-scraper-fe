@@ -12,7 +12,7 @@ describe('property map vector tile URLs', () => {
     })
   })
 
-  it('forwards only filters supported by the corresponding tile layer', () => {
+  it('does not send undocumented filter query parameters', () => {
     const urls = propertyMapTileUrls({
       propertyTypes: ['house'],
       minPrice: 100_000,
@@ -24,13 +24,11 @@ describe('property map vector tile URLs', () => {
       transactionFrom: '2024-01-01',
     })
 
-    expect(urls['gurs-properties']).toContain('constructionYearMin=1990')
-    expect(urls['gurs-sales']).toContain('priceMin=100000')
-    expect(urls['gurs-sales']).toContain('priceMax=450000')
-    expect(urls['gurs-sales']).toContain('contractDateMin=2024-01-01')
-    expect(urls['gurs-parcels']).toContain('areaMin=350')
-    expect(Object.values(urls).join('&')).not.toMatch(
-      /propertyTypes|minPricePerM2|minAreaM2/,
-    )
+    expect(Object.values(urls)).toEqual([
+      `${window.location.origin}/api/map/tiles/properties/{z}/{x}/{y}.mvt?v=3`,
+      `${window.location.origin}/api/map/tiles/sales/{z}/{x}/{y}.mvt?v=3`,
+      `${window.location.origin}/api/map/tiles/parcels/{z}/{x}/{y}.mvt?v=3`,
+      `${window.location.origin}/api/map/tiles/cadastral/{z}/{x}/{y}.mvt?v=3`,
+    ])
   })
 })

@@ -17,6 +17,13 @@ interface GursRequestOptions {
   signal?: AbortSignal
 }
 
+interface UpstreamErrorDetails {
+  statusCode: number
+  message: string
+  url?: string
+  response?: unknown
+}
+
 function connection(event: H3Event) {
   const config = useRuntimeConfig(event)
   const baseURL = String(config.gursApiBaseUrl || '').replace(/\/$/, '')
@@ -35,17 +42,51 @@ function connection(event: H3Event) {
   }
 }
 
+function record(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === 'object' && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined
+}
+
+function upstreamErrorDetails(error: unknown): UpstreamErrorDetails {
+  const value = record(error)
+  const response = record(value?.response)
+  const statusCode = Number(
+    value?.statusCode ?? value?.status ?? response?.status ?? 502,
+  )
+  const responseBody =
+    value?.responseData ?? value?.data ?? response?._data ?? undefined
+  const url =
+    typeof value?.url === 'string'
+      ? value.url
+      : typeof response?.url === 'string'
+        ? response.url
+        : undefined
+
+  return {
+    statusCode: Number.isFinite(statusCode) ? statusCode : 502,
+    message: error instanceof Error ? error.message : String(error),
+    ...(url ? { url } : {}),
+    ...(responseBody !== undefined ? { response: responseBody } : {}),
+  }
+}
+
 function upstreamError(error: unknown): never {
+  const details = upstreamErrorDetails(error)
   const statusCode =
-    typeof error === 'object' && error && 'statusCode' in error
-      ? Number(error.statusCode) || 502
-      : 502
+    details.statusCode === 404 ? 404 : 502
+
+  if (import.meta.dev) {
+    console.error('[gurs-api] Upstream request failed', details)
+  }
+
   throw createError({
-    statusCode: statusCode === 404 ? 404 : 502,
+    statusCode,
     statusMessage:
-      statusCode === 404
+      details.statusCode === 404
         ? 'Zapis v GURS ni najden.'
         : 'Povezava s Property Scraper API ni uspela.',
+    ...(import.meta.dev ? { data: { upstream: details } } : {}),
     cause: error,
   })
 }
@@ -99,13 +140,9 @@ export async function gursTile(
   z: number,
   x: number,
   y: number,
-  query: GursRequestOptions['query'] = {},
 ): Promise<Response> {
   const { baseURL, headers } = connection(event)
   const url = new URL(`/map/tiles/${layer}/${z}/${x}/${y}.mvt`, baseURL)
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined) url.searchParams.set(key, String(value))
-  }
 
   let lastError: unknown
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -115,9 +152,23 @@ export async function gursTile(
         signal: AbortSignal.timeout(12_000),
       })
       if (!response.ok) {
-        throw Object.assign(new Error(`Tile API returned ${response.status}`), {
-          statusCode: response.status,
-        })
+        const contentType = response.headers.get('content-type') ?? ''
+        let responseData: unknown
+        try {
+          responseData = contentType.includes('application/json')
+            ? await response.json()
+            : (await response.text()).slice(0, 4000)
+        } catch {
+          responseData = undefined
+        }
+        throw Object.assign(
+          new Error(`Tile API returned ${response.status}`),
+          {
+            statusCode: response.status,
+            url: url.toString(),
+            responseData,
+          },
+        )
       }
       return response
     } catch (error) {

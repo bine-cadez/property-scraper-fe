@@ -313,15 +313,9 @@ const buildingSummaryText: ExpressionSpecification = [
 export type PropertyMapSourceId =
   'gurs-properties' | 'gurs-sales' | 'gurs-parcels' | 'gurs-cadastral'
 
-function tileUrl(
-  layer: PropertyMapLayer,
-  query: Record<string, string | number | undefined> = {},
-) {
+function tileUrl(layer: PropertyMapLayer) {
   // Bust browser/MapLibre caches when the tile transport contract changes.
   const parameters = new URLSearchParams({ v: '3' })
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined && value !== '') parameters.set(key, String(value))
-  }
   const path = `/api/map/tiles/${layer}/{z}/{x}/{y}.mvt?${parameters.toString()}`
   // MapLibre requires an absolute URL here. Concatenation intentionally keeps
   // the template braces intact (URL() percent-encodes them).
@@ -329,22 +323,15 @@ function tileUrl(
 }
 
 /**
- * Converts the UI filters supported by the backend into MVT query parameters.
- * Unsupported presentation-only filters are intentionally not sent upstream.
+ * Builds URLs that match the published Swagger tile contract. The endpoint
+ * currently accepts only the layer and z/x/y path parameters; UI filters stay
+ * presentation-only until the backend documents filter query parameters.
  */
-export function propertyMapTileUrls(filters: MapFilters) {
+export function propertyMapTileUrls(_filters: MapFilters) {
   return {
-    'gurs-properties': tileUrl('properties', {
-      constructionYearMin: filters.constructionYearFrom,
-    }),
-    'gurs-sales': tileUrl('sales', {
-      priceMin: filters.minPrice,
-      priceMax: filters.maxPrice,
-      contractDateMin: filters.transactionFrom,
-    }),
-    'gurs-parcels': tileUrl('parcels', {
-      areaMin: filters.minParcelAreaM2,
-    }),
+    'gurs-properties': tileUrl('properties'),
+    'gurs-sales': tileUrl('sales'),
+    'gurs-parcels': tileUrl('parcels'),
     'gurs-cadastral': tileUrl('cadastral'),
   } satisfies Record<PropertyMapSourceId, string>
 }
@@ -470,10 +457,13 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
         '#dc8e34',
       ],
       'line-width': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        2.2,
-        ['interpolate', ['linear'], ['zoom'], 15, 0.8, 19, 1.45],
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        15,
+        ['case', ['boolean', ['feature-state', 'hover'], false], 2.2, 0.8],
+        19,
+        ['case', ['boolean', ['feature-state', 'hover'], false], 2.2, 1.45],
       ],
       'line-opacity': 0.86,
     },
@@ -856,7 +846,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
   })
 }
 
-/** Refreshes vector source URLs so supported filters execute in PostGIS. */
+/** Refreshes vector source URLs without inventing undocumented API filters. */
 export function updatePropertyMapTiles(map: Map, filters: MapFilters) {
   const urls = propertyMapTileUrls(filters)
   for (const sourceId of Object.keys(urls) as PropertyMapSourceId[]) {
