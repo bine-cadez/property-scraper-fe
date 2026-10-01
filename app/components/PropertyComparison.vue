@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowLeft, Info, Layers3, Map } from "@lucide/vue";
 import type { MapResultItem, SearchResult } from "#shared/types/property";
 import {
   formatArea,
@@ -99,13 +100,7 @@ const mobileRows = rows.filter(
             class="grid size-[30px] place-items-center rounded-[7px] bg-accent text-white"
             aria-hidden="true"
           >
-            <svg
-              class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.55]"
-              viewBox="0 0 24 24"
-            >
-              <path d="m4 5 5-2 6 2 5-2v16l-5 2-6-2-5 2V5Z" />
-              <path d="M9 3v16M15 5v16" />
-            </svg>
+            <Map class="w-[19px]" :stroke-width="1.55" />
           </span>
           <strong>prostor.</strong>
         </NuxtLink>
@@ -124,7 +119,8 @@ const mobileRows = rows.filter(
         <NuxtLink
           class="text-[11px] font-[680] text-[#294d43] no-underline"
           to="/viri-podatkov"
-          >ⓘ O podatkih</NuxtLink
+          ><Info class="mr-1 inline size-3.5" aria-hidden="true" /> O
+          podatkih</NuxtLink
         >
       </div>
 
@@ -137,7 +133,7 @@ const mobileRows = rows.filter(
           aria-label="Nazaj na rezultate"
           @click="$emit('close')"
         >
-          ←
+          <ArrowLeft class="size-5" aria-hidden="true" />
         </button>
         <strong class="text-[13px]">Primerjava</strong>
         <NuxtLink
@@ -145,14 +141,7 @@ const mobileRows = rows.filter(
           class="justify-self-end text-[#294d43] no-underline"
           aria-label="Podatki in viri"
         >
-          <svg
-            class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="m4 7 8-4 8 4-8 4-8-4Z" />
-            <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
-          </svg>
+          <Layers3 class="w-[19px]" :stroke-width="1.7" aria-hidden="true" />
         </NuxtLink>
       </div>
     </header>
@@ -165,7 +154,8 @@ const mobileRows = rows.filter(
         class="mb-5 hidden border-0 bg-transparent p-0 text-[11px] font-[650] text-[#294d43] min-[721px]:block"
         @click="$emit('close')"
       >
-        ← Nazaj na rezultate
+        <ArrowLeft class="mr-1 inline size-4" aria-hidden="true" />
+        Nazaj na rezultate
       </button>
 
       <div
@@ -326,7 +316,7 @@ const mobileRows = rows.filter(
       <aside
         class="mt-3.5 flex gap-2.5 rounded-[7px] bg-[#eef3fa] px-[18px] py-[15px] text-[10px] leading-[1.45] text-[#5e7185] max-[720px]:mt-2.5"
       >
-        <span aria-hidden="true">ⓘ</span>
+        <Info class="mt-px size-4 shrink-0" aria-hidden="true" />
         <div>
           <strong class="text-[#526981]">Dve različni nepremičnini</strong>
           <p class="mt-1 mb-0">

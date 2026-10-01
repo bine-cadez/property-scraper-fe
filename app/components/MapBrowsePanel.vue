@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Building2, ChevronDown, Info, Layers3, Map } from "@lucide/vue";
 import type {
   MapFilters,
   MapLayerId,
@@ -20,6 +21,32 @@ const emit = defineEmits<{
   viewChange: [view: "list" | "map"];
   compareOpen: [];
 }>();
+
+const propertyTypeOptions = [
+  { value: "all", label: "Vse nepremičnine" },
+  { value: "apartment", label: "Stanovanja" },
+  { value: "house", label: "Hiše" },
+  { value: "office", label: "Poslovni prostori" },
+  { value: "retail", label: "Trgovski prostori" },
+];
+const priceOptions = [
+  { value: "all", label: "Prodajne cene" },
+  { value: "under-200", label: "Do 200.000 €" },
+  { value: "200-500", label: "200–500 tisoč €" },
+  { value: "over-500", label: "Nad 500.000 €" },
+];
+const areaOptions = [
+  { value: "all", label: "Površina" },
+  { value: "100", label: "Vsaj 100 m²" },
+  { value: "300", label: "Vsaj 300 m²" },
+  { value: "500", label: "Vsaj 500 m²" },
+];
+const yearOptions = [
+  { value: "all", label: "Vsa leta" },
+  { value: "2026", label: "2026" },
+  { value: "2025", label: "2025" },
+  { value: "2024", label: "2024" },
+];
 
 const hasFilters = computed(
   () =>
@@ -57,8 +84,7 @@ function update(partial: Partial<MapFilters>) {
   emit("filtersChange", { ...props.filters, ...partial });
 }
 
-function setPrice(event: Event) {
-  const value = (event.target as HTMLSelectElement).value;
+function setPrice(value: string) {
   const next = { ...props.filters };
   delete next.minPrice;
   delete next.maxPrice;
@@ -71,24 +97,21 @@ function setPrice(event: Event) {
   emit("filtersChange", next);
 }
 
-function setType(event: Event) {
-  const value = (event.target as HTMLSelectElement).value;
+function setType(value: string) {
   update({
     propertyTypes:
       value === "all" ? [] : [value as MapFilters["propertyTypes"][number]],
   });
 }
 
-function setArea(event: Event) {
-  const value = (event.target as HTMLSelectElement).value;
+function setArea(value: string) {
   const next = { ...props.filters };
   if (value === "all") delete next.minParcelAreaM2;
   else next.minParcelAreaM2 = Number(value);
   emit("filtersChange", next);
 }
 
-function setYear(event: Event) {
-  const value = (event.target as HTMLSelectElement).value;
+function setYear(value: string) {
   const next = { ...props.filters };
   if (value === "all") delete next.transactionFrom;
   else next.transactionFrom = `${value}-01-01`;
@@ -121,13 +144,7 @@ function showSales() {
           class="grid size-[30px] place-items-center rounded-[7px] bg-accent text-white"
           aria-hidden="true"
         >
-          <svg
-            class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.55]"
-            viewBox="0 0 24 24"
-          >
-            <path d="m4 5 5-2 6 2 5-2v16l-5 2-6-2-5 2V5Z" />
-            <path d="M9 3v16M15 5v16" />
-          </svg>
+          <Map class="w-[19px]" :stroke-width="1.55" />
         </span>
         <strong>prostor.</strong>
       </NuxtLink>
@@ -142,14 +159,7 @@ function showSales() {
         class="inline-flex min-h-[42px] items-center gap-2 justify-self-end whitespace-nowrap border-0 bg-transparent text-[11px] font-[680] text-[#294d43] max-[720px]:hidden"
         @click="emit('compareOpen')"
       >
-        <svg
-          class="w-[18px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="m4 7 8-4 8 4-8 4-8-4Z" />
-          <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
-        </svg>
+        <Layers3 class="w-[18px]" :stroke-width="1.7" aria-hidden="true" />
         <span>Primerjava</span>
         <b
           v-if="comparisonCount"
@@ -162,7 +172,7 @@ function showSales() {
         class="inline-flex min-h-[42px] items-center gap-2 justify-self-end whitespace-nowrap text-[11px] font-[680] text-[#294d43] no-underline max-[960px]:hidden"
         to="/viri-podatkov"
       >
-        <span aria-hidden="true">ⓘ</span>
+        <Info class="size-4" aria-hidden="true" />
         <span>O podatkih</span>
       </NuxtLink>
 
@@ -187,85 +197,44 @@ function showSales() {
         @click="showSales"
       >
         Prodajne cene
-        <span aria-hidden="true">⌄</span>
+        <ChevronDown class="size-4" aria-hidden="true" />
       </button>
 
-      <label class="max-[720px]:hidden">
-        <span class="sr-only">Vrsta nepremičnine</span>
-        <select
-          class="min-h-[42px] rounded-[7px] border bg-white py-0 pr-9 pl-[13px] text-[11px] font-[630] text-[#294d43] max-[720px]:w-full"
-          :value="typeChoice"
-          :class="
-            typeChoice !== 'all'
-              ? 'border-[#829b7f] bg-accent-soft'
-              : 'border-[#dfe5e1]'
-          "
-          @change="setType"
-        >
-          <option value="all">Vse nepremičnine</option>
-          <option value="apartment">Stanovanja</option>
-          <option value="house">Hiše</option>
-          <option value="office">Poslovni prostori</option>
-          <option value="retail">Trgovski prostori</option>
-        </select>
-      </label>
+      <BaseSelect
+        class="min-w-[150px] max-[720px]:hidden"
+        :model-value="typeChoice"
+        :options="propertyTypeOptions"
+        label="Vrsta nepremičnine"
+        :active="typeChoice !== 'all'"
+        @change="setType"
+      />
 
-      <label class="max-[720px]:min-w-0 max-[720px]:flex-1">
-        <span class="sr-only">Cena</span>
-        <select
-          class="min-h-[42px] rounded-[7px] border bg-white py-0 pr-9 pl-[13px] text-[11px] font-[630] text-[#294d43]"
-          :value="priceChoice"
-          :class="
-            priceChoice !== 'all'
-              ? 'border-[#829b7f] bg-accent-soft'
-              : 'border-[#dfe5e1]'
-          "
-          @change="setPrice"
-        >
-          <option value="all">Prodajne cene</option>
-          <option value="under-200">Do 200.000 €</option>
-          <option value="200-500">200–500 tisoč €</option>
-          <option value="over-500">Nad 500.000 €</option>
-        </select>
-      </label>
+      <BaseSelect
+        class="min-w-[136px] max-[720px]:min-w-0 max-[720px]:flex-1"
+        :model-value="priceChoice"
+        :options="priceOptions"
+        label="Cena"
+        :active="priceChoice !== 'all'"
+        @change="setPrice"
+      />
 
-      <label class="max-[720px]:hidden">
-        <span class="sr-only">Površina</span>
-        <select
-          class="min-h-[42px] rounded-[7px] border bg-white py-0 pr-9 pl-[13px] text-[11px] font-[630] text-[#294d43]"
-          :value="areaChoice"
-          :class="
-            areaChoice !== 'all'
-              ? 'border-[#829b7f] bg-accent-soft'
-              : 'border-[#dfe5e1]'
-          "
-          @change="setArea"
-        >
-          <option value="all">Površina</option>
-          <option value="100">Vsaj 100 m²</option>
-          <option value="300">Vsaj 300 m²</option>
-          <option value="500">Vsaj 500 m²</option>
-        </select>
-      </label>
+      <BaseSelect
+        class="min-w-[116px] max-[720px]:hidden"
+        :model-value="areaChoice"
+        :options="areaOptions"
+        label="Površina"
+        :active="areaChoice !== 'all'"
+        @change="setArea"
+      />
 
-      <label class="max-[720px]:hidden">
-        <span class="sr-only">Leto prodaje</span>
-        <select
-          class="min-h-[42px] rounded-[7px] border bg-white py-0 pr-9 pl-[13px] text-[11px] font-[630] text-[#294d43]"
-          :value="yearChoice"
-          :class="
-            yearChoice !== 'all'
-              ? 'border-[#829b7f] bg-accent-soft'
-              : 'border-[#dfe5e1]'
-          "
-          @change="setYear"
-        >
-          <option value="all">Vsa leta</option>
-          <option value="2026">2026</option>
-          <option value="2025">2025</option>
-          <option value="2024">2024</option>
-        </select>
-      </label>
+      <BaseSelect
+        class="min-w-[100px] max-[720px]:hidden"
+        :model-value="yearChoice"
+        :options="yearOptions"
+        label="Leto prodaje"
+        :active="yearChoice !== 'all'"
+        @change="setYear"
+      />
 
       <PropertyFilters
         class="[&_button:first-child]:min-w-[100px]"
@@ -298,14 +267,11 @@ function showSales() {
         :aria-pressed="mobileView === 'list'"
         @click="emit('viewChange', 'list')"
       >
-        <svg
-          class="mr-1 inline w-4 fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.6]"
-          viewBox="0 0 24 24"
+        <Building2
+          class="mr-1 inline w-4"
+          :stroke-width="1.6"
           aria-hidden="true"
-        >
-          <path d="M5 21V6l7-3 7 3v15H5Z" />
-          <path d="M9 9h2M14 9h1M9 13h2M14 13h1M9 17h2M14 17h1" />
-        </svg>
+        />
         Seznam
       </button>
       <button
@@ -318,14 +284,7 @@ function showSales() {
         :aria-pressed="mobileView === 'map'"
         @click="emit('viewChange', 'map')"
       >
-        <svg
-          class="mr-1 inline w-4 fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.6]"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="m4 5 5-2 6 2 5-2v16l-5 2-6-2-5 2V5Z" />
-          <path d="M9 3v16M15 5v16" />
-        </svg>
+        <Map class="mr-1 inline w-4" :stroke-width="1.6" aria-hidden="true" />
         Zemljevid
       </button>
     </div>

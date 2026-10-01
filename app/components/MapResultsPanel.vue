@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowRight, Info, ListFilter } from "@lucide/vue";
 import type { MapFilters, MapResultItem } from "#shared/types/property";
 import {
   formatArea,
@@ -168,13 +169,11 @@ const propertyTypeLabel = computed(() => {
       v-else
       class="m-auto grid place-items-center px-7 text-center text-[#6e7a76]"
     >
-      <svg
-        class="mb-3 w-[34px] fill-none stroke-current [stroke-linecap:round] [stroke-width:1.7] text-[#9aaa9f]"
-        viewBox="0 0 24 24"
+      <ListFilter
+        class="mb-3 w-[34px] text-[#9aaa9f]"
+        :stroke-width="1.7"
         aria-hidden="true"
-      >
-        <path d="M4 7.5h16M6.5 12h11M9 16.5h6" />
-      </svg>
+      />
       <strong class="text-[13px] text-[#294d43]"
         >Na tej povečavi ni posameznih prodaj.</strong
       >
@@ -187,8 +186,8 @@ const propertyTypeLabel = computed(() => {
       class="grid min-h-10 gap-1 px-[18px] pb-3 text-[9px] text-[#7b8682] max-[720px]:px-3.5"
     >
       <span
-        ><span aria-hidden="true">ⓘ</span> Vzorec GURS · evidentirane prodaje ·
-        podatki v preverjanju</span
+        ><Info class="mr-1 inline size-3" aria-hidden="true" /> Vzorec GURS ·
+        evidentirane prodaje · podatki v preverjanju</span
       >
       <span>Prikazane so prodaje, ki so trenutno vidne na zemljevidu.</span>
     </footer>
@@ -208,7 +207,7 @@ const propertyTypeLabel = computed(() => {
         @click="emit('openComparison')"
       >
         Primerjaj
-        <span aria-hidden="true">→</span>
+        <ArrowRight class="ml-1 inline size-4" aria-hidden="true" />
       </button>
     </div>
   </section>

@@ -1,109 +1,110 @@
 <script setup lang="ts">
-import { sl } from '~/locales/sl'
-import type { SearchResult } from '#shared/types/property'
-import { isAbortError } from '~/utils/request'
+import { ArrowLeft, Layers3, Search, X } from "@lucide/vue";
+import { sl } from "~/locales/sl";
+import type { SearchResult } from "#shared/types/property";
+import { isAbortError } from "~/utils/request";
 
 const emit = defineEmits<{
-  select: [result: SearchResult]
-}>()
+  select: [result: SearchResult];
+}>();
 
-const query = ref('')
-const results = ref<SearchResult[]>([])
-const loading = ref(false)
-const open = ref(false)
-const mobileMode = ref(false)
-const activeIndex = ref(-1)
-const inputRef = ref<HTMLInputElement>()
-let debounceTimer: ReturnType<typeof setTimeout> | undefined
-let controller: AbortController | undefined
+const query = ref("");
+const results = ref<SearchResult[]>([]);
+const loading = ref(false);
+const open = ref(false);
+const mobileMode = ref(false);
+const activeIndex = ref(-1);
+const inputRef = ref<HTMLInputElement>();
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+let controller: AbortController | undefined;
 
 watch(query, (value) => {
-  clearTimeout(debounceTimer)
-  controller?.abort()
-  activeIndex.value = -1
+  clearTimeout(debounceTimer);
+  controller?.abort();
+  activeIndex.value = -1;
   if (value.trim().length < 2) {
-    results.value = []
-    loading.value = false
-    open.value = mobileMode.value
-    return
+    results.value = [];
+    loading.value = false;
+    open.value = mobileMode.value;
+    return;
   }
 
-  loading.value = true
-  open.value = true
+  loading.value = true;
+  open.value = true;
   debounceTimer = setTimeout(async () => {
-    const requestController = new AbortController()
-    controller = requestController
+    const requestController = new AbortController();
+    controller = requestController;
     try {
       const response = await $fetch<{ results: SearchResult[] }>(
-        '/api/search',
+        "/api/search",
         {
           query: { q: value.trim() },
           signal: requestController.signal,
         },
-      )
+      );
       if (controller === requestController) {
-        results.value = response.results
+        results.value = response.results;
       }
     } catch (error) {
       if (!isAbortError(error) && controller === requestController) {
-        results.value = []
+        results.value = [];
       }
     } finally {
       if (controller === requestController) {
-        loading.value = false
+        loading.value = false;
       }
     }
-  }, 220)
-})
+  }, 220);
+});
 
 onBeforeUnmount(() => {
-  clearTimeout(debounceTimer)
-  controller?.abort()
-})
+  clearTimeout(debounceTimer);
+  controller?.abort();
+});
 
 function choose(result: SearchResult) {
-  query.value = result.primaryLabel
-  open.value = false
-  mobileMode.value = false
-  emit('select', result)
+  query.value = result.primaryLabel;
+  open.value = false;
+  mobileMode.value = false;
+  emit("select", result);
 }
 
 function focusSearch() {
-  mobileMode.value = window.matchMedia('(max-width: 720px)').matches
-  open.value = mobileMode.value || query.value.trim().length >= 2
-  if (mobileMode.value) nextTick(() => inputRef.value?.focus())
+  mobileMode.value = window.matchMedia("(max-width: 720px)").matches;
+  open.value = mobileMode.value || query.value.trim().length >= 2;
+  if (mobileMode.value) nextTick(() => inputRef.value?.focus());
 }
 
 function closeSearch() {
-  open.value = false
-  mobileMode.value = false
-  activeIndex.value = -1
+  open.value = false;
+  mobileMode.value = false;
+  activeIndex.value = -1;
 }
 
 function handleKeydown(event: KeyboardEvent) {
-  if (!open.value && event.key === 'ArrowDown') open.value = true
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
+  if (!open.value && event.key === "ArrowDown") open.value = true;
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
     activeIndex.value = Math.min(
       activeIndex.value + 1,
       results.value.length - 1,
-    )
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    activeIndex.value = Math.max(activeIndex.value - 1, 0)
-  } else if (event.key === 'Enter' && activeIndex.value >= 0) {
-    event.preventDefault()
-    const result = results.value[activeIndex.value]
-    if (result) choose(result)
-  } else if (event.key === 'Escape') {
-    open.value = false
+    );
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    activeIndex.value = Math.max(activeIndex.value - 1, 0);
+  } else if (event.key === "Enter" && activeIndex.value >= 0) {
+    event.preventDefault();
+    const result = results.value[activeIndex.value];
+    if (result) choose(result);
+  } else if (event.key === "Escape") {
+    open.value = false;
   }
 }
 
 function clear() {
-  query.value = ''
-  results.value = []
-  inputRef.value?.focus()
+  query.value = "";
+  results.value = [];
+  inputRef.value?.focus();
 }
 </script>
 
@@ -112,22 +113,7 @@ function clear() {
     <div
       class="search-box grid min-h-[52px] grid-cols-[22px_1fr_auto_auto] items-center gap-2.5 rounded-md border border-line/92 bg-white/96 pr-3 pl-4 shadow-overlay backdrop-blur-[14px] focus-within:border-accent focus-within:shadow-[0_0_0_2px_rgb(49_95_82_/_10%)] max-[640px]:min-h-12"
     >
-      <svg class="w-[21px] text-accent" viewBox="0 0 24 24" aria-hidden="true">
-        <circle
-          cx="10.8"
-          cy="10.8"
-          r="6.4"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        />
-        <path
-          d="m16 16 4 4"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
-      </svg>
+      <Search class="w-[21px] text-accent" aria-hidden="true" />
       <label class="sr-only" for="map-search">{{ sl.search.label }}</label>
       <input
         id="map-search"
@@ -159,7 +145,7 @@ function clear() {
         aria-label="Počisti iskanje"
         @click="clear"
       >
-        ×
+        <X class="size-5" aria-hidden="true" />
       </button>
       <kbd
         class="rounded border border-line bg-[#f8faf9] px-1.5 py-[3px] font-sans text-[10px] text-ink-muted max-[640px]:hidden"
@@ -194,7 +180,7 @@ function clear() {
           aria-label="Nazaj"
           @click="closeSearch"
         >
-          ←
+          <ArrowLeft class="size-5" aria-hidden="true" />
         </button>
         <strong class="text-[13px]">Iskanje</strong>
         <NuxtLink
@@ -202,36 +188,14 @@ function clear() {
           class="justify-self-end text-[#294d43] no-underline"
           aria-label="Podatki in viri"
         >
-          <svg
-            class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="m4 7 8-4 8 4-8 4-8-4Z" />
-            <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
-          </svg>
+          <Layers3 class="w-[19px]" :stroke-width="1.7" aria-hidden="true" />
         </NuxtLink>
       </header>
 
       <div
         class="grid min-h-[48px] grid-cols-[22px_1fr_auto] items-center gap-2.5 rounded-lg border border-accent bg-white px-3 shadow-[0_0_0_2px_rgb(49_95_82_/_10%)]"
       >
-        <svg class="w-5 text-accent" viewBox="0 0 24 24" aria-hidden="true">
-          <circle
-            cx="10.8"
-            cy="10.8"
-            r="6.4"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-          <path
-            d="m16 16 4 4"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-        </svg>
+        <Search class="w-5 text-accent" aria-hidden="true" />
         <label class="sr-only" for="map-search-mobile">{{
           sl.search.label
         }}</label>
@@ -252,7 +216,7 @@ function clear() {
           aria-label="Počisti iskanje"
           @click="clear"
         >
-          ×
+          <X class="size-5" aria-hidden="true" />
         </button>
       </div>
 

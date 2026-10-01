@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Rotate3D } from "@lucide/vue";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import type { PropertyRecord } from "#shared/types/property";
 
@@ -230,23 +231,7 @@ onBeforeUnmount(() => {
         <span
           class="inline-flex min-h-[34px] items-center gap-[7px] rounded-full border border-white/72 bg-white/92 px-[11px] text-[10px] font-extrabold shadow-[0_4px_14px_rgb(20_30_28_/_16%)] transition-transform duration-150 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-active:scale-[0.97] motion-reduce:transition-none motion-reduce:group-active:scale-100"
         >
-          <svg class="size-4" viewBox="0 0 20 20" aria-hidden="true">
-            <path
-              d="M15.4 7.2A6 6 0 1 0 16 11"
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-width="1.7"
-            />
-            <path
-              d="m13.1 4.8 2.8 2.5-3.5 1"
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.7"
-            />
-          </svg>
+          <Rotate3D class="size-4" :stroke-width="1.7" aria-hidden="true" />
           {{ isAnimating ? "Obhod v teku" : "Zavrti pogled" }}
         </span>
       </button>

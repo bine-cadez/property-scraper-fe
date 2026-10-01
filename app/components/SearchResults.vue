@@ -1,38 +1,39 @@
 <script setup lang="ts">
-import type { SearchResult } from '#shared/types/property'
-import { sl } from '~/locales/sl'
+import { Building2, Map, X } from "@lucide/vue";
+import type { SearchResult } from "#shared/types/property";
+import { sl } from "~/locales/sl";
 
 const props = withDefaults(
   defineProps<{
-    results: SearchResult[]
-    activeIndex: number
-    loading: boolean
-    mobile?: boolean
+    results: SearchResult[];
+    activeIndex: number;
+    loading: boolean;
+    mobile?: boolean;
   }>(),
   { mobile: false },
-)
+);
 
 defineEmits<{
-  select: [result: SearchResult]
-  hover: [index: number]
-  close: []
-}>()
+  select: [result: SearchResult];
+  hover: [index: number];
+  close: [];
+}>();
 
 const indexedResults = computed(() =>
   props.results.map((result, index) => ({ result, index })),
-)
+);
 const addressResults = computed(() =>
   indexedResults.value.filter(({ result }) =>
-    ['address', 'building', 'parcel'].includes(result.type),
+    ["address", "building", "parcel"].includes(result.type),
   ),
-)
+);
 const placeResults = computed(() =>
   indexedResults.value.filter(({ result }) =>
-    ['municipality', 'settlement', 'cadastral_municipality'].includes(
+    ["municipality", "settlement", "cadastral_municipality"].includes(
       result.type,
     ),
   ),
-)
+);
 </script>
 
 <template>
@@ -88,13 +89,7 @@ const placeResults = computed(() =>
           @click="$emit('select', result)"
         >
           <span class="text-accent" aria-hidden="true">
-            <svg
-              class="w-[18px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-              viewBox="0 0 24 24"
-            >
-              <path d="M5 21V6l7-3 7 3v15H5Z" />
-              <path d="M9 9h2M14 9h1M9 13h2M14 13h1M9 17h2M14 17h1" />
-            </svg>
+            <Building2 class="w-[18px]" :stroke-width="1.7" />
           </span>
           <span class="grid min-w-0 gap-[3px]">
             <strong class="truncate text-[13px]">{{
@@ -129,13 +124,7 @@ const placeResults = computed(() =>
           @click="$emit('select', result)"
         >
           <span class="text-accent" aria-hidden="true">
-            <svg
-              class="w-[18px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-              viewBox="0 0 24 24"
-            >
-              <path d="m4 5 5-2 6 2 5-2v16l-5 2-6-2-5 2V5Z" />
-              <path d="M9 3v16M15 5v16" />
-            </svg>
+            <Map class="w-[18px]" :stroke-width="1.7" />
           </span>
           <span class="grid min-w-0 gap-[3px]">
             <strong class="truncate text-[13px]">{{
@@ -164,7 +153,8 @@ const placeResults = computed(() =>
         class="mt-2 min-h-9 w-full border-0 border-t border-[#e7ebe8] bg-transparent pt-2 text-left text-[11px] font-[650] text-[#294d43]"
         @click="$emit('close')"
       >
-        × Zapri iskanje
+        <X class="mr-1 inline size-4" aria-hidden="true" />
+        Zapri iskanje
       </button>
     </template>
   </div>

@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import {
+  ArrowLeft,
+  CircleAlert,
+  LocateFixed,
+  MoreHorizontal,
+} from "@lucide/vue";
 import type { MapResultItem } from "#shared/types/property";
 
 const {
@@ -154,7 +160,7 @@ useHead({
             aria-label="Nazaj na rezultate"
             @click="closeSelection"
           >
-            ←
+            <ArrowLeft class="size-5" aria-hidden="true" />
           </button>
           <strong>Podatki niso na voljo</strong>
           <p class="m-0 text-xs text-[#74817d]">{{ selectionError }}</p>
@@ -249,8 +255,8 @@ useHead({
           <span
             class="grid size-6 place-items-center rounded-full bg-[#b98a2d] text-xs font-extrabold text-white"
             aria-hidden="true"
-            >!</span
-          >
+            ><CircleAlert class="size-4" aria-hidden="true"
+          /></span>
           <p class="m-0 text-[10px] leading-[1.45]">{{ mapDataError }}</p>
           <button
             type="button"
@@ -269,15 +275,11 @@ useHead({
           title="Premakni zemljevid na mojo lokacijo"
           @click="locateNearby"
         >
-          <svg
-            class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-width:1.7]"
-            viewBox="0 0 24 24"
+          <LocateFixed
+            class="w-[19px]"
+            :stroke-width="1.7"
             aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="5.5" />
-            <circle cx="12" cy="12" r="2.2" />
-            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-          </svg>
+          />
         </button>
 
         <details
@@ -287,7 +289,7 @@ useHead({
             class="grid size-10 cursor-pointer list-none place-items-center rounded-md border border-[#dce2de] bg-white text-accent shadow-[0_3px_12px_rgb(29_68_58_/_9%)] [&::-webkit-details-marker]:hidden"
             aria-label="Dodatna orodja zemljevida"
           >
-            •••
+            <MoreHorizontal class="size-5" aria-hidden="true" />
           </summary>
           <div
             class="absolute right-0 bottom-12 grid w-[180px] gap-1 rounded-[7px] border border-[#dce2de] bg-white p-1.5 shadow-[0_10px_28px_rgb(29_68_58_/_14%)] [&_button]:min-h-9 [&_button]:rounded-[5px] [&_button]:border-0 [&_button]:bg-transparent [&_button]:text-left [&_button]:text-[10px] [&_button]:text-[#294d43] [&_button:hover]:bg-accent-soft [&_small]:block [&_small]:text-[8px] [&_small]:text-[#74817d]"
@@ -362,7 +364,7 @@ useHead({
           aria-label="Nazaj"
           @click="closeSelection"
         >
-          ←
+          <ArrowLeft class="size-5" aria-hidden="true" />
         </button>
         <strong>Podatki niso na voljo</strong>
         <p class="m-0 text-xs text-[#74817d]">{{ selectionError }}</p>

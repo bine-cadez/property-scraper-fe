@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { sl } from '~/locales/sl'
+import { Box } from "@lucide/vue";
+import { sl } from "~/locales/sl";
 
 defineProps<{
-  compact?: boolean
-}>()
+  compact?: boolean;
+}>();
 </script>
 
 <template>
@@ -19,18 +20,7 @@ defineProps<{
         class="grid size-[34px] place-items-center rounded-[9px] bg-accent text-white max-[760px]:size-8"
         aria-hidden="true"
       >
-        <svg class="w-[22px]" viewBox="0 0 28 28" fill="none">
-          <path
-            d="M5.5 7.5 14 3l8.5 4.5v10L14 25l-8.5-7.5v-10Z"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-          <path
-            d="m5.5 7.5 8.5 5 8.5-5M14 12.5V25"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-        </svg>
+        <Box class="w-[22px]" />
       </span>
       <span
         ><strong class="font-[750]">{{ sl.brand }}</strong>
