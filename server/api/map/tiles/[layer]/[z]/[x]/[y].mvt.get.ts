@@ -1,4 +1,5 @@
-import { gursTile, type GursTileLayer } from '../../../../../../utils/gurs-api'
+import { gursTile } from '../../../../../../utils/gurs-api'
+import type { GursTileLayer } from '../../../../../../utils/gurs-endpoints'
 
 const layers = new Set<GursTileLayer>([
   'properties',

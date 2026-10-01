@@ -15,7 +15,7 @@ export default defineNuxtConfig({
     typeCheck: false,
   },
   runtimeConfig: {
-    gursApiBaseUrl: 'http://localhost:3001',
+    gursApiBaseUrl: 'https://property-scraper.46-224-27-216.sslip.io',
     gursApiKey: '',
     mapProviderToken: '',
     public: {
