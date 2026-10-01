@@ -16,6 +16,7 @@ import {
   updatePropertyMapTiles,
 } from '~/utils/map/layers'
 import { formatMeasuredDistance } from '~/utils/map/measurement'
+import { HOUSE_LEVEL_ZOOM } from '#shared/utils/map-zoom'
 
 const props = defineProps<{
   center: Position
@@ -613,6 +614,15 @@ function clearHover() {
   map.getCanvas().style.cursor = props.measureMode ? 'crosshair' : ''
 }
 
+function focusHouseCard(feature: GeoJSONFeature | undefined) {
+  if (!map || feature?.geometry.type !== 'Point') return
+  map.easeTo({
+    center: feature.geometry.coordinates as Position,
+    zoom: HOUSE_LEVEL_ZOOM,
+    duration: 420,
+  })
+}
+
 onMounted(async () => {
   await nextTick()
   const container =
@@ -732,8 +742,7 @@ onMounted(async () => {
     map.on('mouseleave', 'property-summary', clearHover)
     map.on('click', 'property-summary', (event) => {
       if (props.measureMode) return
-      const feature = event.features?.[0]
-      if (feature) void selectBuildingFeature(feature)
+      focusHouseCard(event.features?.[0])
     })
     map.on('mouseenter', 'property-cluster', () => {
       if (map) map.getCanvas().style.cursor = 'pointer'
@@ -744,13 +753,7 @@ onMounted(async () => {
     })
     map.on('click', 'property-cluster', (event) => {
       if (props.measureMode) return
-      const feature = event.features?.[0]
-      if (!map || feature?.geometry.type !== 'Point') return
-      map.easeTo({
-        center: feature.geometry.coordinates as Position,
-        zoom: Math.min(map.getZoom() + 2, 20),
-        duration: 360,
-      })
+      focusHouseCard(event.features?.[0])
     })
     map.on('mousemove', 'parcel-fill', hoverFeature)
     map.on('mouseleave', 'parcel-fill', clearHover)

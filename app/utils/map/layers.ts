@@ -4,6 +4,7 @@ import type {
   Map,
   VectorTileSource,
 } from 'maplibre-gl'
+import { HOUSE_MARKER_MIN_ZOOM } from '#shared/utils/map-zoom'
 
 const emptyFeatureCollection = {
   type: 'FeatureCollection' as const,
@@ -77,8 +78,6 @@ function addBuildingMarkerImages(map: Map) {
 }
 
 type PropertyMapLayer = 'properties' | 'sales' | 'parcels' | 'cadastral'
-// The tiny offset keeps summary cards visible at exactly z15.5.
-const HOUSE_MARKER_MIN_ZOOM = 15.51
 
 const buildingValue: ExpressionSpecification = [
   'coalesce',
