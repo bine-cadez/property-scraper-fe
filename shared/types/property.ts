@@ -160,6 +160,7 @@ export interface SearchResult {
  */
 export interface MapResultItem {
   id: string
+  kind?: 'building' | 'transaction'
   selectionId: string
   address: string
   location?: string
@@ -172,6 +173,10 @@ export interface MapResultItem {
   floor?: number
   constructionYear?: number
   officialValue?: number
+  footprintAreaM2?: number
+  unitCount?: number
+  floors?: number
+  buildingUse?: string
   status?: string
   sourceLabel?: string
   transactionDate?: string

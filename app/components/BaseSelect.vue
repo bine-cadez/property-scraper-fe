@@ -12,10 +12,12 @@ const props = withDefaults(
     modelValue: string;
     options: SelectOption[];
     label: string;
+    eyebrow?: string;
     active?: boolean;
     triggerClass?: string;
   }>(),
   {
+    eyebrow: "",
     active: false,
     triggerClass: "",
   },
@@ -138,7 +140,14 @@ onBeforeUnmount(() =>
       @click="open ? closeMenu() : openMenu()"
       @keydown="handleKeydown"
     >
-      <span class="min-w-0 truncate">{{ selectedOption?.label }}</span>
+      <span class="min-w-0">
+        <small
+          v-if="eyebrow"
+          class="mb-0.5 block truncate text-[8px] leading-none font-[650] tracking-[0.06em] text-[#7b8782] uppercase"
+          >{{ eyebrow }}</small
+        >
+        <span class="block truncate">{{ selectedOption?.label }}</span>
+      </span>
       <ChevronDown
         class="size-4 shrink-0 transition-transform duration-150 motion-reduce:transition-none"
         :class="{ 'rotate-180': open }"

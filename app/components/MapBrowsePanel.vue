@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, ChevronDown, Info, Layers3, Map } from "@lucide/vue";
+import { Building2, Info, Layers3, Map } from "@lucide/vue";
 import type {
   MapFilters,
   MapLayerId,
@@ -23,20 +23,20 @@ const emit = defineEmits<{
 }>();
 
 const propertyTypeOptions = [
-  { value: "all", label: "Vse nepremičnine" },
-  { value: "apartment", label: "Stanovanja" },
+  { value: "all", label: "Vse vrste stavb" },
+  { value: "apartment", label: "Stanovanjske stavbe" },
   { value: "house", label: "Hiše" },
-  { value: "office", label: "Poslovni prostori" },
-  { value: "retail", label: "Trgovski prostori" },
+  { value: "office", label: "Poslovne stavbe" },
+  { value: "retail", label: "Trgovske stavbe" },
 ];
 const priceOptions = [
-  { value: "all", label: "Prodajne cene" },
+  { value: "all", label: "Vse vrednosti" },
   { value: "under-200", label: "Do 200.000 €" },
   { value: "200-500", label: "200–500 tisoč €" },
   { value: "over-500", label: "Nad 500.000 €" },
 ];
 const areaOptions = [
-  { value: "all", label: "Površina" },
+  { value: "all", label: "Vse površine" },
   { value: "100", label: "Vsaj 100 m²" },
   { value: "300", label: "Vsaj 300 m²" },
   { value: "500", label: "Vsaj 500 m²" },
@@ -74,10 +74,10 @@ const priceChoice = computed(() => {
 
 const typeChoice = computed(() => props.filters.propertyTypes[0] ?? "all");
 const areaChoice = computed(() =>
-  props.filters.minParcelAreaM2 ? String(props.filters.minParcelAreaM2) : "all",
+  props.filters.minAreaM2 ? String(props.filters.minAreaM2) : "all",
 );
 const yearChoice = computed(
-  () => props.filters.transactionFrom?.slice(0, 4) ?? "all",
+  () => props.filters.constructionYearFrom?.toString() ?? "all",
 );
 
 function update(partial: Partial<MapFilters>) {
@@ -106,24 +106,20 @@ function setType(value: string) {
 
 function setArea(value: string) {
   const next = { ...props.filters };
-  if (value === "all") delete next.minParcelAreaM2;
-  else next.minParcelAreaM2 = Number(value);
+  if (value === "all") delete next.minAreaM2;
+  else next.minAreaM2 = Number(value);
   emit("filtersChange", next);
 }
 
 function setYear(value: string) {
   const next = { ...props.filters };
-  if (value === "all") delete next.transactionFrom;
-  else next.transactionFrom = `${value}-01-01`;
+  if (value === "all") delete next.constructionYearFrom;
+  else next.constructionYearFrom = Number(value);
   emit("filtersChange", next);
 }
 
 function resetFilters() {
   emit("filtersChange", { propertyTypes: [] });
-}
-
-function showSales() {
-  emit("layersChange", ["transactions", "priceM2"]);
 }
 </script>
 
@@ -186,58 +182,57 @@ function showSales() {
     <div
       class="flex min-h-[68px] items-center gap-2.5 px-7 max-[720px]:min-h-14 max-[720px]:gap-2 max-[720px]:px-3 max-[720px]:pb-2"
     >
-      <button
-        type="button"
-        class="inline-flex min-h-[42px] min-w-[150px] items-center justify-between gap-4 rounded-[7px] border bg-white py-0 pr-9 pl-[13px] text-[11px] font-[630] text-[#294d43] max-[720px]:hidden"
-        :class="
-          layers.includes('transactions')
-            ? 'border-[#829b7f] bg-accent-soft'
-            : 'border-[#dfe5e1]'
-        "
-        @click="showSales"
-      >
-        Prodajne cene
-        <ChevronDown class="size-4" aria-hidden="true" />
-      </button>
+      <MapDatasetPicker
+        :layers="layers"
+        @change="emit('layersChange', $event)"
+      />
 
       <BaseSelect
-        class="min-w-[150px] max-[720px]:hidden"
+        class="min-w-[170px] max-[720px]:hidden"
         :model-value="typeChoice"
         :options="propertyTypeOptions"
-        label="Vrsta nepremičnine"
+        label="Vrsta stavbe"
+        eyebrow="Vrsta stavbe"
+        trigger-class="min-h-[48px]"
         :active="typeChoice !== 'all'"
         @change="setType"
       />
 
       <BaseSelect
-        class="min-w-[136px] max-[720px]:min-w-0 max-[720px]:flex-1"
+        class="min-w-[166px] max-[720px]:min-w-0 max-[720px]:flex-1"
         :model-value="priceChoice"
         :options="priceOptions"
-        label="Cena"
+        label="Ocenjena vrednost"
+        eyebrow="Ocenjena vrednost"
+        trigger-class="min-h-[48px]"
         :active="priceChoice !== 'all'"
         @change="setPrice"
       />
 
       <BaseSelect
-        class="min-w-[116px] max-[720px]:hidden"
+        class="min-w-[132px] max-[720px]:hidden"
         :model-value="areaChoice"
         :options="areaOptions"
-        label="Površina"
+        label="Površina stavbe"
+        eyebrow="Površina stavbe"
+        trigger-class="min-h-[48px]"
         :active="areaChoice !== 'all'"
         @change="setArea"
       />
 
       <BaseSelect
-        class="min-w-[100px] max-[720px]:hidden"
+        class="min-w-[142px] max-[720px]:hidden"
         :model-value="yearChoice"
         :options="yearOptions"
-        label="Leto prodaje"
+        label="Leto izgradnje"
+        eyebrow="Leto izgradnje"
+        trigger-class="min-h-[48px]"
         :active="yearChoice !== 'all'"
         @change="setYear"
       />
 
       <PropertyFilters
-        class="[&_button:first-child]:min-w-[100px]"
+        class="[&_button:first-child]:min-w-[112px]"
         :filters="filters"
         :result-count="featureCount"
         @change="emit('filtersChange', $event)"

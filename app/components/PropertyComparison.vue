@@ -8,7 +8,7 @@ import {
   formatPricePerM2,
 } from "#shared/utils/format";
 
-defineProps<{ items: MapResultItem[] }>();
+const props = defineProps<{ items: MapResultItem[] }>();
 
 defineEmits<{
   close: [];
@@ -27,7 +27,7 @@ function floorAndYear(item: MapResultItem) {
   return `${floor} / ${year}`;
 }
 
-const rows: ComparisonRow[] = [
+const transactionRows: ComparisonRow[] = [
   {
     label: "Prodajna cena",
     value: (item) =>
@@ -75,8 +75,61 @@ const rows: ComparisonRow[] = [
   },
 ];
 
-const mobileRows = rows.filter(
-  (row) => !["Prodajna cena", "Vir podatkov"].includes(row.label),
+const buildingRows: ComparisonRow[] = [
+  {
+    label: "Ocena GURS",
+    value: (item) =>
+      item.officialValue !== undefined
+        ? formatEur(item.officialValue)
+        : "Ni podatka",
+  },
+  {
+    label: "Površina stavbe",
+    value: (item) =>
+      item.areaM2 !== undefined ? formatArea(item.areaM2) : "Ni podatka",
+  },
+  {
+    label: "Tlorisna površina",
+    value: (item) =>
+      item.footprintAreaM2 !== undefined
+        ? formatArea(item.footprintAreaM2)
+        : "Ni podatka",
+  },
+  {
+    label: "Leto izgradnje",
+    value: (item) => String(item.constructionYear ?? "Ni podatka"),
+  },
+  {
+    label: "Deli stavbe",
+    value: (item) => String(item.unitCount ?? "Ni podatka"),
+  },
+  {
+    label: "Etaže",
+    value: (item) => String(item.floors ?? "Ni podatka"),
+  },
+  {
+    label: "Namembnost",
+    value: (item) => item.buildingUse || "Ni podatka",
+  },
+  {
+    label: "Vir podatkov",
+    value: (item) => item.sourceLabel || "GURS · KN / EV",
+  },
+];
+
+const comparingBuildings = computed(
+  () =>
+    props.items.length > 0 &&
+    props.items.every((item) => item.kind === "building"),
+);
+const rows = computed(() =>
+  comparingBuildings.value ? buildingRows : transactionRows,
+);
+const mobileRows = computed(() =>
+  rows.value.filter(
+    (row) =>
+      !["Prodajna cena", "Ocena GURS", "Vir podatkov"].includes(row.label),
+  ),
 );
 </script>
 
@@ -175,12 +228,16 @@ const mobileRows = rows.filter(
           >
             <span class="max-[720px]:hidden">{{
               items.length === 2
-                ? "Dve zabeleženi prodaji, isti pregled podatkov."
+                ? comparingBuildings
+                  ? "Dve stavbi, ključni podatki drug ob drugem."
+                  : "Dve zabeleženi prodaji, isti pregled podatkov."
                 : "Izberite dve enoti za primerjavo."
             }}</span>
             <span class="hidden max-[720px]:inline">{{
               items.length === 2
-                ? "Primerjava evidentiranih prodaj."
+                ? comparingBuildings
+                  ? "Primerjava podatkov o stavbah."
+                  : "Primerjava evidentiranih prodaj."
                 : "Izberite dve enoti za primerjavo."
             }}</span>
           </p>
@@ -220,9 +277,11 @@ const mobileRows = rows.filter(
               "Slovenija"
             }}</span>
             <b class="mt-[3px] text-base">{{
-              item.totalPrice !== undefined
-                ? formatEur(item.totalPrice)
-                : "Cena ni podatka"
+              item.kind === "building" && item.officialValue !== undefined
+                ? formatEur(item.officialValue)
+                : item.totalPrice !== undefined
+                  ? formatEur(item.totalPrice)
+                  : "Vrednost ni na voljo"
             }}</b>
           </article>
 
@@ -256,9 +315,11 @@ const mobileRows = rows.filter(
                 item.unitLabel || item.location || "Slovenija"
               }}</span>
               <b class="mt-[3px] text-sm">{{
-                item.totalPrice !== undefined
-                  ? formatEur(item.totalPrice)
-                  : "Ni podatka"
+                item.kind === "building" && item.officialValue !== undefined
+                  ? formatEur(item.officialValue)
+                  : item.totalPrice !== undefined
+                    ? formatEur(item.totalPrice)
+                    : "Vrednost ni na voljo"
               }}</b>
             </article>
           </div>

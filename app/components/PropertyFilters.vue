@@ -26,9 +26,9 @@ function createDraft(filters: MapFilters) {
     propertyType: filters.propertyTypes[0] ?? "",
     minPrice: filters.minPrice?.toString() ?? "",
     maxPrice: filters.maxPrice?.toString() ?? "",
-    minParcelArea: filters.minParcelAreaM2?.toString() ?? "",
+    minParcelArea: filters.minAreaM2?.toString() ?? "",
     maxArea: "",
-    year: filters.transactionFrom?.slice(0, 4) ?? "",
+    year: filters.constructionYearFrom?.toString() ?? "",
   };
 }
 
@@ -54,10 +54,8 @@ function apply() {
       : [],
     ...(draft.minPrice ? { minPrice: Number(draft.minPrice) } : {}),
     ...(draft.maxPrice ? { maxPrice: Number(draft.maxPrice) } : {}),
-    ...(draft.minParcelArea
-      ? { minParcelAreaM2: Number(draft.minParcelArea) }
-      : {}),
-    ...(draft.year ? { transactionFrom: `${draft.year}-01-01` } : {}),
+    ...(draft.minParcelArea ? { minAreaM2: Number(draft.minParcelArea) } : {}),
+    ...(draft.year ? { constructionYearFrom: Number(draft.year) } : {}),
   });
   open.value = false;
 }
@@ -72,12 +70,18 @@ function reset() {
   <div class="relative">
     <button
       type="button"
-      class="relative inline-flex min-h-[42px] items-center gap-2 rounded-[7px] border border-transparent bg-[#f1f3f1] px-[13px] text-[11px] font-[680] text-[#294d43] [&_svg]:w-[17px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-width:1.7]"
+      class="relative inline-flex min-h-[48px] items-center gap-2.5 rounded-[8px] border border-[#e3e7e4] bg-[#f1f3f1] px-3.5 text-left text-[#294d43] [&_svg]:w-[17px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-width:1.7]"
       :aria-expanded="open"
       @click="open = true"
     >
       <SlidersHorizontal aria-hidden="true" />
-      <span>Filtri</span>
+      <span>
+        <small
+          class="mb-0.5 block text-[8px] leading-none font-[650] tracking-[0.06em] text-[#71807b] uppercase"
+          >Dodatno</small
+        >
+        <strong class="block text-[11px] font-[700]">Filtri</strong>
+      </span>
       <b
         v-if="activeFilterCount"
         class="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#e5ebdf] text-[9px]"
@@ -148,7 +152,7 @@ function reset() {
           class="grid grid-cols-2 gap-3.5 max-[720px]:gap-x-[9px] max-[720px]:gap-y-3"
         >
           <label class="grid gap-1.5">
-            <span class="text-[9px] text-[#7a8581]">Cena od</span>
+            <span class="text-[9px] text-[#7a8581]">Ocenjena vrednost od</span>
             <input
               v-model="draft.minPrice"
               class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
@@ -159,7 +163,7 @@ function reset() {
             />
           </label>
           <label class="grid gap-1.5">
-            <span class="text-[9px] text-[#7a8581]">Cena do</span>
+            <span class="text-[9px] text-[#7a8581]">Ocenjena vrednost do</span>
             <input
               v-model="draft.maxPrice"
               class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
@@ -196,7 +200,7 @@ function reset() {
         </div>
 
         <label class="grid gap-1.5">
-          <span class="text-[9px] text-[#7a8581]">Leto prodaje</span>
+          <span class="text-[9px] text-[#7a8581]">Leto izgradnje</span>
           <input
             v-model="draft.year"
             class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
@@ -212,8 +216,8 @@ function reset() {
           class="flex gap-[9px] rounded-[7px] bg-[#f2f4f1] p-[13px] text-[10px] leading-[1.45] text-[#73807b]"
         >
           <Info class="mt-px size-4 shrink-0" aria-hidden="true" />
-          Prikazujemo evidentirane prodaje. Status posla je naveden pri
-          podatkih.
+          Prikazujemo stavbe na trenutnem območju zemljevida in razpoložljive
+          podatke GURS.
         </aside>
 
         <div
@@ -224,7 +228,9 @@ function reset() {
             >{{ activeFilterCount }} aktivna filtra</strong
           >
           <span>
-            {{ draft.propertyType ? "Vrsta nepremičnine" : "Prodajne cene" }}
+            {{
+              draft.propertyType ? "Vrsta nepremičnine" : "Ocenjena vrednost"
+            }}
             <template v-if="draft.year"> · {{ draft.year }}</template>
           </span>
         </div>
@@ -243,7 +249,7 @@ function reset() {
             type="submit"
             class="min-h-11 rounded-[7px] border border-accent bg-accent text-[11px] font-[680] text-white max-[720px]:w-full"
           >
-            Pokaži {{ resultCount ?? "" }} posle
+            Pokaži {{ resultCount ?? "" }} stavb
           </button>
         </div>
 

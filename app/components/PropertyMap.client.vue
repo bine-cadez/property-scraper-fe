@@ -15,6 +15,7 @@ import {
   addPropertyMapLayers,
   updatePropertyMapTiles,
 } from '~/utils/map/layers'
+import { visibleBuildingResults } from '~/utils/map/building-results'
 import { formatMeasuredDistance } from '~/utils/map/measurement'
 import { HOUSE_LEVEL_ZOOM } from '#shared/utils/map-zoom'
 
@@ -166,146 +167,34 @@ function updateFeatureCount() {
   }
   emit(
     'count',
-    countLayers(['property-cluster', 'property-summary', 'property-point']) +
-      countLayers(['sale-cluster', 'sale-point']),
+    countLayers(['property-cluster', 'property-summary', 'property-point']),
   )
 }
 
-function propertyValue(properties: Record<string, unknown>, keys: string[]) {
-  for (const key of keys) {
-    const value = properties[key]
-    if (value !== undefined && value !== null && value !== '') return value
-  }
-}
-
-function numberProperty(properties: Record<string, unknown>, keys: string[]) {
-  const value = Number(propertyValue(properties, keys))
-  return Number.isFinite(value) ? value : undefined
-}
-
-function stringProperty(properties: Record<string, unknown>, keys: string[]) {
-  const value = propertyValue(properties, keys)
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined
-}
-
 /**
- * Mirrors the individual sale pins that MapLibre has already chosen to render.
- * Cluster features are intentionally excluded so the established zoom/grouping
- * behaviour remains the single source of truth.
+ * Mirrors the individual building markers that MapLibre has chosen to render.
+ * Cluster cards are intentionally excluded: the sidebar should contain one row
+ * for every selectable building currently visible in the map viewport.
  */
 function updateVisibleResults() {
-  if (!map?.isStyleLoaded() || !map.getLayer('sale-point')) {
+  if (!map?.isStyleLoaded()) {
     emit('results', [])
     return
   }
 
-  const byId = new Map<string, MapResultItem>()
-  for (const feature of map.queryRenderedFeatures(undefined, {
-    layers: ['sale-point'],
-  })) {
-    const properties = (feature.properties ?? {}) as Record<string, unknown>
-    const id = String(
-      propertyValue(properties, ['transaction_id', 'id', 'record_id']) ??
-        feature.id ??
-        '',
-    )
-    if (!id || byId.has(id)) continue
-
-    const address =
-      stringProperty(properties, ['full_address', 'address', 'label']) ??
-      'Prodaja brez naslova'
-    const item: MapResultItem = {
-      id,
-      selectionId: `transaction:${id}`,
-      address,
-    }
-    const location = stringProperty(properties, [
-      'settlement',
-      'city_name',
-      'city',
-      'municipality_name',
-      'municipality',
-    ])
-    const propertyType = stringProperty(properties, [
-      'property_type',
-      'propertyType',
-      'type_name',
-    ])
-    const totalPrice = numberProperty(properties, [
-      'total_price',
-      'price',
-      'amount',
-    ])
-    const pricePerM2 = numberProperty(properties, [
-      'price_per_m2',
-      'pricePerM2',
-    ])
-    const areaM2 = numberProperty(properties, [
-      'area_m2',
-      'areaM2',
-      'usable_area_m2',
-      'usableAreaM2',
-      'area',
-    ])
-    const transactionDate = stringProperty(properties, [
-      'contract_date',
-      'transaction_date',
-      'transactionDate',
-      'date',
-    ])
-    const usableAreaM2 = numberProperty(properties, [
-      'usable_area_m2',
-      'usableAreaM2',
-    ])
-    const floor = numberProperty(properties, ['floor', 'floor_number'])
-    const constructionYear = numberProperty(properties, [
-      'construction_year',
-      'constructionYear',
-      'year_built',
-    ])
-    const officialValue = numberProperty(properties, [
-      'official_value',
-      'officialValue',
-      'assessed_value',
-    ])
-    const unitLabel = stringProperty(properties, [
-      'unit_label',
-      'unitLabel',
-      'unit_number',
-    ])
-    const status = stringProperty(properties, [
-      'status_label',
-      'status',
-      'transaction_status',
-    ])
-    const sourceLabel = stringProperty(properties, [
-      'source_name',
-      'sourceName',
-      'data_source',
-    ])
-    if (location) item.location = location
-    if (propertyType) item.propertyType = propertyType
-    if (totalPrice !== undefined) item.totalPrice = totalPrice
-    if (pricePerM2 !== undefined) item.pricePerM2 = pricePerM2
-    if (areaM2 !== undefined) item.areaM2 = areaM2
-    if (usableAreaM2 !== undefined) item.usableAreaM2 = usableAreaM2
-    if (floor !== undefined) item.floor = floor
-    if (constructionYear !== undefined) item.constructionYear = constructionYear
-    if (officialValue !== undefined) item.officialValue = officialValue
-    if (unitLabel) item.unitLabel = unitLabel
-    if (status) item.status = status
-    if (sourceLabel) item.sourceLabel = sourceLabel
-    if (transactionDate) item.transactionDate = transactionDate
-    byId.set(id, item)
+  const buildingLayers = ['property-summary', 'property-point'].filter(
+    (layerId) => map?.getLayer(layerId),
+  )
+  if (!buildingLayers.length) {
+    emit('results', [])
+    return
   }
 
   emit(
     'results',
-    [...byId.values()]
-      .sort((a, b) =>
-        (b.transactionDate ?? '').localeCompare(a.transactionDate ?? ''),
-      )
-      .slice(0, 50),
+    visibleBuildingResults(
+      map.queryRenderedFeatures(undefined, { layers: buildingLayers }),
+    ),
   )
 }
 

@@ -74,6 +74,7 @@ function compareSelectedProperty() {
     selectedProperty.value.parcel.officialValue;
   const item: MapResultItem = {
     id: transaction?.id ?? selectedProperty.value.id,
+    kind: transaction ? "transaction" : "building",
     selectionId: selectedId.value ?? selectedProperty.value.id,
     address: selectedProperty.value.address,
     location: selectedProperty.value.settlement,
@@ -87,6 +88,20 @@ function compareSelectedProperty() {
       ? {
           constructionYear: selectedProperty.value.building.constructionYear,
         }
+      : {}),
+    ...(selectedProperty.value.building?.footprintAreaM2 !== undefined
+      ? {
+          footprintAreaM2: selectedProperty.value.building.footprintAreaM2,
+        }
+      : {}),
+    ...(selectedProperty.value.building?.unitCount !== undefined
+      ? { unitCount: selectedProperty.value.building.unitCount }
+      : {}),
+    ...(selectedProperty.value.building?.floors !== undefined
+      ? { floors: selectedProperty.value.building.floors }
+      : {}),
+    ...(selectedProperty.value.building?.buildingUse
+      ? { buildingUse: selectedProperty.value.building.buildingUse }
       : {}),
     ...(officialValue ? { officialValue: officialValue.amount } : {}),
     status: transaction ? "V preverjanju" : "Ni podatka",
@@ -136,7 +151,7 @@ useHead({
     />
 
     <main
-      class="grid min-h-0 flex-1 grid-cols-[minmax(350px,420px)_1fr] max-[720px]:block max-[720px]:flex-none"
+      class="grid min-h-0 flex-1 grid-cols-[400px_minmax(0,1fr)] max-[1100px]:grid-cols-[360px_minmax(0,1fr)] max-[720px]:block max-[720px]:flex-none"
     >
       <aside
         class="relative z-2 min-h-0 min-w-0 overflow-hidden border-r border-[#e2e7e3] bg-surface max-[720px]:min-h-[calc(100dvh-226px)] max-[720px]:overflow-visible max-[720px]:border-r-0"
@@ -177,7 +192,7 @@ useHead({
           v-else
           :results="visibleResults"
           :feature-count="featureCount"
-          :filters="filters"
+          :buildings-visible="layers.includes('buildings')"
           :selected-id="selectedId"
           :comparison-ids="comparisonItems.map((item) => item.id)"
           @select="selectVisibleResult"
@@ -217,18 +232,10 @@ useHead({
           </template>
         </ClientOnly>
 
-        <div class="absolute top-4 left-4 z-20 max-[720px]:hidden">
-          <MapLayerControl
-            class="w-[162px] rounded-[7px] border-0 shadow-[0_4px_16px_rgb(29_68_58_/_10%)] [&_.layer-icon]:grid [&_.layer-label]:static [&_.layer-label]:h-auto [&_.layer-label]:w-auto [&_.layer-label]:overflow-visible [&_.layer-label]:text-[0px] [&_.layer-label]:after:text-[11px] [&_.layer-label]:after:content-['Prikaz_zemljevida'] [&_.layer-trigger]:h-[42px] [&_.layer-trigger]:justify-start [&_.layer-trigger]:px-3 [&_.layer-trigger]:text-[#294d43]"
-            :layers="layers"
-            @change="layers = $event"
-          />
-        </div>
-
         <p
           class="absolute top-[15px] left-3.5 z-20 m-0 hidden rounded-[7px] bg-white px-[13px] py-[11px] text-[10px] text-[#294d43] shadow-[0_3px_12px_rgb(29_68_58_/_9%)] max-[720px]:block"
         >
-          {{ visibleResults.length || featureCount }} prodaj
+          {{ visibleResults.length || featureCount }} stavb
           <template v-if="filters.propertyTypes.length">
             · izbrana vrsta</template
           >
@@ -323,10 +330,12 @@ useHead({
         <p
           class="absolute bottom-[15px] left-4 z-18 m-0 rounded-md bg-white/92 px-3 py-2.5 text-[9px] text-[#74817d] shadow-[0_3px_12px_rgb(29_68_58_/_8%)] backdrop-blur-[10px] max-[720px]:hidden"
         >
-          Evidentirane prodajne cene
+          Stavbe in ocenjene vrednosti
           <span aria-hidden="true">·</span>
-          <span v-if="zoom < 12">skupine se razprejo s približevanjem</span>
-          <span v-else>prikazano območje</span>
+          <span v-if="zoom < 12"
+            >skupine stavb se razprejo s približevanjem</span
+          >
+          <span v-else>vidne stavbe na prikazanem območju</span>
         </p>
 
         <button
