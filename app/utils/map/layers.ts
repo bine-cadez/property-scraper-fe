@@ -61,25 +61,25 @@ function addBuildingMarkerImages(map: Map) {
     )
 
     const clusterCanvas = document.createElement('canvas')
-    clusterCanvas.width = 184
-    clusterCanvas.height = 80
+    clusterCanvas.width = 96
+    clusterCanvas.height = 96
     const cluster = clusterCanvas.getContext('2d')
     if (!cluster) continue
     cluster.scale(2, 2)
-    cluster.shadowColor = 'rgb(25 61 53 / 16%)'
-    cluster.shadowBlur = 3
-    cluster.shadowOffsetY = 1.5
+    cluster.shadowColor = 'rgb(25 61 53 / 20%)'
+    cluster.shadowBlur = 2.5
+    cluster.shadowOffsetY = 1
     cluster.beginPath()
-    cluster.roundRect(4, 4, 84, 32, 16)
+    cluster.arc(24, 23, 18.5, 0, Math.PI * 2)
     cluster.fillStyle = color.fill
     cluster.fill()
     cluster.shadowColor = 'transparent'
-    cluster.lineWidth = 1
-    cluster.strokeStyle = color.stroke
+    cluster.lineWidth = 1.5
+    cluster.strokeStyle = '#edf5d6'
     cluster.stroke()
     map.addImage(
       `building-cluster-marker-${name}`,
-      cluster.getImageData(0, 0, 184, 80),
+      cluster.getImageData(0, 0, 96, 96),
       { pixelRatio: 2 },
     )
 
@@ -350,31 +350,9 @@ const buildingSummaryText: ExpressionSpecification = [
   buildingSummary(buildingLocalArea),
 ]
 
-const clusterCount: ExpressionSpecification = [
-  'to-number',
-  ['get', 'cluster_count'],
-  0,
-]
-
-const clusterBuildingNoun: ExpressionSpecification = [
-  'case',
-  ['==', clusterCount, 1],
-  'stavba',
-  ['==', clusterCount, 2],
-  'stavbi',
-  ['<=', clusterCount, 4],
-  'stavbe',
-  'stavb',
-]
-
 const buildingClusterText: ExpressionSpecification = [
-  'format',
-  ['to-string', ['get', 'cluster_count']],
-  { 'font-scale': 1.05, 'text-color': '#ffffff' },
-  ' ',
-  {},
-  clusterBuildingNoun,
-  { 'font-scale': 0.76, 'text-color': '#dbe9e3' },
+  'to-string',
+  ['get', 'cluster_count'],
 ]
 
 export type PropertyMapSourceId =
@@ -589,10 +567,31 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
         'building-cluster-marker-forest',
       ],
       'icon-anchor': 'center',
+      'icon-size': [
+        'interpolate',
+        ['linear'],
+        ['to-number', ['get', 'cluster_count'], 1],
+        1,
+        0.82,
+        10,
+        0.94,
+        40,
+        1.08,
+        100,
+        1.18,
+      ],
       'icon-allow-overlap': false,
-      'icon-padding': 8,
+      'icon-padding': 6,
       'text-field': buildingClusterText,
-      'text-size': 13.5,
+      'text-size': [
+        'step',
+        ['to-number', ['get', 'cluster_count'], 1],
+        12,
+        10,
+        13,
+        40,
+        14,
+      ],
       'text-font': ['Open Sans Bold'],
       'text-anchor': 'center',
       'text-allow-overlap': false,
@@ -660,8 +659,8 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
         18,
         1,
       ],
-      'icon-allow-overlap': false,
-      'icon-ignore-placement': false,
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
       'icon-padding': 4,
       'text-field': houseMarkerText,
       'text-size': [
@@ -678,6 +677,8 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'text-anchor': 'center',
       'text-offset': [0, -3.25],
       'text-optional': false,
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
     },
     paint: {
       'icon-opacity': [
