@@ -83,7 +83,6 @@ const visibilityByLayer: Record<MapLayerId, string[]> = {
   buildings: [
     'property-cluster',
     'property-summary',
-    'property-point-halo',
     'property-point',
   ],
   transactions: [
