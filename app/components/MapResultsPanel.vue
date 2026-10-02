@@ -16,6 +16,7 @@ const props = defineProps<{
   results: MapResultItem[];
   featureCount: number;
   buildingsVisible: boolean;
+  loading: boolean;
   selectedId: string | undefined;
   comparisonIds: string[];
 }>();
@@ -56,9 +57,10 @@ const visibleCount = computed(() => props.results.length || props.featureCount);
   <section
     class="relative flex h-full min-h-0 flex-col bg-[#f7f8f5] max-[720px]:min-h-full"
     aria-label="Stavbe na prikazanem območju"
+    :aria-busy="loading"
   >
     <header
-      class="shrink-0 border-b border-[#e3e8e4] bg-white px-5 pt-5 pb-4 max-[720px]:px-4 max-[720px]:pt-[19px]"
+      class="relative shrink-0 overflow-hidden border-b border-[#e3e8e4] bg-white px-5 pt-5 pb-4 max-[720px]:px-4 max-[720px]:pt-[19px]"
     >
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
@@ -79,7 +81,10 @@ const visibleCount = computed(() => props.results.length || props.featureCount);
             }}
           </h1>
           <p class="mt-1.5 mb-0 text-[11px] leading-[1.4] text-[#74817d]">
-            <template v-if="!buildingsVisible">
+            <template v-if="loading">
+              Posodabljamo stavbe na prikazanem območju …
+            </template>
+            <template v-else-if="!buildingsVisible">
               Vključite sloj Stavbe v prikazu zemljevida
             </template>
             <template v-else-if="results.length">
@@ -97,14 +102,28 @@ const visibleCount = computed(() => props.results.length || props.featureCount);
           class="grid size-10 shrink-0 place-items-center rounded-[11px] bg-[#edf5d6] text-accent"
           aria-hidden="true"
         >
-          <Building2 class="size-5" :stroke-width="1.7" />
+          <span
+            v-if="loading"
+            class="size-5 animate-spin rounded-full border-2 border-[#cbdab9] border-t-accent motion-reduce:animate-none motion-reduce:border-accent motion-reduce:opacity-70"
+          />
+          <Building2 v-else class="size-5" :stroke-width="1.7" />
         </span>
+      </div>
+      <div
+        v-if="loading"
+        class="absolute right-0 bottom-0 left-0 h-0.5 overflow-hidden bg-[#e4ebdf] motion-reduce:bg-[#9eb69b]"
+        aria-hidden="true"
+      >
+        <span
+          class="sidebar-loading-bar block h-full w-[38%] bg-accent motion-reduce:hidden"
+        />
       </div>
     </header>
 
     <div
       v-if="results.length"
-      class="min-h-0 flex-1 overflow-y-auto px-3.5 py-3.5 [overscroll-behavior:contain] max-[720px]:overflow-visible max-[720px]:px-2.5 max-[720px]:py-3"
+      class="min-h-0 flex-1 overflow-y-auto px-3.5 py-3.5 transition-opacity duration-150 ease-out [overscroll-behavior:contain] max-[720px]:overflow-visible max-[720px]:px-2.5 max-[720px]:py-3 motion-reduce:transition-none"
+      :class="loading ? 'pointer-events-none opacity-50' : 'opacity-100'"
     >
       <article
         v-for="item in results"
@@ -226,7 +245,8 @@ const visibleCount = computed(() => props.results.length || props.featureCount);
 
     <div
       v-else
-      class="grid min-h-0 flex-1 place-items-center px-8 py-10 text-[#6e7a76]"
+      class="grid min-h-0 flex-1 place-items-center px-8 py-10 text-[#6e7a76] transition-opacity duration-150 ease-out motion-reduce:transition-none"
+      :class="loading ? 'opacity-50' : 'opacity-100'"
     >
       <div class="grid place-items-center text-center">
         <span
@@ -284,3 +304,24 @@ const visibleCount = computed(() => props.results.length || props.featureCount);
     </div>
   </section>
 </template>
+
+<style scoped>
+@keyframes sidebar-loading {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(365%);
+  }
+}
+
+.sidebar-loading-bar {
+  animation: sidebar-loading 900ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-loading-bar {
+    animation: none;
+  }
+}
+</style>

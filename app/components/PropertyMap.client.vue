@@ -32,6 +32,7 @@ const emit = defineEmits<{
   select: [id: string]
   move: [state: { center: Position; zoom: number }]
   loading: [value: boolean]
+  resultsLoading: [value: boolean]
   error: [message: string]
   dataError: [message: string]
   count: [value: number]
@@ -519,6 +520,7 @@ onMounted(async () => {
   if (!container) {
     emit('error', 'Vsebnika zemljevida ni mogoče najti.')
     emit('loading', false)
+    emit('resultsLoading', false)
     return
   }
   container.dataset.mapState = 'importing'
@@ -578,8 +580,12 @@ onMounted(async () => {
         emit('loading', false)
       })
     })
+    map.on('movestart', () => {
+      emit('resultsLoading', true)
+    })
     map.on('idle', () => {
       emit('loading', false)
+      emit('resultsLoading', false)
       emit('error', '')
       syncPropertySummaries()
       updateFeatureCount()
@@ -610,6 +616,7 @@ onMounted(async () => {
         event.error.message.includes('/api/map/tiles/')
       if (isGursDataError) {
         emit('loading', false)
+        emit('resultsLoading', false)
         emit(
           'dataError',
           'Podatki GURS trenutno niso dosegljivi. Zemljevid lahko še vedno uporabljate.',
@@ -617,6 +624,7 @@ onMounted(async () => {
         return
       }
       emit('error', event.error.message)
+      emit('resultsLoading', false)
     })
 
     map.on('mousemove', 'property-point', hoverFeature)
@@ -700,6 +708,7 @@ onMounted(async () => {
       error instanceof Error ? error.message : 'Zemljevida ni mogoče zagnati.',
     )
     emit('loading', false)
+    emit('resultsLoading', false)
   }
 })
 
@@ -747,6 +756,7 @@ watch(
     propertySummarySignature = '__stale__'
     updatePropertyMapTiles(map, filters)
     emit('loading', true)
+    emit('resultsLoading', true)
   },
   { deep: true },
 )

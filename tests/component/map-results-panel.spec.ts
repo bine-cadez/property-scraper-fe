@@ -21,6 +21,7 @@ describe("building map results panel", () => {
         ],
         featureCount: 1,
         buildingsVisible: true,
+        loading: false,
         selectedId: undefined,
         comparisonIds: [],
       },
@@ -36,5 +37,23 @@ describe("building map results panel", () => {
     expect(wrapper.emitted("select")?.[0]?.[0]).toMatchObject({
       selectionId: "building:building-1",
     });
+  });
+
+  it("shows a busy refresh state while visible buildings update", async () => {
+    const wrapper = await mountSuspended(MapResultsPanel, {
+      props: {
+        results: [],
+        featureCount: 0,
+        buildingsVisible: true,
+        loading: true,
+        selectedId: undefined,
+        comparisonIds: [],
+      },
+    });
+
+    expect(wrapper.attributes("aria-busy")).toBe("true");
+    expect(wrapper.text()).toContain(
+      "Posodabljamo stavbe na prikazanem območju",
+    );
   });
 });

@@ -37,6 +37,7 @@ const {
 } = useMapWorkspace();
 
 const mobileView = ref<"list" | "map">("list");
+const resultsLoading = ref(true);
 const comparisonItems = ref<MapResultItem[]>([]);
 const comparisonOpen = ref(false);
 const mapDataError = ref("");
@@ -157,12 +158,8 @@ useHead({
         class="relative z-2 min-h-0 min-w-0 overflow-hidden border-r border-[#e2e7e3] bg-surface max-[720px]:min-h-[calc(100dvh-226px)] max-[720px]:overflow-visible max-[720px]:border-r-0"
         :class="mobileView !== 'list' ? 'max-[720px]:hidden' : ''"
       >
-        <div
-          v-if="selectionLoading"
-          class="grid min-h-full content-center gap-3 bg-white p-[30px] max-[720px]:hidden [&_span]:h-[13px] [&_span]:rounded-[5px] [&_span]:bg-[#e7ece8] [&_span:nth-child(1)]:w-[38%] [&_span:nth-child(2)]:h-6 [&_span:nth-child(2)]:w-[72%] [&_span:nth-child(3)]:w-[56%] [&_span:nth-child(4)]:h-[90px] [&_span:nth-child(4)]:w-full"
-          aria-live="polite"
-        >
-          <span /><span /><span /><span />
+        <div v-if="selectionLoading" class="h-full max-[720px]:hidden">
+          <PropertyDetailsLoading @close="closeSelection" />
         </div>
         <div
           v-else-if="selectionError"
@@ -193,6 +190,7 @@ useHead({
           :results="visibleResults"
           :feature-count="featureCount"
           :buildings-visible="layers.includes('buildings')"
+          :loading="resultsLoading"
           :selected-id="selectedId"
           :comparison-ids="comparisonItems.map((item) => item.id)"
           @select="selectVisibleResult"
@@ -219,6 +217,7 @@ useHead({
             @select="openSelection"
             @move="onMapMove"
             @loading="mapLoading = $event"
+            @results-loading="resultsLoading = $event"
             @error="mapError = $event"
             @data-error="mapDataError = $event"
             @count="featureCount = $event"
@@ -355,12 +354,8 @@ useHead({
       "
       class="fixed inset-0 z-70 hidden overflow-y-auto bg-surface max-[720px]:block"
     >
-      <div
-        v-if="selectionLoading"
-        class="grid min-h-dvh content-center gap-3 bg-white p-[30px] [&_span]:h-[13px] [&_span]:rounded-[5px] [&_span]:bg-[#e7ece8] [&_span:nth-child(1)]:w-[38%] [&_span:nth-child(2)]:h-6 [&_span:nth-child(2)]:w-[72%] [&_span:nth-child(3)]:w-[56%] [&_span:nth-child(4)]:h-[90px] [&_span:nth-child(4)]:w-full"
-        aria-live="polite"
-      >
-        <span /><span /><span /><span />
+      <div v-if="selectionLoading">
+        <PropertyDetailsLoading @close="closeSelection" />
       </div>
       <div
         v-else-if="selectionError"
