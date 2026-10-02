@@ -682,12 +682,10 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'text-ignore-placement': true,
     },
     paint: {
-      'icon-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        1,
-        0.96,
-      ],
+      // DOM markers keep each card and its label in one stacking context.
+      // This layer remains queryable but must not paint a second marker below it.
+      'icon-opacity': 0,
+      'text-opacity': 0,
       'text-color': '#ffffff',
       'text-halo-color': 'rgba(25,61,53,0.35)',
       'text-halo-width': 0.35,

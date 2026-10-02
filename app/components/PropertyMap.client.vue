@@ -4,6 +4,7 @@ import type {
   GeoJSONSource,
   Map as MapLibreMap,
   MapLayerMouseEvent,
+  Marker as MapLibreMarker,
 } from 'maplibre-gl'
 import type {
   MapFilters,
@@ -15,9 +16,12 @@ import {
   addPropertyMapLayers,
   updatePropertyMapTiles,
 } from '~/utils/map/layers'
-import { visibleBuildingResults } from '~/utils/map/building-results'
+import {
+  buildingResultFromFeature,
+  visibleBuildingResults,
+} from '~/utils/map/building-results'
 import { formatMeasuredDistance } from '~/utils/map/measurement'
-import { HOUSE_LEVEL_ZOOM } from '#shared/utils/map-zoom'
+import { HOUSE_LEVEL_ZOOM, HOUSE_MARKER_MIN_ZOOM } from '#shared/utils/map-zoom'
 
 const props = defineProps<{
   center: Position
@@ -58,6 +62,14 @@ let parcelBuildingFeatures: ShapeFeature[] = []
 let activeBuildingId = ''
 let detailController: AbortController | undefined
 let propertySummarySignature = ''
+let createMapMarker: ((element: HTMLElement) => MapLibreMarker) | undefined
+type HouseMarkerRecord = {
+  marker: MapLibreMarker
+  element: HTMLDivElement
+  feature: GeoJSONFeature
+  signature: string
+}
+const houseMarkers = new Map<string, HouseMarkerRecord>()
 
 const localStyle = {
   version: 8 as const,
@@ -81,11 +93,7 @@ const visibilityByLayer: Record<MapLayerId, string[]> = {
     'parcel-line',
     'parcel-label',
   ],
-  buildings: [
-    'property-cluster',
-    'property-summary',
-    'property-point',
-  ],
+  buildings: ['property-cluster', 'property-summary', 'property-point'],
   transactions: [
     'sale-cluster-halo',
     'sale-cluster',
@@ -147,10 +155,174 @@ function syncLayerVisibility() {
       map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none')
     }
   }
+  syncHouseMarkers()
+}
+
+function removeHouseMarkers() {
+  for (const record of houseMarkers.values()) record.marker.remove()
+  houseMarkers.clear()
+}
+
+function compactBuildingValue(value: number | undefined) {
+  if (value === undefined) return '—'
+  const format = (amount: number, maximumFractionDigits: number) =>
+    new Intl.NumberFormat('sl-SI', { maximumFractionDigits }).format(amount)
+  if (value >= 1_000_000_000) return `${format(value / 1_000_000_000, 1)} mrd €`
+  if (value >= 1_000_000) return `${format(value / 1_000_000, 1)} mio €`
+  if (value >= 1_000) return `${format(value / 1_000, 1)} tis €`
+  return `${format(value, 0)} €`
+}
+
+function houseMarkerTitle(item: MapResultItem) {
+  const addressTitle = item.address.split(/\s+/)[0]?.trim()
+  if (addressTitle && addressTitle !== `Stavba`) {
+    return addressTitle.length > 10
+      ? `${addressTitle.slice(0, 9).toLocaleUpperCase('sl-SI')}…`
+      : addressTitle.toLocaleUpperCase('sl-SI')
+  }
+  if (item.areaM2 !== undefined) {
+    return `${new Intl.NumberFormat('sl-SI', {
+      maximumFractionDigits: 1,
+    }).format(item.areaM2)} m²`
+  }
+  return 'STAVBA'
+}
+
+function houseMarkerSignature(item: MapResultItem) {
+  return [
+    item.address,
+    item.areaM2,
+    item.officialValue,
+    item.constructionYear,
+  ].join('|')
+}
+
+function updateHouseMarkerElement(
+  element: HTMLDivElement,
+  item: MapResultItem,
+) {
+  const card = element.firstElementChild as HTMLDivElement | null
+  if (!card) return
+  const title = houseMarkerTitle(item)
+  const value = compactBuildingValue(item.officialValue)
+  card.classList.toggle(
+    'property-map__house-marker--sage',
+    (item.constructionYear ?? 0) >= 2010,
+  )
+  element.setAttribute('aria-label', `${item.address}, ${value}`)
+  const titleElement = card.querySelector<HTMLElement>(
+    '.property-map__house-marker-title',
+  )
+  const valueElement = card.querySelector<HTMLElement>(
+    '.property-map__house-marker-value',
+  )
+  if (titleElement) titleElement.textContent = title
+  if (valueElement) valueElement.textContent = value
+}
+
+function createHouseMarkerElement(item: MapResultItem) {
+  const element = document.createElement('div')
+  element.className = 'property-map__house-marker-anchor'
+
+  const card = document.createElement('div')
+  card.className = 'property-map__house-marker'
+  const title = document.createElement('span')
+  title.className = 'property-map__house-marker-title'
+  const value = document.createElement('strong')
+  value.className = 'property-map__house-marker-value'
+  card.appendChild(title)
+  card.appendChild(value)
+  element.appendChild(card)
+  updateHouseMarkerElement(element, item)
+  return element
+}
+
+function syncHouseMarkers() {
+  if (!map?.isStyleLoaded() || !createMapMarker) return
+  if (
+    !props.layers.includes('buildings') ||
+    map.getZoom() < HOUSE_MARKER_MIN_ZOOM
+  ) {
+    removeHouseMarkers()
+    return
+  }
+
+  const bounds = map.getBounds()
+  const visibleIds = new Set<string>()
+  const markerScale = Math.min(
+    1,
+    0.78 +
+      ((map.getZoom() - HOUSE_MARKER_MIN_ZOOM) / (18 - HOUSE_MARKER_MIN_ZOOM)) *
+        0.22,
+  )
+  for (const feature of map.querySourceFeatures('gurs-properties', {
+    sourceLayer: 'properties',
+    filter: ['==', ['get', 'feature_type'], 'pin'],
+  })) {
+    if (feature.geometry.type !== 'Point') continue
+    const coordinates = feature.geometry.coordinates as Position
+    const [lng, lat] = coordinates
+    const longitudeVisible =
+      bounds.getWest() <= bounds.getEast()
+        ? lng >= bounds.getWest() && lng <= bounds.getEast()
+        : lng >= bounds.getWest() || lng <= bounds.getEast()
+    if (
+      !longitudeVisible ||
+      lat < bounds.getSouth() ||
+      lat > bounds.getNorth()
+    ) {
+      continue
+    }
+
+    const item = buildingResultFromFeature(feature)
+    if (!item || visibleIds.has(item.id)) continue
+    visibleIds.add(item.id)
+    const signature = houseMarkerSignature(item)
+    let record = houseMarkers.get(item.id)
+    if (!record) {
+      const element = createHouseMarkerElement(item)
+      const marker = createMapMarker(element).setLngLat(coordinates).addTo(map)
+      updateHouseMarkerElement(element, item)
+      record = { marker, element, feature, signature }
+      houseMarkers.set(item.id, record)
+      element.addEventListener('click', (event) => {
+        event.stopPropagation()
+        const current = houseMarkers.get(item.id)
+        if (!props.measureMode && current) {
+          void selectBuildingFeature(current.feature)
+        }
+      })
+    } else {
+      record.feature = feature
+      record.marker.setLngLat(coordinates)
+      if (record.signature !== signature) {
+        updateHouseMarkerElement(record.element, item)
+        record.signature = signature
+      }
+    }
+    record.element.style.setProperty(
+      '--house-marker-scale',
+      String(markerScale),
+    )
+    record.element.style.zIndex = String(Math.round(map.project(coordinates).y))
+  }
+
+  for (const [id, record] of houseMarkers) {
+    if (visibleIds.has(id)) continue
+    record.marker.remove()
+    houseMarkers.delete(id)
+  }
 }
 
 function updateFeatureCount() {
   if (!map?.isStyleLoaded()) return
+  if (
+    props.layers.includes('buildings') &&
+    map.getZoom() >= HOUSE_MARKER_MIN_ZOOM
+  ) {
+    emit('count', houseMarkers.size)
+    return
+  }
   const countLayers = (layers: string[]) => {
     const renderedLayers = layers.filter((layerId) => map!.getLayer(layerId))
     if (!renderedLayers.length) return 0
@@ -182,8 +354,21 @@ function updateVisibleResults() {
     return
   }
 
-  const buildingLayers = ['property-summary', 'property-point'].filter(
-    (layerId) => map?.getLayer(layerId),
+  if (
+    props.layers.includes('buildings') &&
+    map.getZoom() >= HOUSE_MARKER_MIN_ZOOM
+  ) {
+    emit(
+      'results',
+      visibleBuildingResults(
+        [...houseMarkers.values()].map((record) => record.feature),
+      ),
+    )
+    return
+  }
+
+  const buildingLayers = ['property-summary'].filter((layerId) =>
+    map?.getLayer(layerId),
   )
   if (!buildingLayers.length) {
     emit('results', [])
@@ -526,6 +711,8 @@ onMounted(async () => {
   container.dataset.mapState = 'importing'
   try {
     const maplibregl = await import('maplibre-gl')
+    createMapMarker = (element) =>
+      new maplibregl.Marker({ element, anchor: 'bottom' })
     container.dataset.mapState = 'initializing'
     map = new maplibregl.Map({
       container,
@@ -588,12 +775,14 @@ onMounted(async () => {
       emit('resultsLoading', false)
       emit('error', '')
       syncPropertySummaries()
+      syncHouseMarkers()
       updateFeatureCount()
       updateVisibleResults()
     })
     map.on('moveend', () => {
       if (!map) return
       syncPropertySummaries()
+      syncHouseMarkers()
       updateFeatureCount()
       updateVisibleResults()
       if (!syncingFromProps) {
@@ -771,6 +960,7 @@ watch(
 
 onBeforeUnmount(() => {
   detailController?.abort()
+  removeHouseMarkers()
   map?.remove()
 })
 
@@ -826,6 +1016,83 @@ defineExpose({
 .property-map :deep(.maplibregl-ctrl-attrib) {
   color: var(--color-ink-muted);
   font-size: 9px;
+}
+
+.property-map :deep(.property-map__house-marker-anchor) {
+  --house-marker-scale: 1;
+
+  width: 84px;
+  height: 60px;
+  pointer-events: none;
+}
+
+.property-map :deep(.property-map__house-marker) {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  display: flex;
+  width: 78px;
+  height: 48px;
+  margin: 0;
+  padding: 8px 6px 7px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font: inherit;
+  line-height: 1.02;
+  appearance: none;
+  cursor: pointer;
+  pointer-events: auto;
+  background: #315f52;
+  border: 1px solid #244d42;
+  border-radius: 9px;
+  box-shadow: 0 2px 5px rgb(25 61 53 / 22%);
+  transform: scale(var(--house-marker-scale));
+  transform-origin: 50% 60px;
+}
+
+.property-map :deep(.property-map__house-marker::after) {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  content: '';
+  background: inherit;
+  border-right: 1px solid #244d42;
+  border-bottom: 1px solid #244d42;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.property-map :deep(.property-map__house-marker--sage) {
+  background: #55796d;
+  border-color: #315f52;
+}
+
+.property-map :deep(.property-map__house-marker-title),
+.property-map :deep(.property-map__house-marker-value) {
+  position: relative;
+  z-index: 1;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.property-map :deep(.property-map__house-marker-title) {
+  color: #dbe9e3;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.property-map :deep(.property-map__house-marker-value) {
+  margin-top: 2px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 @media (max-width: 720px), (max-height: 560px) and (max-width: 1024px) {
