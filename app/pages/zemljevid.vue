@@ -225,13 +225,16 @@ useHead({
             @measure="measuredDistance = $event"
           />
           <template #fallback>
-            <div class="absolute top-[72px] left-4 z-25">
+            <div
+              class="absolute top-3 left-3 z-25 max-w-[calc(100%_-_24px)] max-[720px]:right-3"
+            >
               <MapLoadingState />
             </div>
           </template>
         </ClientOnly>
 
         <p
+          v-if="!mapLoading && !mapError && !mapDataError"
           class="absolute top-[15px] left-3.5 z-20 m-0 hidden rounded-[7px] bg-white px-[13px] py-[11px] text-[10px] text-[#294d43] shadow-[0_3px_12px_rgb(29_68_58_/_9%)] max-[720px]:block"
         >
           {{ visibleResults.length || featureCount }} stavb
@@ -245,17 +248,20 @@ useHead({
 
         <div
           v-if="mapLoading && !mapError"
-          class="absolute top-[72px] left-4 z-25"
+          class="absolute top-3 left-3 z-25 max-w-[calc(100%_-_24px)] max-[720px]:right-3"
         >
           <MapLoadingState />
         </div>
-        <div v-if="mapError" class="absolute top-[72px] left-4 z-25">
+        <div
+          v-if="mapError"
+          class="absolute top-3 left-3 z-25 max-w-[calc(100%_-_24px)] max-[720px]:right-3"
+        >
           <MapErrorState @retry="retryMap" />
         </div>
 
         <div
           v-if="mapDataError && !mapError"
-          class="absolute top-[72px] left-4 z-25 grid max-w-[360px] grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg border border-[#e6d7ae] bg-[rgb(255_253_245_/_96%)] px-3 py-[11px] text-[#5f5130] shadow-[0_8px_24px_rgb(25_61_53_/_10%)] backdrop-blur-[10px] max-[720px]:top-16 max-[720px]:right-3.5 max-[720px]:left-3.5 max-[720px]:max-w-none"
+          class="absolute top-3 left-3 z-25 grid max-w-[360px] grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg border border-[#e6d7ae] bg-[rgb(255_253_245_/_96%)] px-3 py-[11px] text-[#5f5130] shadow-[0_8px_24px_rgb(25_61_53_/_10%)] backdrop-blur-[10px] max-[720px]:right-3 max-[720px]:max-w-none"
           role="status"
         >
           <span
