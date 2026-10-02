@@ -146,7 +146,7 @@ function resetFilters() {
       </NuxtLink>
 
       <MapSearch
-        class="w-full max-[720px]:col-span-full max-[720px]:mt-3.5 [&_.search-box]:min-h-[50px] [&_.search-box]:rounded-lg [&_.search-box]:border-[#e0e5e1] [&_.search-box]:shadow-none max-[720px]:[&_.search-box]:min-h-[46px] [&_.search-input]:h-12 [&_.search-input]:text-xs [&_kbd]:hidden"
+        class="w-full max-[720px]:col-span-full max-[720px]:mt-3.5 [&_.search-box]:min-h-[50px] [&_.search-box]:rounded-lg [&_.search-box]:border-[#e0e5e1] [&_.search-box]:shadow-none [&_.search-box:focus-within]:border-accent [&_.search-box:focus-within]:shadow-[0_0_0_3px_rgb(49_95_82_/_12%)] max-[720px]:[&_.search-box]:min-h-[46px] [&_.search-input]:h-12 [&_.search-input]:text-xs [&_kbd]:hidden"
         @select="emit('select', $event)"
       />
 

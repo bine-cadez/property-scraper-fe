@@ -206,7 +206,7 @@ function clear() {
           type="search"
           autocomplete="off"
           :placeholder="sl.search.placeholder"
-          class="h-[46px] min-w-0 border-0 bg-transparent text-sm text-ink outline-0 placeholder:text-[#7a8783] [&::-webkit-search-cancel-button]:hidden"
+          class="search-input h-[46px] min-w-0 border-0 bg-transparent text-sm text-ink outline-0 placeholder:text-[#7a8783] [&::-webkit-search-cancel-button]:hidden"
           @keydown="handleKeydown"
         />
         <button

@@ -42,7 +42,7 @@ const placeResults = computed(() =>
     :class="
       mobile
         ? 'relative'
-        : 'absolute top-[calc(100%+8px)] right-0 left-0 rounded-md border border-line/92 p-3 shadow-overlay'
+        : 'absolute top-[calc(100%+8px)] right-0 left-0 z-50 rounded-md border border-line/92 p-3 shadow-overlay'
     "
     role="listbox"
     aria-label="Rezultati iskanja"
