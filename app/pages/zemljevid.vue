@@ -5,10 +5,11 @@ import {
   LocateFixed,
   MoreHorizontal,
 } from "@lucide/vue";
-import type { MapResultItem } from "#shared/types/property";
+import type { MapLayerId, MapResultItem } from "#shared/types/property";
 
 const {
   center,
+  clearSelection,
   closeSelection,
   featureCount,
   filters,
@@ -49,6 +50,11 @@ function selectSearchResult(result: Parameters<typeof selectResult>[0]) {
 
 function selectVisibleResult(item: MapResultItem) {
   openSelection(item.selectionId);
+}
+
+function changeLayers(nextLayers: MapLayerId[]) {
+  clearSelection();
+  layers.value = nextLayers;
 }
 
 function toggleComparison(item: MapResultItem) {
@@ -146,7 +152,7 @@ useHead({
       :mobile-view="mobileView"
       @select="selectSearchResult"
       @filters-change="filters = $event"
-      @layers-change="layers = $event"
+      @layers-change="changeLayers"
       @view-change="mobileView = $event"
       @compare-open="comparisonOpen = true"
     />

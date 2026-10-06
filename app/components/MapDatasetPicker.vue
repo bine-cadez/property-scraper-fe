@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, ChevronDown, Layers3 } from "@lucide/vue";
+import { ChevronDown, Layers3 } from "@lucide/vue";
 import type { MapLayerId } from "#shared/types/property";
 
 const props = defineProps<{
@@ -39,30 +39,17 @@ const options: {
   },
 ];
 
-const selectedOptions = computed(() =>
-  options.filter((option) => props.layers.includes(option.id)),
+const selectedOption = computed(
+  () =>
+    options.find((option) => props.layers.includes(option.id)) ?? options[0],
 );
 
-const summary = computed(() => {
-  if (selectedOptions.value.length === 1)
-    return selectedOptions.value[0]?.label;
-  if (selectedOptions.value.length === 2) return "2 sloja";
-  if (selectedOptions.value.length === 3) return "Vsi sloji";
-  return "Izberite sloj";
-});
+const summary = computed(() => selectedOption.value?.label ?? "Izberite sloj");
 
-function toggle(id: (typeof options)[number]["id"]) {
-  const selected = props.layers.includes(id);
-  if (selected && selectedOptions.value.length === 1) return;
-
-  let next = selected
-    ? props.layers.filter((layer) => layer !== id)
-    : [...props.layers, id];
-
-  if (id === "transactions" && selected) {
-    next = next.filter((layer) => layer !== "priceM2");
-  }
-  emit("change", next);
+function select(id: (typeof options)[number]["id"]) {
+  open.value = false;
+  if (selectedOption.value?.id === id && props.layers.length === 1) return;
+  emit("change", [id]);
 }
 
 function handlePointerDown(event: PointerEvent) {
@@ -127,10 +114,10 @@ onBeforeUnmount(() => {
         v-for="option in options"
         :key="option.id"
         type="button"
-        role="menuitemcheckbox"
-        :aria-checked="layers.includes(option.id)"
+        role="menuitemradio"
+        :aria-checked="selectedOption?.id === option.id"
         class="grid min-h-[54px] w-full grid-cols-[12px_minmax(0,1fr)_18px] items-center gap-3 rounded-[7px] border-0 bg-transparent px-3 text-left text-[#294d43] hover:bg-[#f2f6ef]"
-        @click="toggle(option.id)"
+        @click="select(option.id)"
       >
         <span
           class="size-2.5 rounded-[3px]"
@@ -146,26 +133,24 @@ onBeforeUnmount(() => {
           </small>
         </span>
         <span
-          class="grid size-[18px] place-items-center rounded-[5px] border"
+          class="grid size-[18px] place-items-center rounded-full border"
           :class="
-            layers.includes(option.id)
+            selectedOption?.id === option.id
               ? 'border-accent bg-accent text-white'
               : 'border-[#cfd8d3] bg-white'
           "
           aria-hidden="true"
         >
-          <Check
-            v-if="layers.includes(option.id)"
-            class="size-3"
-            :stroke-width="2.5"
+          <span
+            v-if="selectedOption?.id === option.id"
+            class="size-1.5 rounded-full bg-white"
           />
         </span>
       </button>
       <p
         class="m-1.5 mt-2 border-t border-[#edf0ed] px-1.5 pt-2.5 text-[9px] leading-[1.4] text-[#7b8782]"
       >
-        Stavbe so privzeti glavni sloj. Vključite še parcele ali prodaje za
-        dodaten kontekst.
+        Izberite en glavni prikaz zemljevida. Hkrati je lahko aktiven samo en.
       </p>
     </div>
   </div>

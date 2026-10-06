@@ -545,6 +545,15 @@ function setSelectedShapes() {
   })
 }
 
+function clearSelectedShapes() {
+  activeBuildingId = ''
+  detailController?.abort()
+  detailController = undefined
+  selectedParcelFeatures = []
+  parcelBuildingFeatures = []
+  setSelectedShapes()
+}
+
 function rememberBuilding(feature: ShapeFeature) {
   const id = String(feature.properties.id ?? feature.id ?? '')
   parcelBuildingFeatures = [
@@ -954,15 +963,11 @@ watch(
 watch(
   () => props.selectedId,
   (selectedId) => {
-    if (!map?.isStyleLoaded()) return
     if (!selectedId?.startsWith('building:')) {
-      activeBuildingId = ''
-      detailController?.abort()
-      selectedParcelFeatures = []
-      parcelBuildingFeatures = []
-      setSelectedShapes()
+      clearSelectedShapes()
       return
     }
+    if (!map?.isStyleLoaded()) return
     const id = selectedId.slice('building:'.length)
     if (id === activeBuildingId) return
     const feature = map
@@ -971,7 +976,14 @@ watch(
     if (feature) void selectBuildingFeature(feature, false)
   },
 )
-watch(() => props.layers, syncLayerVisibility, { deep: true })
+watch(
+  () => props.layers,
+  () => {
+    clearSelectedShapes()
+    syncLayerVisibility()
+  },
+  { deep: true },
+)
 watch(
   () => props.filters,
   (filters) => {

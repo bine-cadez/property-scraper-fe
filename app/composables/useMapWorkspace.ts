@@ -157,12 +157,24 @@ export function useMapWorkspace() {
     sidebarExpanded.value = true
   }
 
+  function clearSelection() {
+    propertyController?.abort()
+    propertyController = undefined
+    clearTimeout(closeTimer)
+    pendingSearchSelectionId = undefined
+    selectedId.value = undefined
+    selectedProperty.value = undefined
+    selectionLoading.value = false
+    selectionError.value = ''
+    sidebarExpanded.value = false
+  }
+
   function closeSelection() {
     sidebarExpanded.value = false
     clearTimeout(closeTimer)
 
     if (import.meta.client && window.matchMedia('(max-width: 720px)').matches) {
-      selectedId.value = undefined
+      clearSelection()
       return
     }
 
@@ -243,6 +255,7 @@ export function useMapWorkspace() {
 
   return {
     center,
+    clearSelection,
     closeSelection,
     featureCount,
     filters,
