@@ -20,6 +20,7 @@ import {
   buildingResultFromFeature,
   visibleBuildingResults,
 } from '~/utils/map/building-results'
+import { buildingClusterCollection } from '~/utils/map/building-clusters'
 import { formatMeasuredDistance } from '~/utils/map/measurement'
 import { HOUSE_LEVEL_ZOOM, HOUSE_MARKER_MIN_ZOOM } from '#shared/utils/map-zoom'
 
@@ -62,6 +63,7 @@ let parcelBuildingFeatures: ShapeFeature[] = []
 let activeBuildingId = ''
 let detailController: AbortController | undefined
 let propertySummarySignature = ''
+let propertyClusterSignature = ''
 let createMapMarker: ((element: HTMLElement) => MapLibreMarker) | undefined
 type HouseMarkerRecord = {
   marker: MapLibreMarker
@@ -93,7 +95,14 @@ const visibilityByLayer: Record<MapLayerId, string[]> = {
     'parcel-line',
     'parcel-label',
   ],
-  buildings: ['property-cluster', 'property-summary', 'property-point'],
+  buildings: [
+    'property-cluster-loader',
+    'property-cluster-halo',
+    'property-cluster',
+    'property-cluster-count',
+    'property-summary',
+    'property-point',
+  ],
   transactions: [
     'sale-cluster-halo',
     'sale-cluster',
@@ -334,7 +343,14 @@ function updateFeatureCount() {
         const key = `${feature.source}:${id}`
         if (seen.has(key)) return total
         seen.add(key)
-        return total + Number(feature.properties?.cluster_count ?? 1)
+        return (
+          total +
+          Number(
+            feature.properties?.building_count ??
+              feature.properties?.cluster_count ??
+              1,
+          )
+        )
       }, 0)
   }
   emit(
@@ -494,6 +510,22 @@ function syncPropertySummaries() {
   if (signature === propertySummarySignature) return
   propertySummarySignature = signature
   source.setData({ type: 'FeatureCollection', features: summaries })
+}
+
+function syncPropertyClusters() {
+  if (!map?.isStyleLoaded()) return
+  const source = map.getSource('property-clusters') as GeoJSONSource | undefined
+  if (!source) return
+
+  const { collection, signature } = buildingClusterCollection(
+    map.querySourceFeatures('gurs-properties', {
+      sourceLayer: 'properties',
+      filter: ['==', ['get', 'feature_type'], 'cluster'],
+    }),
+  )
+  if (signature === propertyClusterSignature) return
+  propertyClusterSignature = signature
+  source.setData(collection)
 }
 
 function setSelectedShapes() {
@@ -774,6 +806,7 @@ onMounted(async () => {
       emit('loading', false)
       emit('resultsLoading', false)
       emit('error', '')
+      syncPropertyClusters()
       syncPropertySummaries()
       syncHouseMarkers()
       updateFeatureCount()
@@ -781,6 +814,7 @@ onMounted(async () => {
     })
     map.on('moveend', () => {
       if (!map) return
+      syncPropertyClusters()
       syncPropertySummaries()
       syncHouseMarkers()
       updateFeatureCount()

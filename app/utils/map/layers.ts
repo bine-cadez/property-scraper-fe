@@ -60,29 +60,6 @@ function addBuildingMarkerImages(map: Map) {
       { pixelRatio: 2 },
     )
 
-    const clusterCanvas = document.createElement('canvas')
-    clusterCanvas.width = 184
-    clusterCanvas.height = 80
-    const cluster = clusterCanvas.getContext('2d')
-    if (!cluster) continue
-    cluster.scale(2, 2)
-    cluster.shadowColor = 'rgb(25 61 53 / 16%)'
-    cluster.shadowBlur = 3
-    cluster.shadowOffsetY = 1.5
-    cluster.beginPath()
-    cluster.roundRect(4, 4, 84, 32, 16)
-    cluster.fillStyle = color.fill
-    cluster.fill()
-    cluster.shadowColor = 'transparent'
-    cluster.lineWidth = 1
-    cluster.strokeStyle = color.stroke
-    cluster.stroke()
-    map.addImage(
-      `building-cluster-marker-${name}`,
-      cluster.getImageData(0, 0, 184, 80),
-      { pixelRatio: 2 },
-    )
-
     const summaryCanvas = document.createElement('canvas')
     summaryCanvas.width = 240
     summaryCanvas.height = 120
@@ -352,29 +329,26 @@ const buildingSummaryText: ExpressionSpecification = [
 
 const clusterCount: ExpressionSpecification = [
   'to-number',
-  ['get', 'cluster_count'],
+  ['coalesce', ['get', 'building_count'], ['get', 'cluster_count']],
   0,
 ]
 
-const clusterBuildingNoun: ExpressionSpecification = [
-  'case',
-  ['==', clusterCount, 1],
-  'stavba',
-  ['==', clusterCount, 2],
-  'stavbi',
-  ['<=', clusterCount, 4],
-  'stavbe',
-  'stavb',
-]
-
-const buildingClusterText: ExpressionSpecification = [
-  'format',
-  ['to-string', ['get', 'cluster_count']],
-  { 'font-scale': 1.05, 'text-color': '#ffffff' },
-  ' ',
-  {},
-  clusterBuildingNoun,
-  { 'font-scale': 0.76, 'text-color': '#dbe9e3' },
+const buildingClusterRadius: ExpressionSpecification = [
+  'interpolate',
+  ['linear'],
+  clusterCount,
+  1,
+  18,
+  10,
+  21,
+  50,
+  26,
+  200,
+  32,
+  1_000,
+  38,
+  5_000,
+  44,
 ]
 
 export type PropertyMapSourceId =
@@ -438,6 +412,16 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     type: 'geojson',
     data: emptyFeatureCollection,
     promoteId: 'id',
+  })
+  map.addSource('property-clusters', {
+    type: 'geojson',
+    data: emptyFeatureCollection,
+    cluster: true,
+    clusterRadius: 110,
+    clusterMaxZoom: 12,
+    clusterProperties: {
+      building_count: ['+', ['to-number', ['get', 'cluster_count'], 1]],
+    },
   })
   addBuildingMarkerImages(map)
 
@@ -572,35 +556,77 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     },
   })
 
-  // Keep property groups as summary cards until individual house markers take over.
+  // Show building groups as count-scaled circles until individual house markers take over.
+  // This transparent layer keeps the vector source loaded while its points are
+  // projected into the wider client-side clustering source below.
   map.addLayer({
-    id: 'property-cluster',
-    type: 'symbol',
+    id: 'property-cluster-loader',
+    type: 'circle',
     source: 'gurs-properties',
     'source-layer': 'properties',
     maxzoom: HOUSE_MARKER_MIN_ZOOM,
     filter: ['==', ['get', 'feature_type'], 'cluster'],
+    paint: {
+      'circle-radius': 0,
+      'circle-opacity': 0,
+    },
+  })
+
+  map.addLayer({
+    id: 'property-cluster-halo',
+    type: 'circle',
+    source: 'property-clusters',
+    maxzoom: HOUSE_MARKER_MIN_ZOOM,
+    paint: {
+      'circle-radius': ['+', buildingClusterRadius, 4],
+      'circle-color': '#193d35',
+      'circle-opacity': 0.16,
+      'circle-blur': 0.35,
+    },
+  })
+
+  map.addLayer({
+    id: 'property-cluster',
+    type: 'circle',
+    source: 'property-clusters',
+    maxzoom: HOUSE_MARKER_MIN_ZOOM,
+    paint: {
+      'circle-radius': buildingClusterRadius,
+      'circle-color': ['step', clusterCount, '#55796d', 40, '#315f52'],
+      'circle-stroke-color': '#244d42',
+      'circle-stroke-width': 1.25,
+    },
+  })
+
+  map.addLayer({
+    id: 'property-cluster-count',
+    type: 'symbol',
+    source: 'property-clusters',
+    maxzoom: HOUSE_MARKER_MIN_ZOOM,
     layout: {
-      'icon-image': [
-        'step',
-        ['get', 'cluster_count'],
-        'building-cluster-marker-sage',
-        40,
-        'building-cluster-marker-forest',
+      'text-field': ['to-string', clusterCount],
+      'text-size': [
+        'interpolate',
+        ['linear'],
+        clusterCount,
+        1,
+        12,
+        100,
+        13.5,
+        1_000,
+        15,
+        5_000,
+        16,
       ],
-      'icon-anchor': 'center',
-      'icon-allow-overlap': false,
-      'icon-padding': 8,
-      'text-field': buildingClusterText,
-      'text-size': 13.5,
       'text-font': ['Open Sans Bold'],
       'text-anchor': 'center',
-      'text-allow-overlap': false,
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
     },
     paint: {
       'text-color': '#ffffff',
-      'text-halo-color': 'rgba(25,61,53,0.28)',
-      'text-halo-width': 0.2,
+      'text-halo-color': 'rgba(25,61,53,0.38)',
+      'text-halo-width': 0.6,
     },
   })
 
@@ -857,7 +883,9 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
   // Keep house tags above selected parcel/building geometry. These symbol
   // layers are registered earlier because they use the streamed MVT source.
   for (const layerId of [
+    'property-cluster-halo',
     'property-cluster',
+    'property-cluster-count',
     'property-summary',
     'property-point',
   ]) {
