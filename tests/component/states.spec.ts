@@ -3,11 +3,20 @@ import { describe, expect, it } from 'vitest'
 import EmptySelection from '../../app/components/EmptySelection.vue'
 import MapErrorState from '../../app/components/MapErrorState.vue'
 import MapLoadingState from '../../app/components/MapLoadingState.vue'
+import PropertyDetailsLoading from '../../app/components/PropertyDetailsLoading.vue'
 
 describe('map states', () => {
   it('renders a descriptive loading state', async () => {
     const wrapper = await mountSuspended(MapLoadingState)
     expect(wrapper.text()).toContain('Nalagamo prostorske podatke')
+  })
+
+  it('renders property loading from the top with a working back action', async () => {
+    const wrapper = await mountSuspended(PropertyDetailsLoading)
+    expect(wrapper.text()).toContain('Nalagamo podatke')
+    expect(wrapper.attributes('aria-busy')).toBe('true')
+    await wrapper.get('button').trigger('click')
+    expect(wrapper.emitted('close')).toHaveLength(1)
   })
 
   it('renders and retries the error state', async () => {

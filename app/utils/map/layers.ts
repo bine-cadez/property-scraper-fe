@@ -4,6 +4,7 @@ import type {
   Map,
   VectorTileSource,
 } from 'maplibre-gl'
+import { HOUSE_MARKER_MIN_ZOOM } from '#shared/utils/map-zoom'
 
 const emptyFeatureCollection = {
   type: 'FeatureCollection' as const,
@@ -12,32 +13,40 @@ const emptyFeatureCollection = {
 
 function addBuildingMarkerImages(map: Map) {
   const colors = {
-    purple: { fill: '#5758d9', stroke: '#4547c2' },
-    teal: { fill: '#0b879d', stroke: '#087084' },
+    forest: {
+      fill: '#315f52',
+      stroke: '#244d42',
+    },
+    sage: {
+      fill: '#55796d',
+      stroke: '#315f52',
+    },
   }
 
   for (const [name, color] of Object.entries(colors)) {
     const houseCanvas = document.createElement('canvas')
-    houseCanvas.width = 176
-    houseCanvas.height = 152
+    houseCanvas.width = 168
+    houseCanvas.height = 128
     const house = houseCanvas.getContext('2d')
     if (!house) continue
 
     house.scale(2, 2)
-    house.shadowColor = 'rgb(31 35 106 / 24%)'
+    house.shadowColor = 'rgb(25 61 53 / 18%)'
     house.shadowBlur = 2.5
-    house.shadowOffsetY = 1.5
+    house.shadowOffsetY = 1
     house.beginPath()
-    house.moveTo(44, 3)
-    house.lineTo(82, 18)
-    house.lineTo(76, 18)
-    house.lineTo(76, 57)
-    house.lineTo(53, 57)
-    house.lineTo(44, 73)
-    house.lineTo(35, 57)
-    house.lineTo(12, 57)
-    house.lineTo(12, 18)
-    house.lineTo(6, 18)
+    house.moveTo(12, 3)
+    house.lineTo(72, 3)
+    house.quadraticCurveTo(81, 3, 81, 12)
+    house.lineTo(81, 42)
+    house.quadraticCurveTo(81, 51, 72, 51)
+    house.lineTo(51, 51)
+    house.lineTo(42, 60)
+    house.lineTo(33, 51)
+    house.lineTo(12, 51)
+    house.quadraticCurveTo(3, 51, 3, 42)
+    house.lineTo(3, 12)
+    house.quadraticCurveTo(3, 3, 12, 3)
     house.closePath()
     house.fillStyle = color.fill
     house.fill()
@@ -47,7 +56,7 @@ function addBuildingMarkerImages(map: Map) {
     house.stroke()
     map.addImage(
       `building-house-marker-${name}`,
-      house.getImageData(0, 0, 176, 152),
+      house.getImageData(0, 0, 168, 128),
       { pixelRatio: 2 },
     )
 
@@ -57,15 +66,15 @@ function addBuildingMarkerImages(map: Map) {
     const summary = summaryCanvas.getContext('2d')
     if (!summary) continue
     summary.scale(2, 2)
-    summary.shadowColor = 'rgb(31 35 106 / 28%)'
-    summary.shadowBlur = 3
-    summary.shadowOffsetY = 1.5
+    summary.shadowColor = 'rgb(25 61 53 / 18%)'
+    summary.shadowBlur = 4
+    summary.shadowOffsetY = 2
     summary.beginPath()
-    summary.roundRect(4, 4, 112, 50, 5)
+    summary.roundRect(4, 4, 112, 50, 9)
     summary.fillStyle = color.fill
     summary.fill()
     summary.shadowColor = 'transparent'
-    summary.lineWidth = 1.5
+    summary.lineWidth = 1.25
     summary.strokeStyle = color.stroke
     summary.stroke()
     map.addImage(
@@ -77,21 +86,29 @@ function addBuildingMarkerImages(map: Map) {
 }
 
 type PropertyMapLayer = 'properties' | 'sales' | 'parcels' | 'cadastral'
-// The tiny offset keeps summary cards visible at exactly z15.5.
-const HOUSE_MARKER_MIN_ZOOM = 15.51
 
-const buildingValue: ExpressionSpecification = [
+export const BUILDING_VALUE_PROPERTY_KEYS = [
+  'combined_modelled_value',
+  'combinedModelledValue',
+  'combined_value',
+  'combinedValue',
+  'total_modelled_value',
+  'totalModelledValue',
+  'total_value',
+  'totalValue',
+  'modelled_value',
+  'modelledValue',
+  'official_value',
+  'officialValue',
+  'estimated_market_value',
+  'market_value',
+  'value',
+] as const
+
+const buildingValue = [
   'coalesce',
-  ['get', 'combined_value'],
-  ['get', 'combinedValue'],
-  ['get', 'total_value'],
-  ['get', 'totalValue'],
-  ['get', 'official_value'],
-  ['get', 'officialValue'],
-  ['get', 'estimated_market_value'],
-  ['get', 'market_value'],
-  ['get', 'value'],
-]
+  ...BUILDING_VALUE_PROPERTY_KEYS.map((key) => ['get', key]),
+] as ExpressionSpecification
 
 const buildingValueLabel: ExpressionSpecification = [
   'case',
@@ -232,7 +249,7 @@ const buildingAreaLabel: ExpressionSpecification = [
     ['to-number', buildingArea, 0],
     { locale: 'en-US', 'max-fraction-digits': 1 },
   ],
-  'm²',
+  ' m²',
 ]
 
 const houseMarkerTitle: ExpressionSpecification = [
@@ -255,7 +272,7 @@ const houseMarkerTitle: ExpressionSpecification = [
 const houseMarkerText: ExpressionSpecification = [
   'format',
   houseMarkerTitle,
-  { 'font-scale': 0.68, 'text-color': 'rgba(255,255,255,0.62)' },
+  { 'font-scale': 0.66, 'text-color': '#dbe9e3' },
   '\n',
   {},
   ['case', ['==', buildingValue, null], '—', buildingValueLabel],
@@ -293,7 +310,7 @@ function buildingSummary(title: ExpressionSpecification) {
   return [
     'format',
     title,
-    { 'font-scale': 0.82, 'text-color': 'rgba(255,255,255,0.78)' },
+    { 'font-scale': 0.78, 'text-color': '#dbe9e3' },
     '\n',
     {},
     buildingValueLabel,
@@ -310,12 +327,36 @@ const buildingSummaryText: ExpressionSpecification = [
   buildingSummary(buildingLocalArea),
 ]
 
+const clusterCount: ExpressionSpecification = [
+  'to-number',
+  ['coalesce', ['get', 'building_count'], ['get', 'cluster_count']],
+  0,
+]
+
+const buildingClusterRadius: ExpressionSpecification = [
+  'interpolate',
+  ['linear'],
+  clusterCount,
+  1,
+  18,
+  10,
+  21,
+  50,
+  26,
+  200,
+  32,
+  1_000,
+  38,
+  5_000,
+  44,
+]
+
 export type PropertyMapSourceId =
   'gurs-properties' | 'gurs-sales' | 'gurs-parcels' | 'gurs-cadastral'
 
 function tileUrl(layer: PropertyMapLayer) {
   // Bust browser/MapLibre caches when the tile transport contract changes.
-  const parameters = new URLSearchParams({ v: '3' })
+  const parameters = new URLSearchParams({ v: '4' })
   const path = `/api/map/tiles/${layer}/{z}/{x}/{y}.mvt?${parameters.toString()}`
   // MapLibre requires an absolute URL here. Concatenation intentionally keeps
   // the template braces intact (URL() percent-encodes them).
@@ -372,6 +413,16 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     data: emptyFeatureCollection,
     promoteId: 'id',
   })
+  map.addSource('property-clusters', {
+    type: 'geojson',
+    data: emptyFeatureCollection,
+    cluster: true,
+    clusterRadius: 110,
+    clusterMaxZoom: 12,
+    clusterProperties: {
+      building_count: ['+', ['to-number', ['get', 'cluster_count'], 1]],
+    },
+  })
   addBuildingMarkerImages(map)
 
   // Cadastral context appears first and stays intentionally quiet beneath data.
@@ -382,7 +433,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     'source-layer': 'cadastral',
     minzoom: 8,
     paint: {
-      'fill-color': '#5b52e8',
+      'fill-color': '#55796d',
       'fill-opacity': [
         'interpolate',
         ['linear'],
@@ -401,7 +452,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     'source-layer': 'cadastral',
     minzoom: 8,
     paint: {
-      'line-color': '#6a63d8',
+      'line-color': '#66877c',
       'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 14, 1.5],
       'line-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.38, 14, 0.62],
       'line-dasharray': [2, 1.5],
@@ -423,7 +474,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'text-max-width': 12,
     },
     paint: {
-      'text-color': '#565284',
+      'text-color': '#526a62',
       'text-halo-color': 'rgba(255,255,255,0.88)',
       'text-halo-width': 1.5,
       'text-opacity': 0.78,
@@ -505,37 +556,77 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     },
   })
 
-  // Keep property groups as summary cards until individual house markers take over.
+  // Show building groups as count-scaled circles until individual house markers take over.
+  // This transparent layer keeps the vector source loaded while its points are
+  // projected into the wider client-side clustering source below.
   map.addLayer({
-    id: 'property-cluster',
-    type: 'symbol',
+    id: 'property-cluster-loader',
+    type: 'circle',
     source: 'gurs-properties',
     'source-layer': 'properties',
     maxzoom: HOUSE_MARKER_MIN_ZOOM,
     filter: ['==', ['get', 'feature_type'], 'cluster'],
+    paint: {
+      'circle-radius': 0,
+      'circle-opacity': 0,
+    },
+  })
+
+  map.addLayer({
+    id: 'property-cluster-halo',
+    type: 'circle',
+    source: 'property-clusters',
+    maxzoom: HOUSE_MARKER_MIN_ZOOM,
+    paint: {
+      'circle-radius': ['+', buildingClusterRadius, 4],
+      'circle-color': '#193d35',
+      'circle-opacity': 0.16,
+      'circle-blur': 0.35,
+    },
+  })
+
+  map.addLayer({
+    id: 'property-cluster',
+    type: 'circle',
+    source: 'property-clusters',
+    maxzoom: HOUSE_MARKER_MIN_ZOOM,
+    paint: {
+      'circle-radius': buildingClusterRadius,
+      'circle-color': ['step', clusterCount, '#55796d', 40, '#315f52'],
+      'circle-stroke-color': '#244d42',
+      'circle-stroke-width': 1.25,
+    },
+  })
+
+  map.addLayer({
+    id: 'property-cluster-count',
+    type: 'symbol',
+    source: 'property-clusters',
+    maxzoom: HOUSE_MARKER_MIN_ZOOM,
     layout: {
-      'icon-image': [
-        'step',
-        ['get', 'cluster_count'],
-        'building-summary-marker-teal',
-        40,
-        'building-summary-marker-purple',
+      'text-field': ['to-string', clusterCount],
+      'text-size': [
+        'interpolate',
+        ['linear'],
+        clusterCount,
+        1,
+        12,
+        100,
+        13.5,
+        1_000,
+        15,
+        5_000,
+        16,
       ],
-      'icon-anchor': 'center',
-      'icon-allow-overlap': false,
-      'icon-padding': 6,
-      'text-field': buildingSummaryText,
-      'text-size': 14,
       'text-font': ['Open Sans Bold'],
-      'text-line-height': 1.12,
       'text-anchor': 'center',
-      'text-offset': [0, -0.05],
-      'text-allow-overlap': false,
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
     },
     paint: {
       'text-color': '#ffffff',
-      'text-halo-color': 'rgba(52,55,182,0.7)',
-      'text-halo-width': 0.25,
+      'text-halo-color': 'rgba(25,61,53,0.38)',
+      'text-halo-width': 0.6,
     },
   })
 
@@ -550,8 +641,8 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'icon-image': [
         'case',
         ['>=', ['coalesce', ['get', 'construction_year'], 0], 2010],
-        'building-summary-marker-teal',
-        'building-summary-marker-purple',
+        'building-summary-marker-sage',
+        'building-summary-marker-forest',
       ],
       'icon-anchor': 'center',
       'icon-allow-overlap': false,
@@ -566,32 +657,11 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     },
     paint: {
       'text-color': '#ffffff',
-      'text-halo-color': 'rgba(52,55,182,0.7)',
-      'text-halo-width': 0.25,
+      'text-halo-color': 'rgba(25,61,53,0.28)',
+      'text-halo-width': 0.2,
     },
   })
 
-  map.addLayer({
-    id: 'property-point-halo',
-    type: 'circle',
-    source: 'gurs-properties',
-    'source-layer': 'properties',
-    minzoom: HOUSE_MARKER_MIN_ZOOM,
-    filter: ['==', ['get', 'feature_type'], 'pin'],
-    paint: {
-      'circle-color': 'rgba(91,82,232,0.14)',
-      'circle-radius': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        HOUSE_MARKER_MIN_ZOOM,
-        12,
-        18,
-        15,
-      ],
-      'circle-blur': 0.45,
-    },
-  })
   map.addLayer({
     id: 'property-point',
     type: 'symbol',
@@ -603,8 +673,8 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'icon-image': [
         'case',
         ['>=', ['coalesce', ['get', 'construction_year'], 0], 2010],
-        'building-house-marker-teal',
-        'building-house-marker-purple',
+        'building-house-marker-sage',
+        'building-house-marker-forest',
       ],
       'icon-anchor': 'bottom',
       'icon-size': [
@@ -633,18 +703,18 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'text-line-height': 1.02,
       'text-anchor': 'center',
       'text-offset': [0, -3.25],
-      'text-optional': true,
+      'text-optional': false,
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
     },
     paint: {
-      'icon-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        1,
-        0.96,
-      ],
+      // DOM markers keep each card and its label in one stacking context.
+      // This layer remains queryable but must not paint a second marker below it.
+      'icon-opacity': 0,
+      'text-opacity': 0,
       'text-color': '#ffffff',
-      'text-halo-color': 'rgba(52,55,182,0.72)',
-      'text-halo-width': 0.5,
+      'text-halo-color': 'rgba(25,61,53,0.35)',
+      'text-halo-width': 0.35,
     },
   })
   // Sales use a warm contrasting palette and server-side clusters.
@@ -773,7 +843,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     source: 'selected-parcel-shapes',
     filter: ['==', ['get', 'kind'], 'parcel'],
     paint: {
-      'line-color': '#4138c4',
+      'line-color': '#315f52',
       'line-width': 4,
       'line-opacity': 0.96,
     },
@@ -784,7 +854,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     source: 'selected-parcel-shapes',
     filter: ['==', ['get', 'kind'], 'building'],
     paint: {
-      'fill-color': '#7773df',
+      'fill-color': '#668f81',
       'fill-opacity': [
         'case',
         ['boolean', ['get', 'active'], false],
@@ -799,7 +869,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     source: 'selected-parcel-shapes',
     filter: ['==', ['get', 'kind'], 'building'],
     paint: {
-      'line-color': '#3437b6',
+      'line-color': '#244d42',
       'line-width': ['case', ['boolean', ['get', 'active'], false], 3, 1.5],
       'line-opacity': [
         'case',
@@ -813,8 +883,9 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
   // Keep house tags above selected parcel/building geometry. These symbol
   // layers are registered earlier because they use the streamed MVT source.
   for (const layerId of [
-    'property-point-halo',
+    'property-cluster-halo',
     'property-cluster',
+    'property-cluster-count',
     'property-summary',
     'property-point',
   ]) {
@@ -827,7 +898,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     source: 'measurement',
     filter: ['==', ['geometry-type'], 'LineString'],
     paint: {
-      'line-color': '#5b52e8',
+      'line-color': '#315f52',
       'line-width': 3,
       'line-dasharray': [1.5, 1.5],
     },
@@ -838,7 +909,7 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
     source: 'measurement',
     filter: ['==', ['geometry-type'], 'Point'],
     paint: {
-      'circle-color': '#5b52e8',
+      'circle-color': '#315f52',
       'circle-radius': 6,
       'circle-stroke-color': '#ffffff',
       'circle-stroke-width': 3,

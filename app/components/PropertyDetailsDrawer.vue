@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowLeft, ChevronDown, Info, Layers3 } from "@lucide/vue";
 import type { MoneyValue, PropertyRecord } from "#shared/types/property";
 import {
   formatArea,
@@ -62,7 +63,7 @@ const primaryDate = computed(
         aria-label="Nazaj na rezultate"
         @click="emit('close')"
       >
-        <span aria-hidden="true">←</span>
+        <ArrowLeft class="size-4" aria-hidden="true" />
         <span class="max-[720px]:hidden">Nazaj na rezultate</span>
         <span class="hidden text-[13px] max-[720px]:inline">Podrobnosti</span>
       </button>
@@ -71,14 +72,7 @@ const primaryDate = computed(
         class="ml-auto hidden max-[720px]:inline-flex"
         aria-label="Podatki in viri"
       >
-        <svg
-          class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="m4 7 8-4 8 4-8 4-8-4Z" />
-          <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
-        </svg>
+        <Layers3 class="w-[19px]" :stroke-width="1.7" aria-hidden="true" />
       </NuxtLink>
     </header>
 
@@ -119,7 +113,8 @@ const primaryDate = computed(
         <small
           v-if="transaction"
           class="w-max rounded-full bg-[#fff3d8] px-[7px] py-1 text-[9px] text-[#8a6524]"
-          >ⓘ V preverjanju</small
+          ><Info class="inline size-3" aria-hidden="true" /> V
+          preverjanju</small
         >
       </section>
 
@@ -171,7 +166,7 @@ const primaryDate = computed(
           class="flex min-h-[43px] cursor-pointer list-none items-center justify-between px-3 text-[10px] font-[670] [&::-webkit-details-marker]:hidden"
         >
           Prodaje v tej stavbi · {{ property.transactions.length }}
-          <span aria-hidden="true">⌄</span>
+          <ChevronDown class="size-4" aria-hidden="true" />
         </summary>
         <ComparableSales :transactions="property.transactions" />
       </details>
@@ -183,7 +178,7 @@ const primaryDate = computed(
           class="flex min-h-[43px] cursor-pointer list-none items-center justify-between px-3 text-[10px] font-[670] [&::-webkit-details-marker]:hidden"
         >
           Stavba in katastrski podatki
-          <span aria-hidden="true">⌄</span>
+          <ChevronDown class="size-4" aria-hidden="true" />
         </summary>
         <BuildingFacts :building="property.building" />
         <ParcelFacts :parcel="property.parcel" />
@@ -227,7 +222,8 @@ const primaryDate = computed(
       </section>
 
       <footer class="px-0.5 pt-[18px] pb-2 text-[9px] text-[#7a8581]">
-        ⓘ GURS · ETN / KN / EV · podatki v preverjanju
+        <Info class="mr-1 inline size-3" aria-hidden="true" />
+        GURS · ETN / KN / EV · podatki v preverjanju
       </footer>
     </div>
   </aside>

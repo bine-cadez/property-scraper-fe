@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import type { MapResultItem } from "#shared/types/property";
+import {
+  ArrowLeft,
+  CircleAlert,
+  LocateFixed,
+  MoreHorizontal,
+} from "@lucide/vue";
+import type { MapLayerId, MapResultItem } from "#shared/types/property";
 
 const {
   center,
+  clearSelection,
   closeSelection,
   featureCount,
   filters,
@@ -31,6 +38,7 @@ const {
 } = useMapWorkspace();
 
 const mobileView = ref<"list" | "map">("list");
+const resultsLoading = ref(true);
 const comparisonItems = ref<MapResultItem[]>([]);
 const comparisonOpen = ref(false);
 const mapDataError = ref("");
@@ -42,6 +50,11 @@ function selectSearchResult(result: Parameters<typeof selectResult>[0]) {
 
 function selectVisibleResult(item: MapResultItem) {
   openSelection(item.selectionId);
+}
+
+function changeLayers(nextLayers: MapLayerId[]) {
+  clearSelection();
+  layers.value = nextLayers;
 }
 
 function toggleComparison(item: MapResultItem) {
@@ -68,6 +81,7 @@ function compareSelectedProperty() {
     selectedProperty.value.parcel.officialValue;
   const item: MapResultItem = {
     id: transaction?.id ?? selectedProperty.value.id,
+    kind: transaction ? "transaction" : "building",
     selectionId: selectedId.value ?? selectedProperty.value.id,
     address: selectedProperty.value.address,
     location: selectedProperty.value.settlement,
@@ -81,6 +95,20 @@ function compareSelectedProperty() {
       ? {
           constructionYear: selectedProperty.value.building.constructionYear,
         }
+      : {}),
+    ...(selectedProperty.value.building?.footprintAreaM2 !== undefined
+      ? {
+          footprintAreaM2: selectedProperty.value.building.footprintAreaM2,
+        }
+      : {}),
+    ...(selectedProperty.value.building?.unitCount !== undefined
+      ? { unitCount: selectedProperty.value.building.unitCount }
+      : {}),
+    ...(selectedProperty.value.building?.floors !== undefined
+      ? { floors: selectedProperty.value.building.floors }
+      : {}),
+    ...(selectedProperty.value.building?.buildingUse
+      ? { buildingUse: selectedProperty.value.building.buildingUse }
       : {}),
     ...(officialValue ? { officialValue: officialValue.amount } : {}),
     status: transaction ? "V preverjanju" : "Ni podatka",
@@ -124,24 +152,20 @@ useHead({
       :mobile-view="mobileView"
       @select="selectSearchResult"
       @filters-change="filters = $event"
-      @layers-change="layers = $event"
+      @layers-change="changeLayers"
       @view-change="mobileView = $event"
       @compare-open="comparisonOpen = true"
     />
 
     <main
-      class="grid min-h-0 flex-1 grid-cols-[minmax(350px,420px)_1fr] max-[720px]:block max-[720px]:flex-none"
+      class="grid min-h-0 flex-1 grid-cols-[400px_minmax(0,1fr)] max-[1100px]:grid-cols-[360px_minmax(0,1fr)] max-[720px]:block max-[720px]:flex-none"
     >
       <aside
         class="relative z-2 min-h-0 min-w-0 overflow-hidden border-r border-[#e2e7e3] bg-surface max-[720px]:min-h-[calc(100dvh-226px)] max-[720px]:overflow-visible max-[720px]:border-r-0"
         :class="mobileView !== 'list' ? 'max-[720px]:hidden' : ''"
       >
-        <div
-          v-if="selectionLoading"
-          class="grid min-h-full content-center gap-3 bg-white p-[30px] max-[720px]:hidden [&_span]:h-[13px] [&_span]:rounded-[5px] [&_span]:bg-[#e7ece8] [&_span:nth-child(1)]:w-[38%] [&_span:nth-child(2)]:h-6 [&_span:nth-child(2)]:w-[72%] [&_span:nth-child(3)]:w-[56%] [&_span:nth-child(4)]:h-[90px] [&_span:nth-child(4)]:w-full"
-          aria-live="polite"
-        >
-          <span /><span /><span /><span />
+        <div v-if="selectionLoading" class="h-full max-[720px]:hidden">
+          <PropertyDetailsLoading @close="closeSelection" />
         </div>
         <div
           v-else-if="selectionError"
@@ -154,7 +178,7 @@ useHead({
             aria-label="Nazaj na rezultate"
             @click="closeSelection"
           >
-            ←
+            <ArrowLeft class="size-5" aria-hidden="true" />
           </button>
           <strong>Podatki niso na voljo</strong>
           <p class="m-0 text-xs text-[#74817d]">{{ selectionError }}</p>
@@ -171,7 +195,8 @@ useHead({
           v-else
           :results="visibleResults"
           :feature-count="featureCount"
-          :filters="filters"
+          :buildings-visible="layers.includes('buildings')"
+          :loading="resultsLoading"
           :selected-id="selectedId"
           :comparison-ids="comparisonItems.map((item) => item.id)"
           @select="selectVisibleResult"
@@ -198,6 +223,7 @@ useHead({
             @select="openSelection"
             @move="onMapMove"
             @loading="mapLoading = $event"
+            @results-loading="resultsLoading = $event"
             @error="mapError = $event"
             @data-error="mapDataError = $event"
             @count="featureCount = $event"
@@ -205,24 +231,19 @@ useHead({
             @measure="measuredDistance = $event"
           />
           <template #fallback>
-            <div class="absolute top-[72px] left-4 z-25">
+            <div
+              class="absolute top-3 left-3 z-25 max-w-[calc(100%_-_24px)] max-[720px]:right-3"
+            >
               <MapLoadingState />
             </div>
           </template>
         </ClientOnly>
 
-        <div class="absolute top-4 left-4 z-20 max-[720px]:hidden">
-          <MapLayerControl
-            class="w-[162px] rounded-[7px] border-0 shadow-[0_4px_16px_rgb(29_68_58_/_10%)] [&_.layer-icon]:grid [&_.layer-label]:static [&_.layer-label]:h-auto [&_.layer-label]:w-auto [&_.layer-label]:overflow-visible [&_.layer-label]:text-[0px] [&_.layer-label]:after:text-[11px] [&_.layer-label]:after:content-['Prikaz_zemljevida'] [&_.layer-trigger]:h-[42px] [&_.layer-trigger]:justify-start [&_.layer-trigger]:px-3 [&_.layer-trigger]:text-[#294d43]"
-            :layers="layers"
-            @change="layers = $event"
-          />
-        </div>
-
         <p
+          v-if="!mapLoading && !mapError && !mapDataError"
           class="absolute top-[15px] left-3.5 z-20 m-0 hidden rounded-[7px] bg-white px-[13px] py-[11px] text-[10px] text-[#294d43] shadow-[0_3px_12px_rgb(29_68_58_/_9%)] max-[720px]:block"
         >
-          {{ visibleResults.length || featureCount }} prodaj
+          {{ visibleResults.length || featureCount }} stavb
           <template v-if="filters.propertyTypes.length">
             · izbrana vrsta</template
           >
@@ -233,24 +254,27 @@ useHead({
 
         <div
           v-if="mapLoading && !mapError"
-          class="absolute top-[72px] left-4 z-25"
+          class="absolute top-3 left-3 z-25 max-w-[calc(100%_-_24px)] max-[720px]:right-3"
         >
           <MapLoadingState />
         </div>
-        <div v-if="mapError" class="absolute top-[72px] left-4 z-25">
+        <div
+          v-if="mapError"
+          class="absolute top-3 left-3 z-25 max-w-[calc(100%_-_24px)] max-[720px]:right-3"
+        >
           <MapErrorState @retry="retryMap" />
         </div>
 
         <div
           v-if="mapDataError && !mapError"
-          class="absolute top-[72px] left-4 z-25 grid max-w-[360px] grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg border border-[#e6d7ae] bg-[rgb(255_253_245_/_96%)] px-3 py-[11px] text-[#5f5130] shadow-[0_8px_24px_rgb(25_61_53_/_10%)] backdrop-blur-[10px] max-[720px]:top-16 max-[720px]:right-3.5 max-[720px]:left-3.5 max-[720px]:max-w-none"
+          class="absolute top-3 left-3 z-25 grid max-w-[360px] grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg border border-[#e6d7ae] bg-[rgb(255_253_245_/_96%)] px-3 py-[11px] text-[#5f5130] shadow-[0_8px_24px_rgb(25_61_53_/_10%)] backdrop-blur-[10px] max-[720px]:right-3 max-[720px]:max-w-none"
           role="status"
         >
           <span
             class="grid size-6 place-items-center rounded-full bg-[#b98a2d] text-xs font-extrabold text-white"
             aria-hidden="true"
-            >!</span
-          >
+            ><CircleAlert class="size-4" aria-hidden="true"
+          /></span>
           <p class="m-0 text-[10px] leading-[1.45]">{{ mapDataError }}</p>
           <button
             type="button"
@@ -269,15 +293,11 @@ useHead({
           title="Premakni zemljevid na mojo lokacijo"
           @click="locateNearby"
         >
-          <svg
-            class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-width:1.7]"
-            viewBox="0 0 24 24"
+          <LocateFixed
+            class="w-[19px]"
+            :stroke-width="1.7"
             aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="5.5" />
-            <circle cx="12" cy="12" r="2.2" />
-            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-          </svg>
+          />
         </button>
 
         <details
@@ -287,7 +307,7 @@ useHead({
             class="grid size-10 cursor-pointer list-none place-items-center rounded-md border border-[#dce2de] bg-white text-accent shadow-[0_3px_12px_rgb(29_68_58_/_9%)] [&::-webkit-details-marker]:hidden"
             aria-label="Dodatna orodja zemljevida"
           >
-            •••
+            <MoreHorizontal class="size-5" aria-hidden="true" />
           </summary>
           <div
             class="absolute right-0 bottom-12 grid w-[180px] gap-1 rounded-[7px] border border-[#dce2de] bg-white p-1.5 shadow-[0_10px_28px_rgb(29_68_58_/_14%)] [&_button]:min-h-9 [&_button]:rounded-[5px] [&_button]:border-0 [&_button]:bg-transparent [&_button]:text-left [&_button]:text-[10px] [&_button]:text-[#294d43] [&_button:hover]:bg-accent-soft [&_small]:block [&_small]:text-[8px] [&_small]:text-[#74817d]"
@@ -321,10 +341,12 @@ useHead({
         <p
           class="absolute bottom-[15px] left-4 z-18 m-0 rounded-md bg-white/92 px-3 py-2.5 text-[9px] text-[#74817d] shadow-[0_3px_12px_rgb(29_68_58_/_8%)] backdrop-blur-[10px] max-[720px]:hidden"
         >
-          Evidentirane prodajne cene
+          Stavbe in ocenjene vrednosti
           <span aria-hidden="true">·</span>
-          <span v-if="zoom < 12">skupine se razprejo s približevanjem</span>
-          <span v-else>prikazano območje</span>
+          <span v-if="zoom < 12"
+            >skupine stavb se razprejo s približevanjem</span
+          >
+          <span v-else>vidne stavbe na prikazanem območju</span>
         </p>
 
         <button
@@ -344,12 +366,8 @@ useHead({
       "
       class="fixed inset-0 z-70 hidden overflow-y-auto bg-surface max-[720px]:block"
     >
-      <div
-        v-if="selectionLoading"
-        class="grid min-h-dvh content-center gap-3 bg-white p-[30px] [&_span]:h-[13px] [&_span]:rounded-[5px] [&_span]:bg-[#e7ece8] [&_span:nth-child(1)]:w-[38%] [&_span:nth-child(2)]:h-6 [&_span:nth-child(2)]:w-[72%] [&_span:nth-child(3)]:w-[56%] [&_span:nth-child(4)]:h-[90px] [&_span:nth-child(4)]:w-full"
-        aria-live="polite"
-      >
-        <span /><span /><span /><span />
+      <div v-if="selectionLoading">
+        <PropertyDetailsLoading @close="closeSelection" />
       </div>
       <div
         v-else-if="selectionError"
@@ -362,7 +380,7 @@ useHead({
           aria-label="Nazaj"
           @click="closeSelection"
         >
-          ←
+          <ArrowLeft class="size-5" aria-hidden="true" />
         </button>
         <strong>Podatki niso na voljo</strong>
         <p class="m-0 text-xs text-[#74817d]">{{ selectionError }}</p>

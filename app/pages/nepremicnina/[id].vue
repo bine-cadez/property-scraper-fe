@@ -1,32 +1,33 @@
 <script setup lang="ts">
-import type { MoneyValue, PropertyRecord } from '#shared/types/property'
-import { formatArea, formatDate, formatEur } from '#shared/utils/format'
+import { ArrowRight } from "@lucide/vue";
+import type { MoneyValue, PropertyRecord } from "#shared/types/property";
+import { formatArea, formatDate, formatEur } from "#shared/utils/format";
 
-const route = useRoute()
-const config = useRuntimeConfig()
-const id = computed(() => String(route.params.id))
+const route = useRoute();
+const config = useRuntimeConfig();
+const id = computed(() => String(route.params.id));
 
 const { data: property, error } = await useAsyncData(
   () => `property-${id.value}`,
   () => $fetch<PropertyRecord>(`/api/property/${encodeURIComponent(id.value)}`),
-)
+);
 
 if (error.value || !property.value) {
   throw createError({
     statusCode: 404,
-    statusMessage: 'Nepremičnina ni najdena.',
-  })
+    statusMessage: "Nepremičnina ni najdena.",
+  });
 }
 
-const record = computed(() => property.value!)
-const unit = computed(() => record.value.units[0])
+const record = computed(() => property.value!);
+const unit = computed(() => record.value.units[0]);
 const canonical = computed(
   () =>
-    `${String(config.public.siteUrl).replace(/\/$/, '')}/nepremicnina/${record.value.id}`,
-)
+    `${String(config.public.siteUrl).replace(/\/$/, "")}/nepremicnina/${record.value.id}`,
+);
 
 const primaryMoney = computed<MoneyValue | undefined>(() => {
-  const valuation = record.value.primaryValuation
+  const valuation = record.value.primaryValuation;
   if (valuation) {
     return {
       amount: valuation.amount,
@@ -36,102 +37,102 @@ const primaryMoney = computed<MoneyValue | undefined>(() => {
       ...(valuation.amountPerM2 !== undefined
         ? { amountPerM2: valuation.amountPerM2 }
         : {}),
-    }
+    };
   }
-  return unit.value?.officialValue
-})
+  return unit.value?.officialValue;
+});
 
 useSeoMeta({
   title: () =>
     `${record.value.address} – podatki in vrednost | Prostor na dlani`,
   description: () =>
-    `${record.value.title}: ${unit.value ? formatArea(unit.value.usableAreaM2) : 'podatki o površini'}, parcela ${record.value.parcel.parcelNumber}, vrednosti in primerljive prodaje v ${record.value.municipality}.`,
+    `${record.value.title}: ${unit.value ? formatArea(unit.value.usableAreaM2) : "podatki o površini"}, parcela ${record.value.parcel.parcelNumber}, vrednosti in primerljive prodaje v ${record.value.municipality}.`,
   ogTitle: () => `${record.value.address} – pregled nepremičnine`,
   ogDescription: () =>
     `Katastrska dejstva, transparentna vrednost in ${record.value.transactions.length} primerljive prodaje.`,
-  ogType: 'website',
+  ogType: "website",
   ogUrl: canonical,
-  robots: 'index, follow',
-})
+  robots: "index, follow",
+});
 
 const schema = computed(() => [
   {
-    '@context': 'https://schema.org',
-    '@type': 'Apartment',
+    "@context": "https://schema.org",
+    "@type": "Apartment",
     name: record.value.title,
     url: canonical.value,
     address: {
-      '@type': 'PostalAddress',
-      streetAddress: record.value.address.split(',')[0],
+      "@type": "PostalAddress",
+      streetAddress: record.value.address.split(",")[0],
       addressLocality: record.value.settlement,
       addressRegion: record.value.municipality,
-      postalCode: '1000',
-      addressCountry: 'SI',
+      postalCode: "1000",
+      addressCountry: "SI",
     },
     ...(unit.value
       ? {
           floorSize: {
-            '@type': 'QuantitativeValue',
+            "@type": "QuantitativeValue",
             value: unit.value.usableAreaM2,
-            unitCode: 'MTK',
+            unitCode: "MTK",
           },
           numberOfRooms: unit.value.rooms,
           floorLevel: unit.value.floor,
         }
       : {}),
     geo: {
-      '@type': 'GeoCoordinates',
+      "@type": "GeoCoordinates",
       longitude: record.value.coordinates[0],
       latitude: record.value.coordinates[1],
     },
     additionalProperty: [
       {
-        '@type': 'PropertyValue',
-        name: 'Parcelna številka',
+        "@type": "PropertyValue",
+        name: "Parcelna številka",
         value: record.value.parcel.parcelNumber,
       },
       {
-        '@type': 'PropertyValue',
-        name: 'Katastrska občina',
+        "@type": "PropertyValue",
+        name: "Katastrska občina",
         value: `${record.value.parcel.cadastralMunicipalityId} ${record.value.parcel.cadastralMunicipalityName}`,
       },
     ],
   },
   {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
     itemListElement: [
       {
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: 1,
-        name: 'Domov',
+        name: "Domov",
         item: String(config.public.siteUrl),
       },
       {
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: 2,
-        name: 'Zemljevid',
-        item: `${String(config.public.siteUrl).replace(/\/$/, '')}/zemljevid`,
+        name: "Zemljevid",
+        item: `${String(config.public.siteUrl).replace(/\/$/, "")}/zemljevid`,
       },
       {
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: 3,
         name: record.value.address,
         item: canonical.value,
       },
     ],
   },
-])
+]);
 
 useHead({
-  link: [{ rel: 'canonical', href: canonical }],
+  link: [{ rel: "canonical", href: canonical }],
   script: [
     {
-      type: 'application/ld+json',
+      type: "application/ld+json",
       innerHTML: () => JSON.stringify(schema.value),
     },
   ],
-})
+});
 </script>
 
 <template>
@@ -157,9 +158,9 @@ useHead({
             class="text-[10px] font-extrabold tracking-[0.075em] text-accent-strong uppercase"
           >
             {{
-              record.propertyType === 'apartment'
-                ? 'Stanovanje'
-                : 'Nepremičnina'
+              record.propertyType === "apartment"
+                ? "Stanovanje"
+                : "Nepremičnina"
             }}
             · {{ record.municipality }}
           </span>
@@ -229,19 +230,19 @@ useHead({
         >
           <div>
             <dt>Uporabna površina</dt>
-            <dd>{{ unit ? formatArea(unit.usableAreaM2) : 'Ni podatka' }}</dd>
+            <dd>{{ unit ? formatArea(unit.usableAreaM2) : "Ni podatka" }}</dd>
           </div>
           <div>
             <dt>Število sob</dt>
-            <dd>{{ unit?.rooms || 'Ni podatka' }}</dd>
+            <dd>{{ unit?.rooms || "Ni podatka" }}</dd>
           </div>
           <div>
             <dt>Nadstropje</dt>
-            <dd>{{ unit?.floor ?? 'Ni podatka' }}</dd>
+            <dd>{{ unit?.floor ?? "Ni podatka" }}</dd>
           </div>
           <div>
             <dt>Leto gradnje</dt>
-            <dd>{{ record.building?.constructionYear || 'Ni podatka' }}</dd>
+            <dd>{{ record.building?.constructionYear || "Ni podatka" }}</dd>
           </div>
         </dl>
       </div>
@@ -312,7 +313,7 @@ useHead({
               modelno oceno ter bližnjimi zaključenimi transakcijami. Modelna
               ocena
               <strong>{{
-                primaryMoney ? formatEur(primaryMoney.amount) : 'ni na voljo'
+                primaryMoney ? formatEur(primaryMoney.amount) : "ni na voljo"
               }}</strong>
               ni uradna cenitev in ne pomeni zagotovljene prodajne cene.
             </p>
@@ -321,7 +322,7 @@ useHead({
               {{ formatDate(record.primaryValuation.valuationDate) }} temelji na
               metodologiji {{ record.primaryValuation.methodologyVersion }}. Med
               pomembnimi dejavniki so
-              {{ record.primaryValuation.explanatoryFactors.join(', ') }}.
+              {{ record.primaryValuation.explanatoryFactors.join(", ") }}.
             </p>
             <p>
               Pred pravnim poslom preverite stanje v uradnih evidencah,
@@ -353,10 +354,11 @@ useHead({
               />
             </template>
             <NuxtLink
-              class="mt-[7px] text-[10px] font-[750] text-accent-strong"
+              class="mt-[7px] inline-flex items-center gap-1 text-[10px] font-[750] text-accent-strong"
               to="/viri-podatkov"
-              >Vsi viri in omejitve →</NuxtLink
-            >
+              >Vsi viri in omejitve
+              <ArrowRight class="size-3.5" aria-hidden="true"
+            /></NuxtLink>
           </div>
           <div
             class="grid gap-2.5 border border-[#ead4b6] bg-warm-soft p-[18px]"

@@ -18,7 +18,7 @@ Open:
 - `http://localhost:3000/zemljevid` for map exploration
 - `http://localhost:3000/viri-podatkov` for live GURS source and coverage metadata
 
-Set `NUXT_GURS_API_BASE_URL` and `NUXT_GURS_API_KEY` for the backend. API keys remain server-only: Nuxt proxies JSON requests and MVT tiles to the Property Scraper API. When `NUXT_PUBLIC_MAP_STYLE_URL` is empty, MapLibre uses a neutral local base style.
+Set `NUXT_GURS_API_KEY` for the backend. `NUXT_GURS_API_BASE_URL` defaults to the deployed Property Scraper API and can be overridden for local development. API keys remain server-only: Nuxt proxies JSON requests and MVT tiles to the Property Scraper API. When `NUXT_PUBLIC_MAP_STYLE_URL` is empty, MapLibre uses a neutral local base style.
 
 ## Commands
 

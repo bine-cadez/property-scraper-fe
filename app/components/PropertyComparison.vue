@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowLeft, Info, Layers3, Map } from "@lucide/vue";
 import type { MapResultItem, SearchResult } from "#shared/types/property";
 import {
   formatArea,
@@ -7,7 +8,7 @@ import {
   formatPricePerM2,
 } from "#shared/utils/format";
 
-defineProps<{ items: MapResultItem[] }>();
+const props = defineProps<{ items: MapResultItem[] }>();
 
 defineEmits<{
   close: [];
@@ -26,7 +27,7 @@ function floorAndYear(item: MapResultItem) {
   return `${floor} / ${year}`;
 }
 
-const rows: ComparisonRow[] = [
+const transactionRows: ComparisonRow[] = [
   {
     label: "Prodajna cena",
     value: (item) =>
@@ -74,8 +75,61 @@ const rows: ComparisonRow[] = [
   },
 ];
 
-const mobileRows = rows.filter(
-  (row) => !["Prodajna cena", "Vir podatkov"].includes(row.label),
+const buildingRows: ComparisonRow[] = [
+  {
+    label: "Ocena GURS",
+    value: (item) =>
+      item.officialValue !== undefined
+        ? formatEur(item.officialValue)
+        : "Ni podatka",
+  },
+  {
+    label: "Površina stavbe",
+    value: (item) =>
+      item.areaM2 !== undefined ? formatArea(item.areaM2) : "Ni podatka",
+  },
+  {
+    label: "Tlorisna površina",
+    value: (item) =>
+      item.footprintAreaM2 !== undefined
+        ? formatArea(item.footprintAreaM2)
+        : "Ni podatka",
+  },
+  {
+    label: "Leto izgradnje",
+    value: (item) => String(item.constructionYear ?? "Ni podatka"),
+  },
+  {
+    label: "Deli stavbe",
+    value: (item) => String(item.unitCount ?? "Ni podatka"),
+  },
+  {
+    label: "Etaže",
+    value: (item) => String(item.floors ?? "Ni podatka"),
+  },
+  {
+    label: "Namembnost",
+    value: (item) => item.buildingUse || "Ni podatka",
+  },
+  {
+    label: "Vir podatkov",
+    value: (item) => item.sourceLabel || "GURS · KN / EV",
+  },
+];
+
+const comparingBuildings = computed(
+  () =>
+    props.items.length > 0 &&
+    props.items.every((item) => item.kind === "building"),
+);
+const rows = computed(() =>
+  comparingBuildings.value ? buildingRows : transactionRows,
+);
+const mobileRows = computed(() =>
+  rows.value.filter(
+    (row) =>
+      !["Prodajna cena", "Ocena GURS", "Vir podatkov"].includes(row.label),
+  ),
 );
 </script>
 
@@ -99,13 +153,7 @@ const mobileRows = rows.filter(
             class="grid size-[30px] place-items-center rounded-[7px] bg-accent text-white"
             aria-hidden="true"
           >
-            <svg
-              class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.55]"
-              viewBox="0 0 24 24"
-            >
-              <path d="m4 5 5-2 6 2 5-2v16l-5 2-6-2-5 2V5Z" />
-              <path d="M9 3v16M15 5v16" />
-            </svg>
+            <Map class="w-[19px]" :stroke-width="1.55" />
           </span>
           <strong>prostor.</strong>
         </NuxtLink>
@@ -124,7 +172,8 @@ const mobileRows = rows.filter(
         <NuxtLink
           class="text-[11px] font-[680] text-[#294d43] no-underline"
           to="/viri-podatkov"
-          >ⓘ O podatkih</NuxtLink
+          ><Info class="mr-1 inline size-3.5" aria-hidden="true" /> O
+          podatkih</NuxtLink
         >
       </div>
 
@@ -137,7 +186,7 @@ const mobileRows = rows.filter(
           aria-label="Nazaj na rezultate"
           @click="$emit('close')"
         >
-          ←
+          <ArrowLeft class="size-5" aria-hidden="true" />
         </button>
         <strong class="text-[13px]">Primerjava</strong>
         <NuxtLink
@@ -145,14 +194,7 @@ const mobileRows = rows.filter(
           class="justify-self-end text-[#294d43] no-underline"
           aria-label="Podatki in viri"
         >
-          <svg
-            class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="m4 7 8-4 8 4-8 4-8-4Z" />
-            <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
-          </svg>
+          <Layers3 class="w-[19px]" :stroke-width="1.7" aria-hidden="true" />
         </NuxtLink>
       </div>
     </header>
@@ -165,7 +207,8 @@ const mobileRows = rows.filter(
         class="mb-5 hidden border-0 bg-transparent p-0 text-[11px] font-[650] text-[#294d43] min-[721px]:block"
         @click="$emit('close')"
       >
-        ← Nazaj na rezultate
+        <ArrowLeft class="mr-1 inline size-4" aria-hidden="true" />
+        Nazaj na rezultate
       </button>
 
       <div
@@ -185,12 +228,16 @@ const mobileRows = rows.filter(
           >
             <span class="max-[720px]:hidden">{{
               items.length === 2
-                ? "Dve zabeleženi prodaji, isti pregled podatkov."
+                ? comparingBuildings
+                  ? "Dve stavbi, ključni podatki drug ob drugem."
+                  : "Dve zabeleženi prodaji, isti pregled podatkov."
                 : "Izberite dve enoti za primerjavo."
             }}</span>
             <span class="hidden max-[720px]:inline">{{
               items.length === 2
-                ? "Primerjava evidentiranih prodaj."
+                ? comparingBuildings
+                  ? "Primerjava podatkov o stavbah."
+                  : "Primerjava evidentiranih prodaj."
                 : "Izberite dve enoti za primerjavo."
             }}</span>
           </p>
@@ -230,9 +277,11 @@ const mobileRows = rows.filter(
               "Slovenija"
             }}</span>
             <b class="mt-[3px] text-base">{{
-              item.totalPrice !== undefined
-                ? formatEur(item.totalPrice)
-                : "Cena ni podatka"
+              item.kind === "building" && item.officialValue !== undefined
+                ? formatEur(item.officialValue)
+                : item.totalPrice !== undefined
+                  ? formatEur(item.totalPrice)
+                  : "Vrednost ni na voljo"
             }}</b>
           </article>
 
@@ -266,9 +315,11 @@ const mobileRows = rows.filter(
                 item.unitLabel || item.location || "Slovenija"
               }}</span>
               <b class="mt-[3px] text-sm">{{
-                item.totalPrice !== undefined
-                  ? formatEur(item.totalPrice)
-                  : "Ni podatka"
+                item.kind === "building" && item.officialValue !== undefined
+                  ? formatEur(item.officialValue)
+                  : item.totalPrice !== undefined
+                    ? formatEur(item.totalPrice)
+                    : "Vrednost ni na voljo"
               }}</b>
             </article>
           </div>
@@ -326,7 +377,7 @@ const mobileRows = rows.filter(
       <aside
         class="mt-3.5 flex gap-2.5 rounded-[7px] bg-[#eef3fa] px-[18px] py-[15px] text-[10px] leading-[1.45] text-[#5e7185] max-[720px]:mt-2.5"
       >
-        <span aria-hidden="true">ⓘ</span>
+        <Info class="mt-px size-4 shrink-0" aria-hidden="true" />
         <div>
           <strong class="text-[#526981]">Dve različni nepremičnini</strong>
           <p class="mt-1 mb-0">

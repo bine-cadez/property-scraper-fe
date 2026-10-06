@@ -1,16 +1,12 @@
 import type { H3Event } from 'h3'
-
-export type GursResource =
-  | 'addresses'
-  | 'buildings'
-  | 'building-parts'
-  | 'cadastral-municipalities'
-  | 'code-lists'
-  | 'parcels'
-  | 'sources'
-  | 'transactions'
-
-export type GursTileLayer = 'properties' | 'sales' | 'parcels' | 'cadastral'
+import { $fetch as ofetch } from 'ofetch'
+import {
+  gursEndpoints,
+  type GursResource,
+  type GursStatisticsResource,
+  type GursTileLayer,
+  type GursValuationResource,
+} from './gurs-endpoints'
 
 interface GursRequestOptions {
   query?: Record<string, string | number | boolean | undefined>
@@ -98,7 +94,7 @@ export async function gursGet<T = unknown>(
 ): Promise<T> {
   const { baseURL, headers } = connection(event)
   try {
-    return (await $fetch(path, {
+    return (await ofetch(path, {
       baseURL,
       headers,
       ...(options.query ? { query: options.query } : {}),
@@ -116,21 +112,27 @@ export function gursList(
   resource: GursResource,
   query?: GursRequestOptions['query'],
 ) {
-  return gursGet(event, `/gurs/${resource}`, query ? { query } : {})
+  return gursGet(
+    event,
+    gursEndpoints.resources.list(resource),
+    query ? { query } : {},
+  )
 }
 
 export function gursDetail(event: H3Event, resource: GursResource, id: string) {
-  return gursGet(event, `/gurs/${resource}/${encodeURIComponent(id)}`)
+  return gursGet(event, gursEndpoints.resources.detail(resource, id))
 }
 
 export function gursValuationUnits(
   event: H3Event,
-  resource: 'buildings' | 'building-parts' | 'parcels',
+  resource: GursValuationResource,
   id: string,
+  query?: GursRequestOptions['query'],
 ) {
   return gursGet(
     event,
-    `/gurs/${resource}/${encodeURIComponent(id)}/valuation-units`,
+    gursEndpoints.valuationUnits(resource, id),
+    query ? { query } : {},
   )
 }
 
@@ -142,7 +144,7 @@ export async function gursTile(
   y: number,
 ): Promise<Response> {
   const { baseURL, headers } = connection(event)
-  const url = new URL(`/map/tiles/${layer}/${z}/${x}/${y}.mvt`, baseURL)
+  const url = new URL(gursEndpoints.tile(layer, z, x, y), baseURL)
 
   let lastError: unknown
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -179,19 +181,70 @@ export async function gursTile(
 }
 
 export const gursOperations = {
-  health: (event: H3Event) => gursGet(event, '/health'),
-  ready: (event: H3Event) => gursGet(event, '/ready'),
+  health: (event: H3Event) => gursGet(event, gursEndpoints.health),
+  ready: (event: H3Event) => gursGet(event, gursEndpoints.ready),
   ingest: (event: H3Event, sampleSize: number, transactionYear?: number) => {
     const { baseURL, headers } = connection(event)
-    return $fetch('/ingest/gurs', {
+    return ofetch(gursEndpoints.ingest, {
       method: 'POST',
       baseURL,
       headers,
       body: { sampleSize, ...(transactionYear ? { transactionYear } : {}) },
+      timeout: 12_000,
     })
   },
-  statistics: (event: H3Event, resource?: string) =>
-    gursGet(event, `/gurs/statistics${resource ? `/${resource}` : ''}`),
+  statistics: (event: H3Event, resource?: GursStatisticsResource) =>
+    gursGet(
+      event,
+      resource
+        ? gursEndpoints.statistics.resource(resource)
+        : gursEndpoints.statistics.all,
+    ),
   search: (event: H3Event, q: string, limit = 8) =>
-    gursGet(event, '/gurs/search', { query: { q, limit } }),
+    gursGet(event, gursEndpoints.search, { query: { q, limit } }),
+  sources: {
+    list: (event: H3Event) => gursList(event, 'sources'),
+    detail: (event: H3Event, id: string) => gursDetail(event, 'sources', id),
+  },
+  cadastralMunicipalities: {
+    list: (event: H3Event) => gursList(event, 'cadastral-municipalities'),
+    detail: (event: H3Event, id: string) =>
+      gursDetail(event, 'cadastral-municipalities', id),
+  },
+  addresses: {
+    list: (event: H3Event) => gursList(event, 'addresses'),
+    detail: (event: H3Event, id: string) => gursDetail(event, 'addresses', id),
+  },
+  parcels: {
+    list: (event: H3Event, query?: GursRequestOptions['query']) =>
+      gursList(event, 'parcels', query),
+    detail: (event: H3Event, id: string) => gursDetail(event, 'parcels', id),
+    valuationUnits: (event: H3Event, id: string) =>
+      gursValuationUnits(event, 'parcels', id),
+  },
+  buildings: {
+    list: (event: H3Event, query?: GursRequestOptions['query']) =>
+      gursList(event, 'buildings', query),
+    detail: (event: H3Event, id: string) => gursDetail(event, 'buildings', id),
+    valuationUnits: (event: H3Event, id: string) =>
+      gursValuationUnits(event, 'buildings', id),
+  },
+  buildingParts: {
+    list: (event: H3Event, query?: GursRequestOptions['query']) =>
+      gursList(event, 'building-parts', query),
+    detail: (event: H3Event, id: string) =>
+      gursDetail(event, 'building-parts', id),
+    valuationUnits: (event: H3Event, id: string) =>
+      gursValuationUnits(event, 'building-parts', id),
+  },
+  transactions: {
+    list: (event: H3Event, query?: GursRequestOptions['query']) =>
+      gursList(event, 'transactions', query),
+    detail: (event: H3Event, id: string) =>
+      gursDetail(event, 'transactions', id),
+  },
+  codeLists: {
+    list: (event: H3Event) => gursList(event, 'code-lists'),
+    detail: (event: H3Event, id: string) => gursDetail(event, 'code-lists', id),
+  },
 }

@@ -1,28 +1,29 @@
 <script setup lang="ts">
-import type { MapLayerId } from '#shared/types/property'
+import { Layers3 } from "@lucide/vue";
+import type { MapLayerId } from "#shared/types/property";
 
 const props = defineProps<{
-  layers: MapLayerId[]
-}>()
+  layers: MapLayerId[];
+}>();
 
 const emit = defineEmits<{
-  change: [layers: MapLayerId[]]
-}>()
+  change: [layers: MapLayerId[]];
+}>();
 
-const expanded = ref(false)
+const expanded = ref(false);
 
 const options: { id: MapLayerId; label: string; swatch: string }[] = [
-  { id: 'parcels', label: 'Parcele', swatch: '#e9a14a' },
-  { id: 'buildings', label: 'Stavbe', swatch: '#5b52e8' },
-  { id: 'transactions', label: 'Prodaje', swatch: '#d77d2a' },
-  { id: 'priceM2', label: 'Cene prodaj', swatch: '#8d4914' },
-]
+  { id: "parcels", label: "Parcele", swatch: "#e9a14a" },
+  { id: "buildings", label: "Stavbe", swatch: "#5b52e8" },
+  { id: "transactions", label: "Prodaje", swatch: "#d77d2a" },
+  { id: "priceM2", label: "Cene prodaj", swatch: "#8d4914" },
+];
 
 function toggle(id: MapLayerId) {
   const next = props.layers.includes(id)
     ? props.layers.filter((layer) => layer !== id)
-    : [...props.layers, id]
-  emit('change', next)
+    : [...props.layers, id];
+  emit("change", next);
 }
 </script>
 
@@ -40,13 +41,7 @@ function toggle(id: MapLayerId) {
       @click="expanded = !expanded"
     >
       <span class="layer-icon hidden w-[18px]" aria-hidden="true">
-        <svg
-          class="w-[18px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-          viewBox="0 0 24 24"
-        >
-          <path d="m4 7 8-4 8 4-8 4-8-4Z" />
-          <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
-        </svg>
+        <Layers3 class="w-[18px]" :stroke-width="1.7" />
       </span>
       <span class="layer-label">Karta</span>
       <small

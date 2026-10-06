@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowLeft, Info, Layers3, SlidersHorizontal, X } from "@lucide/vue";
 import type { MapFilters, PropertyUnit } from "#shared/types/property";
 
 const props = defineProps<{
@@ -11,15 +12,23 @@ const emit = defineEmits<{
 }>();
 
 const open = ref(false);
+const propertyTypeOptions = [
+  { value: "", label: "Vse nepremičnine" },
+  { value: "apartment", label: "Stanovanja" },
+  { value: "house", label: "Hiše" },
+  { value: "office", label: "Poslovni prostori" },
+  { value: "retail", label: "Trgovski prostori" },
+  { value: "other", label: "Drugo" },
+];
 
 function createDraft(filters: MapFilters) {
   return {
     propertyType: filters.propertyTypes[0] ?? "",
     minPrice: filters.minPrice?.toString() ?? "",
     maxPrice: filters.maxPrice?.toString() ?? "",
-    minParcelArea: filters.minParcelAreaM2?.toString() ?? "",
+    minParcelArea: filters.minAreaM2?.toString() ?? "",
     maxArea: "",
-    year: filters.transactionFrom?.slice(0, 4) ?? "",
+    year: filters.constructionYearFrom?.toString() ?? "",
   };
 }
 
@@ -45,10 +54,8 @@ function apply() {
       : [],
     ...(draft.minPrice ? { minPrice: Number(draft.minPrice) } : {}),
     ...(draft.maxPrice ? { maxPrice: Number(draft.maxPrice) } : {}),
-    ...(draft.minParcelArea
-      ? { minParcelAreaM2: Number(draft.minParcelArea) }
-      : {}),
-    ...(draft.year ? { transactionFrom: `${draft.year}-01-01` } : {}),
+    ...(draft.minParcelArea ? { minAreaM2: Number(draft.minParcelArea) } : {}),
+    ...(draft.year ? { constructionYearFrom: Number(draft.year) } : {}),
   });
   open.value = false;
 }
@@ -63,14 +70,18 @@ function reset() {
   <div class="relative">
     <button
       type="button"
-      class="relative inline-flex min-h-[42px] items-center gap-2 rounded-[7px] border border-transparent bg-[#f1f3f1] px-[13px] text-[11px] font-[680] text-[#294d43] [&_svg]:w-[17px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-width:1.7]"
+      class="relative inline-flex min-h-[48px] items-center gap-2.5 rounded-[8px] border border-[#e3e7e4] bg-[#f1f3f1] px-3.5 text-left text-[#294d43] [&_svg]:w-[17px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-width:1.7]"
       :aria-expanded="open"
       @click="open = true"
     >
-      <svg viewBox="0 0 20 20" aria-hidden="true">
-        <path d="M3 5h14M6 10h8M8.5 15h3" />
-      </svg>
-      <span>Filtri</span>
+      <SlidersHorizontal aria-hidden="true" />
+      <span>
+        <small
+          class="mb-0.5 block text-[8px] leading-none font-[650] tracking-[0.06em] text-[#71807b] uppercase"
+          >Dodatno</small
+        >
+        <strong class="block text-[11px] font-[700]">Filtri</strong>
+      </span>
       <b
         v-if="activeFilterCount"
         class="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#e5ebdf] text-[9px]"
@@ -97,7 +108,7 @@ function reset() {
             aria-label="Zapri filtre"
             @click="open = false"
           >
-            ×
+            <X class="size-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -105,18 +116,11 @@ function reset() {
           class="hidden max-[720px]:sticky max-[720px]:top-0 max-[720px]:z-2 max-[720px]:-mx-4 max-[720px]:mb-2 max-[720px]:grid max-[720px]:min-h-[58px] max-[720px]:grid-cols-[1fr_auto_1fr] max-[720px]:items-center max-[720px]:border-b max-[720px]:border-[#e9ece9] max-[720px]:bg-white max-[720px]:px-4 max-[720px]:[&_a]:justify-self-end max-[720px]:[&_a]:text-[#294d43] max-[720px]:[&_a]:no-underline max-[720px]:[&_button]:border-0 max-[720px]:[&_button]:bg-transparent max-[720px]:[&_button]:text-[#294d43]"
         >
           <button type="button" aria-label="Nazaj" @click="open = false">
-            ←
+            <ArrowLeft class="size-5" aria-hidden="true" />
           </button>
           <strong>Filtri</strong>
           <NuxtLink to="/viri-podatkov" aria-label="Podatki in viri">
-            <svg
-              class="w-[19px] fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.7]"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="m4 7 8-4 8 4-8 4-8-4Z" />
-              <path d="m4 12 8 4 8-4M4 16l8 4 8-4" />
-            </svg>
+            <Layers3 class="w-[19px]" :stroke-width="1.7" aria-hidden="true" />
           </NuxtLink>
         </header>
 
@@ -133,26 +137,22 @@ function reset() {
           </div>
         </div>
 
-        <label class="grid gap-1.5">
+        <div class="grid gap-1.5">
           <span class="text-[9px] text-[#7a8581]">Vrsta nepremičnine</span>
-          <select
+          <BaseSelect
             v-model="draft.propertyType"
-            class="min-h-[46px] w-full rounded-[7px] border border-[#829b7f] bg-accent-soft px-3 text-xs font-[650] text-[#294d43]"
-          >
-            <option value="">Vse nepremičnine</option>
-            <option value="apartment">Stanovanja</option>
-            <option value="house">Hiše</option>
-            <option value="office">Poslovni prostori</option>
-            <option value="retail">Trgovski prostori</option>
-            <option value="other">Drugo</option>
-          </select>
-        </label>
+            :options="propertyTypeOptions"
+            label="Vrsta nepremičnine"
+            active
+            trigger-class="min-h-[46px] text-xs font-[650]"
+          />
+        </div>
 
         <div
           class="grid grid-cols-2 gap-3.5 max-[720px]:gap-x-[9px] max-[720px]:gap-y-3"
         >
           <label class="grid gap-1.5">
-            <span class="text-[9px] text-[#7a8581]">Cena od</span>
+            <span class="text-[9px] text-[#7a8581]">Ocenjena vrednost od</span>
             <input
               v-model="draft.minPrice"
               class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
@@ -163,7 +163,7 @@ function reset() {
             />
           </label>
           <label class="grid gap-1.5">
-            <span class="text-[9px] text-[#7a8581]">Cena do</span>
+            <span class="text-[9px] text-[#7a8581]">Ocenjena vrednost do</span>
             <input
               v-model="draft.maxPrice"
               class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
@@ -200,7 +200,7 @@ function reset() {
         </div>
 
         <label class="grid gap-1.5">
-          <span class="text-[9px] text-[#7a8581]">Leto prodaje</span>
+          <span class="text-[9px] text-[#7a8581]">Leto izgradnje</span>
           <input
             v-model="draft.year"
             class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
@@ -215,9 +215,9 @@ function reset() {
         <aside
           class="flex gap-[9px] rounded-[7px] bg-[#f2f4f1] p-[13px] text-[10px] leading-[1.45] text-[#73807b]"
         >
-          <span aria-hidden="true">ⓘ</span>
-          Prikazujemo evidentirane prodaje. Status posla je naveden pri
-          podatkih.
+          <Info class="mt-px size-4 shrink-0" aria-hidden="true" />
+          Prikazujemo stavbe na trenutnem območju zemljevida in razpoložljive
+          podatke GURS.
         </aside>
 
         <div
@@ -228,7 +228,9 @@ function reset() {
             >{{ activeFilterCount }} aktivna filtra</strong
           >
           <span>
-            {{ draft.propertyType ? "Vrsta nepremičnine" : "Prodajne cene" }}
+            {{
+              draft.propertyType ? "Vrsta nepremičnine" : "Ocenjena vrednost"
+            }}
             <template v-if="draft.year"> · {{ draft.year }}</template>
           </span>
         </div>
@@ -247,7 +249,7 @@ function reset() {
             type="submit"
             class="min-h-11 rounded-[7px] border border-accent bg-accent text-[11px] font-[680] text-white max-[720px]:w-full"
           >
-            Pokaži {{ resultCount ?? "" }} posle
+            Pokaži {{ resultCount ?? "" }} stavb
           </button>
         </div>
 

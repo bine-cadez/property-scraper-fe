@@ -1,17 +1,19 @@
 <script setup lang="ts">
+import { ArrowRight } from "@lucide/vue";
+
 useSeoMeta({
-  title: 'Prostor na dlani | Podatki o slovenskih nepremičninah',
+  title: "Prostor na dlani | Podatki o slovenskih nepremičninah",
   description:
-    'Pregleden dostop do parcel, stavb, vrednosti in primerljivih prodaj slovenskih nepremičnin.',
-  ogTitle: 'Prostor na dlani',
+    "Pregleden dostop do parcel, stavb, vrednosti in primerljivih prodaj slovenskih nepremičnin.",
+  ogTitle: "Prostor na dlani",
   ogDescription:
-    'Mirnejši in razumljivejši način raziskovanja slovenskih nepremičnin.',
-  ogType: 'website',
-})
+    "Mirnejši in razumljivejši način raziskovanja slovenskih nepremičnin.",
+  ogType: "website",
+});
 
 useHead({
-  link: [{ rel: 'canonical', href: '/' }],
-})
+  link: [{ rel: "canonical", href: "/" }],
+});
 </script>
 
 <template>
@@ -42,7 +44,7 @@ useHead({
               class="inline-flex min-h-[50px] items-center gap-[26px] rounded-sm bg-accent px-[18px] text-[13px] font-[750] text-white no-underline transition-[background-color,color,border-color,transform] duration-150 ease-out-expo hover:bg-accent-strong active:scale-[0.97] motion-reduce:active:scale-100"
               to="/zemljevid"
             >
-              Odpri zemljevid <span aria-hidden="true">→</span>
+              Odpri zemljevid <ArrowRight class="size-4" aria-hidden="true" />
             </NuxtLink>
             <NuxtLink
               class="text-[13px] font-bold text-accent-strong"
