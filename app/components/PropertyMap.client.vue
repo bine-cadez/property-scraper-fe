@@ -112,14 +112,16 @@ const visibilityByLayer: Record<MapLayerId, string[]> = {
     'sale-point',
   ],
   listings: [
+    'listing-sales-cluster-halo',
     'listing-sales-cluster',
     'listing-sales-cluster-count',
+    'listing-sales-summary',
     'listing-sales-point',
-    'listing-sales-price',
+    'listing-rentals-cluster-halo',
     'listing-rentals-cluster',
     'listing-rentals-cluster-count',
+    'listing-rentals-summary',
     'listing-rentals-point',
-    'listing-rentals-price',
   ],
   priceM2: ['sale-price-label'],
   officialValue: [],
@@ -368,8 +370,10 @@ function updateFeatureCount() {
       'count',
       countLayers([
         'listing-sales-cluster',
+        'listing-sales-summary',
         'listing-sales-point',
         'listing-rentals-cluster',
+        'listing-rentals-summary',
         'listing-rentals-point',
       ]),
     )
@@ -407,7 +411,9 @@ function updateVisibleResults() {
 
   if (props.layers.includes('listings')) {
     const listingLayers = [
+      'listing-sales-summary',
       'listing-sales-point',
+      'listing-rentals-summary',
       'listing-rentals-point',
     ].filter((layerId) => map?.getLayer(layerId))
     const seen = new Set<string>()
@@ -998,16 +1004,19 @@ onMounted(async () => {
       })
     })
     for (const layer of ['listing-sales', 'listing-rentals']) {
+      const summaryLayer = `${layer}-summary`
       const pointLayer = `${layer}-point`
       const clusterLayer = `${layer}-cluster`
-      map.on('mousemove', pointLayer, hoverFeature)
-      map.on('mouseleave', pointLayer, clearHover)
-      map.on('click', pointLayer, (event) => {
-        if (props.measureMode) return
-        const feature = event.features?.[0]
-        const id = feature?.properties?.id ?? feature?.id
-        if (id !== undefined) emit('select', `listing:${String(id)}`)
-      })
+      for (const markerLayer of [summaryLayer, pointLayer]) {
+        map.on('mousemove', markerLayer, hoverFeature)
+        map.on('mouseleave', markerLayer, clearHover)
+        map.on('click', markerLayer, (event) => {
+          if (props.measureMode) return
+          const feature = event.features?.[0]
+          const id = feature?.properties?.id ?? feature?.id
+          if (id !== undefined) emit('select', `listing:${String(id)}`)
+        })
+      }
       map.on('mouseenter', clusterLayer, () => {
         if (map) map.getCanvas().style.cursor = 'pointer'
       })
