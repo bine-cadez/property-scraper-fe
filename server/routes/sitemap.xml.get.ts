@@ -4,6 +4,7 @@ export default defineEventHandler((event) => {
   const staticPaths = [
     '/',
     '/zemljevid',
+    '/oglasi',
     '/trg-nepremicnin',
     '/metodologija',
     '/viri-podatkov',

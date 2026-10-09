@@ -10,6 +10,7 @@ import type {
   MapFilters,
   MapLayerId,
   MapResultItem,
+  ListingPriceUnit,
   Position,
 } from '#shared/types/property'
 import {
@@ -110,7 +111,16 @@ const visibilityByLayer: Record<MapLayerId, string[]> = {
     'sale-point-halo',
     'sale-point',
   ],
-  listings: [],
+  listings: [
+    'listing-sales-cluster',
+    'listing-sales-cluster-count',
+    'listing-sales-point',
+    'listing-sales-price',
+    'listing-rentals-cluster',
+    'listing-rentals-cluster-count',
+    'listing-rentals-point',
+    'listing-rentals-price',
+  ],
   priceM2: ['sale-price-label'],
   officialValue: [],
 }
@@ -353,6 +363,18 @@ function updateFeatureCount() {
         )
       }, 0)
   }
+  if (props.layers.includes('listings')) {
+    emit(
+      'count',
+      countLayers([
+        'listing-sales-cluster',
+        'listing-sales-point',
+        'listing-rentals-cluster',
+        'listing-rentals-point',
+      ]),
+    )
+    return
+  }
   emit(
     'count',
     countLayers(['property-cluster', 'property-summary', 'property-point']),
@@ -380,6 +402,55 @@ function updateVisibleResults() {
         [...houseMarkers.values()].map((record) => record.feature),
       ),
     )
+    return
+  }
+
+  if (props.layers.includes('listings')) {
+    const listingLayers = [
+      'listing-sales-point',
+      'listing-rentals-point',
+    ].filter((layerId) => map?.getLayer(layerId))
+    const seen = new Set<string>()
+    const labels: Record<string, string> = {
+      apartment: 'Stanovanje',
+      house: 'Hiša',
+      land: 'Zemljišče',
+      commercial: 'Poslovni prostor',
+      garage: 'Garaža',
+      other: 'Nepremičnina',
+    }
+    const results: MapResultItem[] = map
+      .queryRenderedFeatures(undefined, { layers: listingLayers })
+      .flatMap((feature) => {
+        const id = String(feature.properties?.id ?? feature.id ?? '')
+        if (!id || seen.has(id)) return []
+        seen.add(id)
+        const propertyType = String(
+          feature.properties?.property_type ?? 'other',
+        )
+        const askingPrice = Number(feature.properties?.asking_price)
+        return [
+          {
+            id,
+            kind: 'listing' as const,
+            selectionId: `listing:${id}`,
+            address: labels[propertyType] ?? 'Nepremičnina',
+            propertyType,
+            sourceLabel: String(feature.properties?.source ?? ''),
+            ...(Number.isFinite(askingPrice)
+              ? { totalPrice: askingPrice }
+              : {}),
+            priceUnit: String(
+              feature.properties?.price_unit ?? 'unknown',
+            ) as ListingPriceUnit,
+            transactionType:
+              feature.source === 'listing-rentals'
+                ? ('rent' as const)
+                : ('sale' as const),
+          },
+        ]
+      })
+    emit('results', results)
     return
   }
 
@@ -845,6 +916,7 @@ onMounted(async () => {
           : ''
       const isGursDataError =
         sourceId.startsWith('gurs-') ||
+        sourceId.startsWith('listing-') ||
         event.error.message.includes('/api/map/tiles/')
       if (isGursDataError) {
         emit('loading', false)
@@ -925,6 +997,32 @@ onMounted(async () => {
         duration: 360,
       })
     })
+    for (const layer of ['listing-sales', 'listing-rentals']) {
+      const pointLayer = `${layer}-point`
+      const clusterLayer = `${layer}-cluster`
+      map.on('mousemove', pointLayer, hoverFeature)
+      map.on('mouseleave', pointLayer, clearHover)
+      map.on('click', pointLayer, (event) => {
+        if (props.measureMode) return
+        const feature = event.features?.[0]
+        const id = feature?.properties?.id ?? feature?.id
+        if (id !== undefined) emit('select', `listing:${String(id)}`)
+      })
+      map.on('mouseenter', clusterLayer, () => {
+        if (map) map.getCanvas().style.cursor = 'pointer'
+      })
+      map.on('mouseleave', clusterLayer, clearHover)
+      map.on('click', clusterLayer, (event) => {
+        if (props.measureMode) return
+        const feature = event.features?.[0]
+        if (!map || feature?.geometry.type !== 'Point') return
+        map.easeTo({
+          center: feature.geometry.coordinates as Position,
+          zoom: Math.min(map.getZoom() + 2, 20),
+          duration: 360,
+        })
+      })
+    }
     map.on('click', (event) => {
       if (!props.measureMode) return
       measurePoints =

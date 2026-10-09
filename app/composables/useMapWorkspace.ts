@@ -5,6 +5,7 @@ import type {
   Position,
   PropertyRecord,
   SearchResult,
+  Listing,
 } from '#shared/types/property'
 import {
   DEFAULT_MAP_STATE,
@@ -12,6 +13,7 @@ import {
   serializeMapState,
 } from '#shared/utils/map-state'
 import { isAbortError } from '~/utils/request'
+import { listingKindFromId } from '#shared/utils/listings'
 
 const DEFAULT_VISIBLE_LAYERS: MapLayerId[] = ['buildings']
 
@@ -28,6 +30,7 @@ export function useMapWorkspace() {
   const { selectedId } = useMapSelection(initialState.selectedId)
   const sidebarExpanded = ref(Boolean(initialState.selectedId))
   const selectedProperty = ref<PropertyRecord>()
+  const selectedListing = ref<Listing>()
   const selectionLoading = ref(false)
   const selectionError = ref('')
   const mapLoading = ref(true)
@@ -83,6 +86,7 @@ export function useMapWorkspace() {
       propertyController?.abort()
       propertyController = undefined
       selectedProperty.value = undefined
+      selectedListing.value = undefined
       selectionError.value = ''
       if (!id) {
         selectionLoading.value = false
@@ -94,6 +98,17 @@ export function useMapWorkspace() {
       propertyController = controller
 
       try {
+        if (id.startsWith('listing:')) {
+          const listingId = id.slice('listing:'.length)
+          const kind = listingKindFromId(listingId)
+          if (!kind) throw new Error('Unknown listing type')
+          selectedListing.value = await $fetch<Listing>(
+            `/api/listings/${kind}/${encodeURIComponent(listingId)}`,
+            { signal: controller.signal },
+          )
+          return
+        }
+
         const property = await $fetch<PropertyRecord>(
           `/api/property/${encodeURIComponent(id)}`,
           { signal: controller.signal },
@@ -135,10 +150,7 @@ export function useMapWorkspace() {
           ? 13
           : 17
     if (result.selectionId) {
-      if (
-        selectedId.value === result.selectionId &&
-        selectedProperty.value
-      ) {
+      if (selectedId.value === result.selectionId && selectedProperty.value) {
         center.value = selectedProperty.value.coordinates
         pendingSearchSelectionId = undefined
       } else {
@@ -164,6 +176,7 @@ export function useMapWorkspace() {
     pendingSearchSelectionId = undefined
     selectedId.value = undefined
     selectedProperty.value = undefined
+    selectedListing.value = undefined
     selectionLoading.value = false
     selectionError.value = ''
     sidebarExpanded.value = false
@@ -272,6 +285,7 @@ export function useMapWorkspace() {
     resetMapView,
     retryMap,
     selectedId,
+    selectedListing,
     selectedProperty,
     selectionError,
     selectionLoading,

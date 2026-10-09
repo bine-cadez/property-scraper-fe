@@ -34,6 +34,7 @@ defineProps<{
       aria-label="Glavna navigacija"
     >
       <NuxtLink to="/zemljevid">{{ sl.navigation.map }}</NuxtLink>
+      <NuxtLink to="/oglasi">{{ sl.navigation.listings }}</NuxtLink>
       <NuxtLink to="/trg-nepremicnin">{{ sl.navigation.market }}</NuxtLink>
       <NuxtLink to="/metodologija">{{ sl.navigation.methodology }}</NuxtLink>
       <NuxtLink to="/viri-podatkov">{{ sl.navigation.sources }}</NuxtLink>

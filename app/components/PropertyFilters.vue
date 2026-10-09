@@ -5,6 +5,7 @@ import type { MapFilters, PropertyUnit } from "#shared/types/property";
 const props = defineProps<{
   filters: MapFilters;
   resultCount?: number;
+  listings?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -55,7 +56,9 @@ function apply() {
     ...(draft.minPrice ? { minPrice: Number(draft.minPrice) } : {}),
     ...(draft.maxPrice ? { maxPrice: Number(draft.maxPrice) } : {}),
     ...(draft.minParcelArea ? { minAreaM2: Number(draft.minParcelArea) } : {}),
-    ...(draft.year ? { constructionYearFrom: Number(draft.year) } : {}),
+    ...(!props.listings && draft.year
+      ? { constructionYearFrom: Number(draft.year) }
+      : {}),
   });
   open.value = false;
 }
@@ -152,7 +155,9 @@ function reset() {
           class="grid grid-cols-2 gap-3.5 max-[720px]:gap-x-[9px] max-[720px]:gap-y-3"
         >
           <label class="grid gap-1.5">
-            <span class="text-[9px] text-[#7a8581]">Ocenjena vrednost od</span>
+            <span class="text-[9px] text-[#7a8581]">{{
+              listings ? "Zahtevana cena od" : "Ocenjena vrednost od"
+            }}</span>
             <input
               v-model="draft.minPrice"
               class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
@@ -163,7 +168,9 @@ function reset() {
             />
           </label>
           <label class="grid gap-1.5">
-            <span class="text-[9px] text-[#7a8581]">Ocenjena vrednost do</span>
+            <span class="text-[9px] text-[#7a8581]">{{
+              listings ? "Zahtevana cena do" : "Ocenjena vrednost do"
+            }}</span>
             <input
               v-model="draft.maxPrice"
               class="min-h-[46px] w-full rounded-[7px] border border-[#dfe5e1] bg-white px-3 text-xs text-[#294d43]"
@@ -199,7 +206,7 @@ function reset() {
           </label>
         </div>
 
-        <label class="grid gap-1.5">
+        <label v-if="!listings" class="grid gap-1.5">
           <span class="text-[9px] text-[#7a8581]">Leto izgradnje</span>
           <input
             v-model="draft.year"
@@ -216,8 +223,11 @@ function reset() {
           class="flex gap-[9px] rounded-[7px] bg-[#f2f4f1] p-[13px] text-[10px] leading-[1.45] text-[#73807b]"
         >
           <Info class="mt-px size-4 shrink-0" aria-hidden="true" />
-          Prikazujemo stavbe na trenutnem območju zemljevida in razpoložljive
-          podatke GURS.
+          {{
+            listings
+              ? "Prikazujemo aktivne oglase z znano lokacijo. Prodajne cene so skupne, najemnine pa mesečne."
+              : "Prikazujemo stavbe na trenutnem območju zemljevida in razpoložljive podatke GURS."
+          }}
         </aside>
 
         <div
@@ -249,7 +259,7 @@ function reset() {
             type="submit"
             class="min-h-11 rounded-[7px] border border-accent bg-accent text-[11px] font-[680] text-white max-[720px]:w-full"
           >
-            Pokaži {{ resultCount ?? "" }} stavb
+            Pokaži {{ resultCount ?? "" }} {{ listings ? "oglasov" : "stavb" }}
           </button>
         </div>
 

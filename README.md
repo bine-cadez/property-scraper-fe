@@ -16,6 +16,7 @@ Open:
 
 - `http://localhost:3000/` for the indexable product introduction
 - `http://localhost:3000/zemljevid` for map exploration
+- `http://localhost:3000/oglasi` for active sale and rental advertisements
 - `http://localhost:3000/viri-podatkov` for live GURS source and coverage metadata
 
 Set `NUXT_GURS_API_KEY` for the backend. `NUXT_GURS_API_BASE_URL` defaults to the deployed Property Scraper API and can be overridden for local development. API keys remain server-only: Nuxt proxies JSON requests and MVT tiles to the Property Scraper API. When `NUXT_PUBLIC_MAP_STYLE_URL` is empty, MapLibre uses a neutral local base style.
@@ -70,7 +71,7 @@ See `.env.example`.
 
 ## Data status
 
-Runtime data comes from the configured Property Scraper API. The frontend uses its GURS search, record detail, valuation-unit, transaction, source/statistics, health/readiness, and MVT endpoints. Active property listings are not supplied by this backend and therefore remain empty.
+Runtime data comes from the configured Property Scraper API. The frontend uses its GURS search, record detail, valuation-unit, transaction, source/statistics, health/readiness, listing, and MVT endpoints. Listing JSON and tiles are proxied server-side so the API key never reaches the browser.
 
 ## Accessibility and SEO
 

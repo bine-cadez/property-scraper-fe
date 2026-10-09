@@ -86,6 +86,7 @@ function addBuildingMarkerImages(map: Map) {
 }
 
 type PropertyMapLayer = 'properties' | 'sales' | 'parcels' | 'cadastral'
+type ListingMapLayer = 'sales' | 'rentals'
 
 export const BUILDING_VALUE_PROPERTY_KEYS = [
   'combined_modelled_value',
@@ -352,7 +353,12 @@ const buildingClusterRadius: ExpressionSpecification = [
 ]
 
 export type PropertyMapSourceId =
-  'gurs-properties' | 'gurs-sales' | 'gurs-parcels' | 'gurs-cadastral'
+  | 'gurs-properties'
+  | 'gurs-sales'
+  | 'gurs-parcels'
+  | 'gurs-cadastral'
+  | 'listing-sales'
+  | 'listing-rentals'
 
 function tileUrl(layer: PropertyMapLayer) {
   // Bust browser/MapLibre caches when the tile transport contract changes.
@@ -363,17 +369,41 @@ function tileUrl(layer: PropertyMapLayer) {
   return import.meta.client ? `${window.location.origin}${path}` : path
 }
 
-/**
- * Builds URLs that match the published Swagger tile contract. The endpoint
- * currently accepts only the layer and z/x/y path parameters; UI filters stay
- * presentation-only until the backend documents filter query parameters.
- */
-export function propertyMapTileUrls(_filters: MapFilters) {
+function listingTileUrl(layer: ListingMapLayer, filters: MapFilters) {
+  const parameters = new URLSearchParams({ v: '1', dedupe: 'true' })
+  const propertyType = filters.propertyTypes[0]
+  if (propertyType) {
+    parameters.set(
+      'propertyType',
+      propertyType === 'office' || propertyType === 'retail'
+        ? 'commercial'
+        : propertyType,
+    )
+  }
+  if (filters.minPrice !== undefined) {
+    parameters.set('priceMin', String(filters.minPrice))
+    parameters.set('priceUnit', layer === 'sales' ? 'total' : 'month')
+  }
+  if (filters.maxPrice !== undefined) {
+    parameters.set('priceMax', String(filters.maxPrice))
+    parameters.set('priceUnit', layer === 'sales' ? 'total' : 'month')
+  }
+  if (filters.minAreaM2 !== undefined) {
+    parameters.set('areaMin', String(filters.minAreaM2))
+  }
+  const path = `/api/listings/tiles/${layer}/{z}/{x}/{y}.mvt?${parameters.toString()}`
+  return import.meta.client ? `${window.location.origin}${path}` : path
+}
+
+/** Builds URLs for the GURS and listing tile contracts. */
+export function propertyMapTileUrls(filters: MapFilters) {
   return {
     'gurs-properties': tileUrl('properties'),
     'gurs-sales': tileUrl('sales'),
     'gurs-parcels': tileUrl('parcels'),
     'gurs-cadastral': tileUrl('cadastral'),
+    'listing-sales': listingTileUrl('sales', filters),
+    'listing-rentals': listingTileUrl('rentals', filters),
   } satisfies Record<PropertyMapSourceId, string>
 }
 
@@ -399,6 +429,8 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
   addVectorSource(map, 'gurs-parcels', urls['gurs-parcels'], 15)
   addVectorSource(map, 'gurs-properties', urls['gurs-properties'], 0)
   addVectorSource(map, 'gurs-sales', urls['gurs-sales'], 0)
+  addVectorSource(map, 'listing-sales', urls['listing-sales'], 0)
+  addVectorSource(map, 'listing-rentals', urls['listing-rentals'], 0)
   map.addSource('measurement', {
     type: 'geojson',
     data: emptyFeatureCollection,
@@ -835,6 +867,123 @@ export function addPropertyMapLayers(map: Map, filters: MapFilters) {
       'text-halo-blur': 0.4,
     },
   })
+
+  const listingSources = [
+    {
+      id: 'listing-sales' as const,
+      sourceLayer: 'listing_sales',
+      color: '#7b55a3',
+    },
+    {
+      id: 'listing-rentals' as const,
+      sourceLayer: 'listing_rentals',
+      color: '#526bb0',
+    },
+  ]
+  for (const listing of listingSources) {
+    const listingPriceLabel: ExpressionSpecification = [
+      'concat',
+      [
+        'number-format',
+        ['get', 'asking_price'],
+        { locale: 'sl-SI', 'max-fraction-digits': 0 },
+      ],
+      ' €',
+      [
+        'match',
+        ['get', 'price_unit'],
+        'month',
+        '/mesec',
+        'week',
+        '/teden',
+        'day',
+        listing.id === 'listing-sales' ? ' · preveri' : '/dan',
+        'm2',
+        '/m²',
+        '',
+      ],
+    ]
+    map.addLayer({
+      id: `${listing.id}-cluster`,
+      type: 'circle',
+      source: listing.id,
+      'source-layer': listing.sourceLayer,
+      maxzoom: 12,
+      filter: ['==', ['get', 'feature_type'], 'cluster'],
+      paint: {
+        'circle-color': listing.color,
+        'circle-radius': [
+          'step',
+          ['get', 'cluster_count'],
+          15,
+          20,
+          19,
+          100,
+          23,
+        ],
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2.5,
+      },
+    })
+    map.addLayer({
+      id: `${listing.id}-cluster-count`,
+      type: 'symbol',
+      source: listing.id,
+      'source-layer': listing.sourceLayer,
+      maxzoom: 12,
+      filter: ['==', ['get', 'feature_type'], 'cluster'],
+      layout: {
+        'text-field': ['to-string', ['get', 'cluster_count']],
+        'text-size': 11,
+        'text-font': ['Open Sans Bold'],
+      },
+      paint: { 'text-color': '#ffffff' },
+    })
+    map.addLayer({
+      id: `${listing.id}-point`,
+      type: 'circle',
+      source: listing.id,
+      'source-layer': listing.sourceLayer,
+      minzoom: 12,
+      filter: ['==', ['get', 'feature_type'], 'pin'],
+      paint: {
+        'circle-color': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          '#3d2458',
+          listing.color,
+        ],
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 5, 18, 7],
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2,
+      },
+    })
+    map.addLayer({
+      id: `${listing.id}-price`,
+      type: 'symbol',
+      source: listing.id,
+      'source-layer': listing.sourceLayer,
+      minzoom: 13,
+      filter: [
+        'all',
+        ['==', ['get', 'feature_type'], 'pin'],
+        ['has', 'asking_price'],
+      ],
+      layout: {
+        'text-field': listingPriceLabel,
+        'text-size': 10,
+        'text-font': ['Open Sans Bold'],
+        'text-offset': [0, -1.4],
+        'text-anchor': 'bottom',
+        'text-optional': true,
+      },
+      paint: {
+        'text-color': '#3d2458',
+        'text-halo-color': 'rgba(255,255,255,0.98)',
+        'text-halo-width': 5,
+      },
+    })
+  }
 
   // Selection geometry is fetched only for the active record and sits on top.
   map.addLayer({

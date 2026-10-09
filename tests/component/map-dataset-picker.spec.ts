@@ -13,7 +13,7 @@ describe("MapDatasetPicker", () => {
 
     await wrapper.get('[aria-haspopup="menu"]').trigger("click");
     const options = wrapper.findAll('[role="menuitemradio"]');
-    expect(options).toHaveLength(3);
+    expect(options).toHaveLength(4);
     expect(options[0]?.attributes("aria-checked")).toBe("true");
 
     await options[1]?.trigger("click");

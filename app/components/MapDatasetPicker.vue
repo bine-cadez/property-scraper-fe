@@ -14,7 +14,10 @@ const root = ref<HTMLElement>();
 const open = ref(false);
 
 const options: {
-  id: Extract<MapLayerId, "buildings" | "parcels" | "transactions">;
+  id: Extract<
+    MapLayerId,
+    "buildings" | "parcels" | "transactions" | "listings"
+  >;
   label: string;
   description: string;
   swatch: string;
@@ -36,6 +39,12 @@ const options: {
     label: "Prodaje",
     description: "Evidentirane nepremičninske prodaje",
     swatch: "#315f52",
+  },
+  {
+    id: "listings",
+    label: "Oglasi",
+    description: "Aktivni prodajni in najemni oglasi",
+    swatch: "#7b55a3",
   },
 ];
 

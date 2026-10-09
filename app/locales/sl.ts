@@ -4,6 +4,7 @@ export const sl = {
   navigation: {
     map: 'Zemljevid',
     market: 'Trg',
+    listings: 'Oglasi',
     methodology: 'Metodologija',
     sources: 'Viri',
     about: 'O projektu',

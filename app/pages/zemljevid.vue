@@ -26,6 +26,7 @@ const {
   resetMapView,
   retryMap,
   selectedId,
+  selectedListing,
   selectedProperty,
   selectionError,
   selectionLoading,
@@ -183,6 +184,12 @@ useHead({
           <strong>Podatki niso na voljo</strong>
           <p class="m-0 text-xs text-[#74817d]">{{ selectionError }}</p>
         </div>
+        <ListingDetailsDrawer
+          v-else-if="selectedListing"
+          class="max-[720px]:hidden"
+          :listing="selectedListing"
+          @close="closeSelection"
+        />
         <PropertyDetailsDrawer
           v-else-if="selectedProperty"
           embedded
@@ -190,6 +197,14 @@ useHead({
           :property="selectedProperty"
           @close="closeSelection"
           @compare="compareSelectedProperty"
+        />
+        <ListingMapResultsPanel
+          v-else-if="layers.includes('listings')"
+          :results="visibleResults"
+          :feature-count="featureCount"
+          :loading="resultsLoading"
+          :selected-id="selectedId"
+          @select="selectVisibleResult"
         />
         <MapResultsPanel
           v-else
@@ -243,7 +258,8 @@ useHead({
           v-if="!mapLoading && !mapError && !mapDataError"
           class="absolute top-[15px] left-3.5 z-20 m-0 hidden rounded-[7px] bg-white px-[13px] py-[11px] text-[10px] text-[#294d43] shadow-[0_3px_12px_rgb(29_68_58_/_9%)] max-[720px]:block"
         >
-          {{ visibleResults.length || featureCount }} stavb
+          {{ visibleResults.length || featureCount }}
+          {{ layers.includes("listings") ? "oglasov" : "stavb" }}
           <template v-if="filters.propertyTypes.length">
             · izbrana vrsta</template
           >
@@ -341,7 +357,11 @@ useHead({
         <p
           class="absolute bottom-[15px] left-4 z-18 m-0 rounded-md bg-white/92 px-3 py-2.5 text-[9px] text-[#74817d] shadow-[0_3px_12px_rgb(29_68_58_/_8%)] backdrop-blur-[10px] max-[720px]:hidden"
         >
-          Stavbe in ocenjene vrednosti
+          {{
+            layers.includes("listings")
+              ? "Aktivni prodajni in najemni oglasi"
+              : "Stavbe in ocenjene vrednosti"
+          }}
           <span aria-hidden="true">·</span>
           <span v-if="zoom < 12"
             >skupine stavb se razprejo s približevanjem</span
@@ -361,7 +381,10 @@ useHead({
 
     <div
       v-if="
-        (selectedProperty || selectionLoading || selectionError) &&
+        (selectedProperty ||
+          selectedListing ||
+          selectionLoading ||
+          selectionError) &&
         sidebarExpanded
       "
       class="fixed inset-0 z-70 hidden overflow-y-auto bg-surface max-[720px]:block"
@@ -385,6 +408,11 @@ useHead({
         <strong>Podatki niso na voljo</strong>
         <p class="m-0 text-xs text-[#74817d]">{{ selectionError }}</p>
       </div>
+      <ListingDetailsDrawer
+        v-else-if="selectedListing"
+        :listing="selectedListing"
+        @close="closeSelection"
+      />
       <PropertyDetailsDrawer
         v-else-if="selectedProperty"
         embedded

@@ -29,6 +29,7 @@ const propertyTypeOptions = [
   { value: "office", label: "Poslovne stavbe" },
   { value: "retail", label: "Trgovske stavbe" },
 ];
+const listingsMode = computed(() => props.layers.includes("listings"));
 const priceOptions = [
   { value: "all", label: "Vse vrednosti" },
   { value: "under-200", label: "Do 200.000 €" },
@@ -191,8 +192,8 @@ function resetFilters() {
         class="min-w-[170px] max-[720px]:hidden"
         :model-value="typeChoice"
         :options="propertyTypeOptions"
-        label="Vrsta stavbe"
-        eyebrow="Vrsta stavbe"
+        :label="listingsMode ? 'Vrsta oglasa' : 'Vrsta stavbe'"
+        :eyebrow="listingsMode ? 'Vrsta oglasa' : 'Vrsta stavbe'"
         trigger-class="min-h-[48px]"
         :active="typeChoice !== 'all'"
         @change="setType"
@@ -202,8 +203,8 @@ function resetFilters() {
         class="min-w-[166px] max-[720px]:min-w-0 max-[720px]:flex-1"
         :model-value="priceChoice"
         :options="priceOptions"
-        label="Ocenjena vrednost"
-        eyebrow="Ocenjena vrednost"
+        :label="listingsMode ? 'Zahtevana cena' : 'Ocenjena vrednost'"
+        :eyebrow="listingsMode ? 'Zahtevana cena' : 'Ocenjena vrednost'"
         trigger-class="min-h-[48px]"
         :active="priceChoice !== 'all'"
         @change="setPrice"
@@ -213,14 +214,15 @@ function resetFilters() {
         class="min-w-[132px] max-[720px]:hidden"
         :model-value="areaChoice"
         :options="areaOptions"
-        label="Površina stavbe"
-        eyebrow="Površina stavbe"
+        :label="listingsMode ? 'Površina oglasa' : 'Površina stavbe'"
+        :eyebrow="listingsMode ? 'Površina oglasa' : 'Površina stavbe'"
         trigger-class="min-h-[48px]"
         :active="areaChoice !== 'all'"
         @change="setArea"
       />
 
       <BaseSelect
+        v-if="!listingsMode"
         class="min-w-[142px] max-[720px]:hidden"
         :model-value="yearChoice"
         :options="yearOptions"
@@ -235,6 +237,7 @@ function resetFilters() {
         class="[&_button:first-child]:min-w-[112px]"
         :filters="filters"
         :result-count="featureCount"
+        :listings="listingsMode"
         @change="emit('filtersChange', $event)"
       />
 

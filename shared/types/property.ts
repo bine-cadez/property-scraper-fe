@@ -106,17 +106,63 @@ export interface Transaction {
   sourceUpdatedAt: string
 }
 
+export type ListingTransactionType = 'sale' | 'rent'
+export type ListingPropertyType =
+  'house' | 'apartment' | 'land' | 'commercial' | 'garage' | 'other'
+export type ListingPriceUnit =
+  'total' | 'month' | 'week' | 'day' | 'm2' | 'unknown'
+export type ListingLocationAccuracy = 'exact' | 'approximate' | 'unknown'
+
+/** Asking-price advertisement returned by the Property Scraper API. */
 export interface Listing {
   id: string
+  source: string
+  sourceListingId: string
+  url: string
+  transactionType: ListingTransactionType
+  propertyType: ListingPropertyType
   title: string
-  location: string
-  askingPrice: MoneyValue
-  pricePerM2: number
-  areaM2: number
-  publishedAt: string
-  sourceName: string
-  sourceUrl: string
-  coordinates: Position
+  description: string
+  locationText: string
+  address: string | null
+  price: number | null
+  currency: string
+  priceUnit: ListingPriceUnit
+  areaM2: number | null
+  landAreaM2: number | null
+  rooms: number | null
+  latitude: number | null
+  longitude: number | null
+  locationAccuracy: ListingLocationAccuracy
+  images: string[]
+  contentFingerprint: string
+  duplicateOf: string | null
+  firstSeenAt: string
+  lastSeenAt: string
+  scrapedAt: string
+  updatedAt: string
+  active: boolean
+}
+
+export interface ListingSource {
+  key: string
+  name: string
+  homepage: string
+  priority: number
+  enabled: boolean
+  note: string | null
+}
+
+export interface ListingListResponse {
+  items: Listing[]
+  page: {
+    hasMore: boolean
+    nextCursor: string | null
+  }
+}
+
+export interface ListingSourcesResponse {
+  items: ListingSource[]
 }
 
 export interface PropertyRecord {
@@ -160,7 +206,7 @@ export interface SearchResult {
  */
 export interface MapResultItem {
   id: string
-  kind?: 'building' | 'transaction'
+  kind?: 'building' | 'transaction' | 'listing'
   selectionId: string
   address: string
   location?: string
@@ -180,6 +226,8 @@ export interface MapResultItem {
   status?: string
   sourceLabel?: string
   transactionDate?: string
+  priceUnit?: ListingPriceUnit
+  transactionType?: ListingTransactionType
 }
 
 export interface MapFilters {

@@ -24,7 +24,22 @@ const values = computed<MoneyValue[]>(() => {
   const transaction = props.property.transactions[0]
   if (transaction) result.push(transaction.price)
   const listing = props.property.listings[0]
-  if (listing) result.push(listing.askingPrice)
+  if (listing && listing.price !== null) {
+    result.push({
+      amount: listing.price,
+      ...(listing.priceUnit === 'total' && listing.areaM2
+        ? { amountPerM2: listing.price / listing.areaM2 }
+        : {}),
+      valueType: 'asking',
+      source: {
+        id: listing.source,
+        name: listing.source,
+        url: listing.url,
+        quality: 'current',
+      },
+      sourceUpdatedAt: listing.lastSeenAt,
+    })
+  }
   return result
 })
 </script>

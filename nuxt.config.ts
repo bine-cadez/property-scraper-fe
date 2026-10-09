@@ -31,6 +31,8 @@ export default defineNuxtConfig({
     '/viri-podatkov': { ssr: true },
     '/o-projektu': { prerender: true },
     '/zemljevid': { ssr: true },
+    '/oglasi': { ssr: true },
+    '/oglas/**': { ssr: true },
     '/nepremicnina/**': { ssr: true },
     '/parcela/**': { ssr: true },
     '/stavba/**': { ssr: true },

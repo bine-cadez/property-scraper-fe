@@ -69,8 +69,7 @@ function upstreamErrorDetails(error: unknown): UpstreamErrorDetails {
 
 function upstreamError(error: unknown): never {
   const details = upstreamErrorDetails(error)
-  const statusCode =
-    details.statusCode === 404 ? 404 : 502
+  const statusCode = details.statusCode === 404 ? 404 : 502
 
   if (import.meta.dev) {
     console.error('[gurs-api] Upstream request failed', details)
@@ -163,12 +162,51 @@ export async function gursTile(
         } catch {
           responseData = undefined
         }
+        throw Object.assign(new Error(`Tile API returned ${response.status}`), {
+          statusCode: response.status,
+          url: url.toString(),
+          responseData,
+        })
+      }
+      return response
+    } catch (error) {
+      lastError = error
+    }
+  }
+  upstreamError(lastError)
+}
+
+export async function gursListingTile(
+  event: H3Event,
+  layer: 'sales' | 'rentals',
+  z: number,
+  x: number,
+  y: number,
+  query?: GursRequestOptions['query'],
+): Promise<Response> {
+  const { baseURL, headers } = connection(event)
+  const url = new URL(
+    `/listings/map/tiles/${layer}/${z}/${x}/${y}.mvt`,
+    baseURL,
+  )
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value !== undefined) url.searchParams.set(key, String(value))
+  }
+
+  let lastError: unknown
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        headers,
+        signal: AbortSignal.timeout(12_000),
+      })
+      if (!response.ok) {
         throw Object.assign(
-          new Error(`Tile API returned ${response.status}`),
+          new Error(`Listing tile API returned ${response.status}`),
           {
             statusCode: response.status,
             url: url.toString(),
-            responseData,
+            responseData: await response.text(),
           },
         )
       }

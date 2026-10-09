@@ -12,6 +12,8 @@ describe('property map vector tile URLs', () => {
       'gurs-sales': `${origin}/api/map/tiles/sales/{z}/{x}/{y}.mvt?v=4`,
       'gurs-parcels': `${origin}/api/map/tiles/parcels/{z}/{x}/{y}.mvt?v=4`,
       'gurs-cadastral': `${origin}/api/map/tiles/cadastral/{z}/{x}/{y}.mvt?v=4`,
+      'listing-sales': `${origin}/api/listings/tiles/sales/{z}/{x}/{y}.mvt?v=1&dedupe=true`,
+      'listing-rentals': `${origin}/api/listings/tiles/rentals/{z}/{x}/{y}.mvt?v=1&dedupe=true`,
     })
   })
 
@@ -32,13 +34,15 @@ describe('property map vector tile URLs', () => {
       `${window.location.origin}/api/map/tiles/sales/{z}/{x}/{y}.mvt?v=4`,
       `${window.location.origin}/api/map/tiles/parcels/{z}/{x}/{y}.mvt?v=4`,
       `${window.location.origin}/api/map/tiles/cadastral/{z}/{x}/{y}.mvt?v=4`,
+      `${window.location.origin}/api/listings/tiles/sales/{z}/{x}/{y}.mvt?v=1&dedupe=true&propertyType=house&priceMin=100000&priceUnit=total&priceMax=450000&areaMin=70`,
+      `${window.location.origin}/api/listings/tiles/rentals/{z}/{x}/{y}.mvt?v=1&dedupe=true&propertyType=house&priceMin=100000&priceUnit=month&priceMax=450000&areaMin=70`,
     ])
   })
 
   it('reads the summed building valuation field published by the tile API', () => {
     expect(BUILDING_VALUE_PROPERTY_KEYS).toContain('modelled_value')
-    expect(BUILDING_VALUE_PROPERTY_KEYS.indexOf('combined_modelled_value')).toBe(
-      0,
-    )
+    expect(
+      BUILDING_VALUE_PROPERTY_KEYS.indexOf('combined_modelled_value'),
+    ).toBe(0)
   })
 })
